@@ -1,0 +1,147 @@
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/devel
+**** Job starts ****
+Tue Jul  5 13:51:17 EDT 2022
+**** JHPCE info ****
+User: hdivecha
+Job id: 1275786
+Job name: VNS.sh
+Hostname: compute-066.cm.cluster
+Task id: 1
+****
+Sample id: 06-02-2022_V11U08-082_Br8325_Round1
+****
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2019 The MathWorks, Inc.
+                  R2019a (9.6.0.1072779) 64-bit (glnxa64)
+                               March 8, 2019
+
+ 
+For online documentation, see https://www.mathworks.com/support
+For product information, visit www.mathworks.com.
+ 
+Importing capture area
+Elapsed time is 885.017882 seconds.
+Performing smoothing and contrast adjustment
+{Out of memory. Type "help memory" for your options.
+
+Error in padarray_algo (line 35)
+    b = a(aIdx{:});
+
+Error in imgaussfilt>filterDoubleSeparableWithConv (line 225)
+    a = padarray_algo(a,padSize,method,padVal,'both');
+
+Error in imgaussfilt>spatialGaussianFilter (line 170)
+    A = filterDoubleSeparableWithConv(A, hCol,hRow, hsize, padSize, padding);
+
+Error in imgaussfilt (line 135)
+        B = spatialGaussianFilter(A, sigma, hsize, padding, separableFlag);
+
+Error in VNS (line 11)
+Img1_smooth = imgaussfilt(Img1,4); %smooth image
+} 
+>> **** Job ends ****
+Tue Jul  5 14:10:15 EDT 2022
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/devel
+**** Job starts ****
+Tue Jul  5 14:13:29 EDT 2022
+**** JHPCE info ****
+User: hdivecha
+Job id: 1275875
+Job name: VNS.sh
+Hostname: compute-076.cm.cluster
+Task id: 1
+****
+Sample id: 06-02-2022_V11U08-082_Br8325_Round1
+****
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2019 The MathWorks, Inc.
+                  R2019a (9.6.0.1072779) 64-bit (glnxa64)
+                               March 8, 2019
+
+ 
+For online documentation, see https://www.mathworks.com/support
+For product information, visit www.mathworks.com.
+ 
+Importing capture area
+Elapsed time is 155.166493 seconds.
+Performing smoothing and contrast adjustment
+{Out of memory. Type "help memory" for your options.
+
+Error in padarray_algo (line 35)
+    b = a(aIdx{:});
+
+Error in imgaussfilt>filterDoubleSeparableWithConv (line 225)
+    a = padarray_algo(a,padSize,method,padVal,'both');
+
+Error in imgaussfilt>spatialGaussianFilter (line 170)
+    A = filterDoubleSeparableWithConv(A, hCol,hRow, hsize, padSize, padding);
+
+Error in imgaussfilt (line 135)
+        B = spatialGaussianFilter(A, sigma, hsize, padding, separableFlag);
+
+Error in VNS (line 11)
+Img1_smooth = imgaussfilt(Img1,4); %smooth image
+} 
+>> **** Job ends ****
+Tue Jul  5 14:16:48 EDT 2022
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/devel
+**** Job starts ****
+Tue Jul  5 14:24:22 EDT 2022
+**** JHPCE info ****
+User: hdivecha
+Job id: 1275990
+Job name: VNS.sh
+Hostname: compute-054.cm.cluster
+Task id: 1
+****
+Sample id: 06-02-2022_V11U08-082_Br8325_Round1
+****
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2019 The MathWorks, Inc.
+                  R2019a (9.6.0.1072779) 64-bit (glnxa64)
+                               March 8, 2019
+
+ 
+For online documentation, see https://www.mathworks.com/support
+For product information, visit www.mathworks.com.
+ 
+Importing capture area
+Elapsed time is 708.031140 seconds.
+Performing smoothing and contrast adjustment
+{Out of memory. Type "help memory" for your options.
+
+Error in imgaussfilt>filterDoubleSeparableWithConv (line 234)
+       result(:,:,i) = conv2(hcol, hrow, a(:,:,i),'valid');
+
+Error in imgaussfilt>spatialGaussianFilter (line 170)
+    A = filterDoubleSeparableWithConv(A, hCol,hRow, hsize, padSize, padding);
+
+Error in imgaussfilt (line 135)
+        B = spatialGaussianFilter(A, sigma, hsize, padding, separableFlag);
+
+Error in VNS (line 11)
+Img1_smooth = imgaussfilt(Img1,4); %smooth image
+} 
+>> **** Job ends ****
+Tue Jul  5 14:47:12 EDT 2022
