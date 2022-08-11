@@ -1,13 +1,12 @@
 #!/bin/bash
 #$ -cwd
-#$ -l mem_free=20G,h_vmem=20G,h_fsize=100G
-#$ -pe local 10
-#$ -o logs/06-02-2022_V11U08-082_Br8325_Round1_A1_VNS.txt
-#$ -e logs/06-02-2022_V11U08-082_Br8325_Round1_A1_VNS.txt 
+#$ -l mem_free=90G,h_vmem=90G,h_stack=256M,h_fsize=100G
+#$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt.txt 
+#$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt.txt 
 #$ -m e
 #$ -M heenadivecha@gmail.com
-#$ -t 1
-#$ -tc 2
+#$ -t 1-24
+#$ -tc 6
 
 echo "**** Job starts ****"
 date
