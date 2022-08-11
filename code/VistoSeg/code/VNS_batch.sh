@@ -1,12 +1,12 @@
 #!/bin/bash
 #$ -cwd
-#$ -l mem_free=90G,h_vmem=90G,h_stack=256M,h_fsize=100G
+#$ -l mem_free=100G,h_vmem=100G,h_stack=256M,h_fsize=100G
 #$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt.txt 
 #$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt.txt 
 #$ -m e
 #$ -M heenadivecha@gmail.com
 #$ -t 1-24
-#$ -tc 6
+#$ -tc 12
 
 echo "**** Job starts ****"
 date
