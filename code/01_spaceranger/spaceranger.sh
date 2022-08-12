@@ -2,11 +2,11 @@
 #$ -cwd
 #$ -l mem_free=8G,h_vmem=8G,h_fsize=100G
 #$ -pe local 8
-#$ -N spatial_DG_lifespan_spaceranger
+#$ -N spatial_NAc
 #$ -o logs/spaceranger.$TASK_ID.txt
 #$ -e logs/spaceranger.$TASK_ID.txt
 #$ -m e
-#$ -t 1-16
+#$ -t 11
 #$ -tc 10
 
 echo "**** Job starts ****"
