@@ -5,7 +5,7 @@
 #$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt.txt 
 #$ -m e
 #$ -M heenadivecha@gmail.com
-#$ -t 3
+#$ -t 12
 #$ -tc 1
 
 echo "**** Job starts ****"
