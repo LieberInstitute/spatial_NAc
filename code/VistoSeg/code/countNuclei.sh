@@ -6,7 +6,7 @@
 #$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/countNuclei.$TASK_ID.txt
 #$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/countNuclei.$TASK_ID.txt
 #$ -m e
-#$ -t 1
+#$ -t 2-16
 #$ -tc 10
 
 echo "**** Job starts ****"
@@ -30,11 +30,11 @@ toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/c
 
 ## Read parameters
 mask=$(awk 'BEGIN {FS="\t"} {print $1}' countNuclei_list.txt | awk "NR==${SGE_TASK_ID}")
-jsonname=$(awk 'BEGIN {FS="\t"} {print $2}' countNuceli_list.txt | awk "NR==${SGE_TASK_ID}")
-posname=$(awk 'BEGIN {FS="\t"} {print $3}' countNuceli_list.txt | awk "NR==${SGE_TASK_ID}")
+jsonname=$(awk 'BEGIN {FS="\t"} {print $2}' countNuclei_list.txt | awk "NR==${SGE_TASK_ID}")
+posname=$(awk 'BEGIN {FS="\t"} {print $3}' countNuclei_list.txt | awk "NR==${SGE_TASK_ID}")
 
 
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), countNuceli('$mask','$jsonname', '$posname')"
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), countNuclei('$mask','$jsonname', '$posname')"
 
 echo "**** Job ends ****"
 date
