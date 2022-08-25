@@ -6,7 +6,7 @@
 #$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/countNuclei.$TASK_ID.txt
 #$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/countNuclei.$TASK_ID.txt
 #$ -m e
-#$ -t 2-16
+#$ -t 14-16
 #$ -tc 10
 
 echo "**** Job starts ****"
