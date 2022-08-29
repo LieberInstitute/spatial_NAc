@@ -9,7 +9,7 @@ toc
 
 tic
 disp('Performing rgb to Lab color space conversion')
-lab_he = rgb2lab(he); % convert from rgb color space to Lab color space
+lab_he = rgb2lab(Img1); % convert from rgb color space to Lab color space
 toc
 ab = lab_he(:,:,2:3); % extract a*b color space from Lab
 ab = im2single(ab);
