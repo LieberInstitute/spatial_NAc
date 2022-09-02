@@ -1,11 +1,11 @@
 #!/bin/bash
 #$ -cwd
 #$ -l mem_free=100G,h_vmem=100G,h_stack=256M,h_fsize=100G
-#$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt.txt 
-#$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt.txt 
+#$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt
+#$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt
 #$ -m e
 #$ -M heenadivecha@gmail.com
-#$ -t 12
+#$ -t 2-16
 #$ -tc 1
 
 echo "**** Job starts ****"
