@@ -27,8 +27,9 @@ module load matlab/R2019a
 
 toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code'
 fname=$(cat /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/VNS_list.txt | awk '{print $NF}' | awk "NR==${SGE_TASK_ID}")
+n=$(awk 'BEGIN {FS="\t"} {print $2}' re_segmentation_list.txt | awk "NR==${SGE_TASK_ID}")
 
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), VNS_resegmentation('$fname',5)"
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), VNS_resegmentation('$fname',5,$n)"
 
 echo "**** Job ends ****"
 date
