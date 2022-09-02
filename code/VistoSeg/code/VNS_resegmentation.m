@@ -1,4 +1,4 @@
-function VNS(fname,N)
+function VNS(fname,N,n)
 %fname = '/dcl02/lieber/ajaffe/SpatialTranscriptomics/LIBD/spatialDLPFC/Images/Lieber_Institute_OTS-20-7748_rush_posterior_A1.tif
 %N = 5;
 
@@ -7,9 +7,11 @@ disp('Importing capture area')
 Img1 = imread(fname); %import image
 toc
 
+he = Img1 %based on VNS.m and there is no contrast adjustment here
+
 tic
 disp('Performing rgb to Lab color space conversion')
-lab_he = rgb2lab(Img1); % convert from rgb color space to Lab color space
+lab_he = rgb2lab(he); % convert from rgb color space to Lab color space
 toc
 ab = lab_he(:,:,2:3); % extract a*b color space from Lab
 ab = im2single(ab);
