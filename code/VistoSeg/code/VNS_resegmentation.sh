@@ -5,7 +5,7 @@
 #$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID_VNS_reseg.txt
 #$ -m e
 #$ -M heenadivecha@gmail.com
-#$ -t 1-16
+#$ -t 1
 #$ -tc 1
 
 echo "**** Job starts ****"
@@ -19,7 +19,7 @@ echo "Job name: ${JOB_NAME}"
 echo "Hostname: ${HOSTNAME}"
 echo "Task id: ${SGE_TASK_ID}"
 echo "****"
-echo "Sample id: $(cat /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/VNS_list.txt | awk '{print $NF}' | awk "NR==${SGE_TASK_ID}")"
+echo "Sample id: $(cat /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/VNS_resegmentation_list.txt | awk '{print $NF}' | awk "NR==${SGE_TASK_ID}")"
 echo "****"
 
 module load matlab/R2019a
@@ -27,9 +27,9 @@ module load matlab/R2019a
 
 toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code'
 fname=$(cat /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/VNS_resegmentation_list.txt | awk '{print $NF}' | awk "NR==${SGE_TASK_ID}")
-n=$(awk 'BEGIN {FS="\t"} {print $2}' VNS_resegmentation_list.txt | awk "NR==${SGE_TASK_ID}")
 
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), VNS_resegmentation('$fname',5,$n)"
+
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), VNS_resegmentation('$fname',5)"
 
 echo "**** Job ends ****"
 date
