@@ -6,7 +6,7 @@
 #$ -o logs/spaceranger.$TASK_ID.txt
 #$ -e logs/spaceranger.$TASK_ID.txt
 #$ -m e
-#$ -t 1-16
+#$ -t 17-18
 #$ -tc 10
 
 echo "**** Job starts ****"
