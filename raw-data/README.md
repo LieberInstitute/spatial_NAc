@@ -85,3 +85,15 @@ ln -s /dcs04/lieber/lcolladotor/rawDataTDSC_LIBD001/raw-data/2022-07-31_SPag0715
 mkdir Br2720_D1
 ln -s /dcs04/lieber/lcolladotor/rawDataTDSC_LIBD001/raw-data/2022-07-31_SPag071522/16v-svb_S19_L00* Br2720_D1/
 ```
+
+## Round 3
+
+```bash
+## Br6522_A1 (Sample21)
+mkdir Br6522_A1
+ln -s /dcs04/lieber/lcolladotor/rawDataTDSC_LIBD001/raw-data/2022-12-01_SBac102722/21v-svb_S22_L00* Br6522_A1/
+
+## Br6522_D1 (Sample24)
+mkdir Br6522_D1
+ln -s /dcs04/lieber/lcolladotor/rawDataTDSC_LIBD001/raw-data/2022-12-01_SBac102722/24v-svb_S23_L00* Br6522_D1/
+```
