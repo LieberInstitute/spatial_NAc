@@ -1,0 +1,54 @@
+Adding LIBD modules
+Loading git
+Loading LIBD module for git-status-size/github
+Loading LIBD module for git-lfs/2.8.0
+Loading LIBD module for rmate/1.5.9
+Loading LIBD module for ruby/2.6.4p104
+Loading conda_R/4.1.x
+**** Job starts ****
+Wed Apr 12 05:28:59 EDT 2023
+**** JHPCE info ****
+User: mtippani
+Job id: 3116620
+Job name: splitSlide_0407.sh
+Hostname: compute-119.cm.cluster
+Task id: 1
+****
+Sample id: 2023-04-07_V12D07-074
+****
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2019 The MathWorks, Inc.
+                  R2019a (9.6.0.1072779) 64-bit (glnxa64)
+                               March 8, 2019
+
+ 
+For online documentation, see https://www.mathworks.com/support
+For product information, visit www.mathworks.com.
+ 
+The multiplane tif has 7 images
+Imported image 7 of the multiplane tif
+Elapsed time is 0.168407 seconds.
+Imported image 6 of the multiplane tif
+Elapsed time is 0.018107 seconds.
+Imported image 5 of the multiplane tif
+Elapsed time is 0.064273 seconds.
+Imported image 4 of the multiplane tif
+Elapsed time is 1.068255 seconds.
+Imported image 3 of the multiplane tif
+Elapsed time is 14.264037 seconds.
+Imported image 2 of the multiplane tif
+Elapsed time is 0.006216 seconds.
+Imported image 1 of the multiplane tif
+Elapsed time is 198.862144 seconds.
+Saving the multiplane tif to mat file
+{Error using save
+Unable to write file
+/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/raw-data/images/CS2/round5/NAc_Br2720_Visium2_40X.mat:
+permission denied.
+
+Error in splitSlide_0407 (line 17)
+save([fname(1:end-4),'.mat'],'I', '-v7.3');
+} 
+>> **** Job ends ****
+Wed Apr 12 05:32:49 EDT 2023
