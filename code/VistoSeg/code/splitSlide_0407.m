@@ -22,7 +22,8 @@ Img = I{1}.image; %whole slide image
 clear I
 
 %[~,x,~] = size(Img);
-[path1,name1,ext1] = fileparts(fname);
+[~,name1,ext1] = fileparts(fname);
+path1 = '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/Images/VistoSeg/Capture_areas/round5/';
 
 tic
 disp('Splitting whole slide into individual capture areas')
