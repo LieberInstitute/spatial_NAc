@@ -2,8 +2,8 @@
 #$ -cwd
 #$ -l mem_free=20G,h_vmem=20G,h_fsize=100G
 #$ -pe local 8
-#$ -o logs/2023-04-07_V12D07-074_splitSlide.txt.txt
-#$ -e logs/2023-04-07_V12D07-074_splitSlide.txt.txt 
+#$ -o logs/2023-04-07_V12D07-074_splitSlide.txt
+#$ -e logs/2023-04-07_V12D07-074_splitSlide.txt 
 #$ -m e
 #$ -M ryan.miller@libd.org
 #$ -t 1
@@ -30,7 +30,7 @@ toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/c
 fname='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/raw-data/images/CS2/round5/NAc_Br2720_Visium2_40X.tif'
 
 
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), splitSlide('$fname',0,0,0,0)"
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), splitSlide_0407('$fname',0,0,0,0)"
 
 echo "**** Job ends ****"
 date
