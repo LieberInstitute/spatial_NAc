@@ -6,8 +6,8 @@
 #$ -o logs/spaceranger_2023-04-03_SPag022423.$TASK_ID.txt
 #$ -e logs/spaceranger_2023-04-03_SPag022423.$TASK_ID.txt
 #$ -m e
-#$ -t 1-5
-#$ -tc 5
+#$ -t 1-4
+#$ -tc 4
 
 echo "**** Job starts ****"
 date
