@@ -33,6 +33,7 @@ Img1 = imrotate(Img1,360-A1);
 save([fullfile(path1,name1),'_A1.mat'],'Img1','-v7.3');
 IMG1 = imresize(Img1,0.7);
 imwrite(IMG1,[fullfile(path1,name1),'_A1',ext1])
+imwrite(imresize(IMG1,0.2),[fullfile(path1,name1),'_A1','.png'])
 clear Img1 IMG1
 
 Img2 = Img(:,60001:96000,:);
