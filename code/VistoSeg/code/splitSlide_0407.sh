@@ -5,7 +5,7 @@
 #$ -o logs/2023-04-07_V12D07-074_splitSlide.txt
 #$ -e logs/2023-04-07_V12D07-074_splitSlide.txt 
 #$ -m e
-#$ -M ryan.miller@libd.org
+#$ -M madhavi.tippani@libd.org
 #$ -t 1
 #$ -tc 1
 
