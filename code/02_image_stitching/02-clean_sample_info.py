@@ -36,8 +36,14 @@ sample_info['Brain'] = (
         .replace(to_replace = '\.0$', value = '', regex = True)
 )
 
+sample_info.index = sample_info['Brain'] + '_' + sample_info['Array #']
+
+#   For now, just add image paths for the subset of samples that went through
+#   spaceranger
+sr_info = pd.read_csv(sr_info_path, header = 0, sep = '\t', index_col = 0)
+sample_info['raw_image_path'] = sr_info.iloc[:, 2]
+
+sample_info.to_csv(out_path)
+
 #   TODO: add round as a column, and whatever information is necessary to in 
 #   general find raw image paths and spaceranger outputs
-
-sr_info = pd.read_csv(sr_info_path, header = 0, sep = '\t')
-
