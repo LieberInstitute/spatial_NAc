@@ -13,12 +13,13 @@ sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 out_dir = here('processed-data', '02_image_stitching', 'combined_Br8325')
+img_out_path = here('processed-data', '02_image_stitching', 'combined_Br8325.tif')
 
 #   55-micrometer diameter for Visium spot
 SPOT_DIAMETER_M = 55e-6
 
 #   Image dimensions, which should match between images
-EXPECTED_SHAPE = (31286, 25515, 3)
+EXPECTED_SHAPE = (31286, 25516, 3)
 
 #   Array defining an affine transformation:
 #   [x0', y0'] = trans[0] @ [x0, y0, 1]
@@ -62,7 +63,7 @@ trans[:, :, 2] = np.round(trans[:, :, 2])
 max0 = int(EXPECTED_SHAPE[0] + np.max(trans[:, 0, 2]))
 max1 = int(EXPECTED_SHAPE[1] + np.max(trans[:, 1, 2]))
 combined_img = np.zeros((max0, max1, 3), dtype = np.float16)
-weights = np.zeros((max0, max1, 3), dtype = np.float16)
+weights = np.zeros((max0, max1, 1), dtype = np.float16)
 
 #   Define example RGB images just for testing
 # imgs = [np.zeros(EXPECTED_SHAPE, dtype = np.uint8) for x in range(4)]
@@ -123,13 +124,16 @@ for i in range(sample_info.shape[0]):
     #   Keep track of how many times each pixel was added to
     weights[
             int(trans[i, 0, 2]): int(trans[i, 0, 2] + EXPECTED_SHAPE[0]),
-            int(trans[i, 1, 2]): int(trans[i, 1, 2] + EXPECTED_SHAPE[1]),
-            :
+            int(trans[i, 1, 2]): int(trans[i, 1, 2] + EXPECTED_SHAPE[1])
         ] += 1
 
-#   Rescale image, noting that "untouched" pixels should be divided by 1, not 0
+#   Rescale image, noting that "untouched" pixels should be divided by 1, not 0.
+#   Note that all channels (RGB) have the same weights
 weights[weights == 0] = 1
 combined_img = (combined_img / weights).astype(np.uint8)
+
+with tifffile.TiffWriter(img_out_path, bigtiff = True) as tiff:
+    tiff.write(combined_img)
 
 ################################################################################
 #   Use the Samui API to create the importable directory for this combined
@@ -138,9 +142,26 @@ combined_img = (combined_img / weights).astype(np.uint8)
 
 this_sample = Sample(name = Path(out_dir).name, path = out_dir)
 
-tissue_positions = pd.concat(tissue_positions_list)[['x', 'y']]
+tissue_positions = pd.concat(tissue_positions_list)[['x', 'y']].astype(int)
 this_sample.add_coords(
     tissue_positions, name = "coords", mPerPx = m_per_px, size = SPOT_DIAMETER_M
+)
+
+this_sample.add_image(tiff = img_out_path, channels = 'rgb', scale = m_per_px)
+
+sample_df = pd.DataFrame(
+    {
+        'sample_id': [
+            x.split('_')[-2] + '_' + x.split('_')[-1]
+            for x in tissue_positions.index
+        ]
+    },
+    index = tissue_positions.index
+)
+sample_df['sample_id'] = sample_df['sample_id'].astype('category')
+
+this_sample.add_csv_feature(
+    sample_df, name = "Sample Info", coordName = "coords"
 )
 
 this_sample.write()
