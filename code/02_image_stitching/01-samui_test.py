@@ -111,9 +111,9 @@ for i in range(sample_info.shape[0]):
     tissue_positions.index = tissue_positions.index + '_' + sample_info.index[i]
 
     #   Apply affine transform of coordinates
-    tissue_positions[['x', 'y']] = (
+    tissue_positions[['y', 'x']] = (
         trans[i] @ 
-        np.array(tissue_positions.assign(ones = 1)[['x', 'y', 'ones']]).T
+        np.array(tissue_positions.assign(ones = 1)[['y', 'x', 'ones']]).T
     ).T
 
     tissue_positions_list.append(tissue_positions)
