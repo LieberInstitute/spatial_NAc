@@ -18,9 +18,6 @@ img_out_path = here('processed-data', '02_image_stitching', 'combined_Br8325.tif
 #   55-micrometer diameter for Visium spot
 SPOT_DIAMETER_M = 55e-6
 
-#   Image dimensions, which should match between images
-EXPECTED_SHAPE = (31286, 25516, 3)
-
 #   Array defining an affine transformation:
 #   [x0', y0'] = trans[0] @ [x0, y0, 1]
 trans = np.array(
@@ -44,7 +41,9 @@ sample_info = sample_info.loc[
 ]
 
 #   Loop through all samples and rescale translations to be at full resolutions
-#   (the initial definition of 'trans' uses high-resolution values)
+#   (the initial definition of 'trans' uses high-resolution values). Grab
+#   image dimensions so we can compute the dimensions of the combined image
+img_shapes = []
 for i in range(sample_info.shape[0]):
     #   Grab high-res scale factor and scale translations accordingly
     json_path = os.path.join(
@@ -55,13 +54,19 @@ for i in range(sample_info.shape[0]):
     
     trans[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
 
+    #   Grab image dimensions without loading into memory
+    tif = tifffile.TiffFile(sample_info['raw_image_path'].iloc[i])
+    img_shapes.append(tif.pages[0].shape)
+    tif.close()
+
+img_shapes = np.array(img_shapes)
+
 #   Translations must be an integer number of pixels
 trans[:, :, 2] = np.round(trans[:, :, 2])
 
 #   Initialize the combined tiff, for now using floats (we're averaging pixels
 #   across several images before fixing the data type). 16 bits to save memory
-max0 = int(EXPECTED_SHAPE[0] + np.max(trans[:, 0, 2]))
-max1 = int(EXPECTED_SHAPE[1] + np.max(trans[:, 1, 2]))
+max0, max1 = np.max(trans[:, :, 2] + img_shapes[:, :2], axis = 0).astype(int)
 combined_img = np.zeros((max0, max1, 3), dtype = np.float16)
 weights = np.zeros((max0, max1, 1), dtype = np.float16)
 
@@ -90,7 +95,6 @@ tissue_positions_list = []
 
 for i in range(sample_info.shape[0]):
     img = tifffile.imread(sample_info['raw_image_path'].iloc[i])
-    assert img.shape == EXPECTED_SHAPE, "Image is not of expected dimensions."
 
     #   Read in the tissue positions file to get spatial coordinates. Index by
     #   barcode + sample ID, and subset to only spots within tissue
@@ -116,15 +120,15 @@ for i in range(sample_info.shape[0]):
 
     #   "Place this image" on the combined image, considering translations
     combined_img[
-            int(trans[i, 0, 2]): int(trans[i, 0, 2] + EXPECTED_SHAPE[0]),
-            int(trans[i, 1, 2]): int(trans[i, 1, 2] + EXPECTED_SHAPE[1]),
+            int(trans[i, 0, 2]): int(trans[i, 0, 2] + img.shape[0]),
+            int(trans[i, 1, 2]): int(trans[i, 1, 2] + img.shape[1]),
             :
         ] += img
 
     #   Keep track of how many times each pixel was added to
     weights[
-            int(trans[i, 0, 2]): int(trans[i, 0, 2] + EXPECTED_SHAPE[0]),
-            int(trans[i, 1, 2]): int(trans[i, 1, 2] + EXPECTED_SHAPE[1])
+            int(trans[i, 0, 2]): int(trans[i, 0, 2] + img.shape[0]),
+            int(trans[i, 1, 2]): int(trans[i, 1, 2] + img.shape[1])
         ] += 1
 
 #   Rescale image, noting that "untouched" pixels should be divided by 1, not 0.
