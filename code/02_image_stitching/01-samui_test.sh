@@ -3,7 +3,7 @@
 #$ -N "samui_test"
 #$ -o ../../processed-data/02_image_stitching/01-samui_test.log
 #$ -e ../../processed-data/02_image_stitching/01-samui_test.log
-#$ -l mf=30G,h_vmem=30G
+#$ -l mf=40G,h_vmem=40G
 
 echo "**** Job starts ****"
 date

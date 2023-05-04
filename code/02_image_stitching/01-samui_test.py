@@ -8,6 +8,9 @@ import json
 import os
 from loopy.sample import Sample
 import tifffile
+from PIL import Image
+
+Image.MAX_IMAGE_PIXELS = None
 
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
@@ -61,21 +64,13 @@ for i in range(sample_info.shape[0]):
 
 img_shapes = np.array(img_shapes)
 
-#   Translations must be an integer number of pixels
-trans[:, :, 2] = np.round(trans[:, :, 2])
+#   Translations must be an integer number of pixels. Flip x and y to follow
+#   Samui conventions
+trans[:, :, 2] = np.flip(np.round(trans[:, :, 2]), axis = 1)
 
-#   Initialize the combined tiff, for now using floats (we're averaging pixels
-#   across several images before fixing the data type). 16 bits to save memory
+#   Initialize the combined tiff
 max0, max1 = np.max(trans[:, :, 2] + img_shapes[:, :2], axis = 0).astype(int)
-combined_img = np.zeros((max0, max1, 3), dtype = np.float16)
-weights = np.zeros((max0, max1, 1), dtype = np.float16)
-
-#   Define example RGB images just for testing
-# imgs = [np.zeros(EXPECTED_SHAPE, dtype = np.uint8) for x in range(4)]
-# imgs[0][:, :, 0] = 255
-# imgs[1][:, :, 1] = 255
-# imgs[2][:, :, 2] = 255
-# imgs[3][:, :, :2] = 127
+combined_img = np.zeros((max0, max1, sample_info.shape[0]), dtype = np.uint8)
 
 #   For now, just read in one JSON file and assume all samples are roughly on
 #   the same spatial scale (spots have the same diameter in pixels)
@@ -94,7 +89,7 @@ tissue_positions_list = []
 ################################################################################
 
 for i in range(sample_info.shape[0]):
-    img = tifffile.imread(sample_info['raw_image_path'].iloc[i])
+    img = np.array(Image.open(sample_info['raw_image_path'].iloc[i]).convert('L'))
 
     #   Read in the tissue positions file to get spatial coordinates. Index by
     #   barcode + sample ID, and subset to only spots within tissue
@@ -118,23 +113,13 @@ for i in range(sample_info.shape[0]):
 
     tissue_positions_list.append(tissue_positions)
 
-    #   "Place this image" on the combined image, considering translations
+    #   "Place this image" on the combined image, considering translations. Use
+    #   separate channels for each image
     combined_img[
             int(trans[i, 0, 2]): int(trans[i, 0, 2] + img.shape[0]),
             int(trans[i, 1, 2]): int(trans[i, 1, 2] + img.shape[1]),
-            :
-        ] += img
-
-    #   Keep track of how many times each pixel was added to
-    weights[
-            int(trans[i, 0, 2]): int(trans[i, 0, 2] + img.shape[0]),
-            int(trans[i, 1, 2]): int(trans[i, 1, 2] + img.shape[1])
-        ] += 1
-
-#   Rescale image, noting that "untouched" pixels should be divided by 1, not 0.
-#   Note that all channels (RGB) have the same weights
-weights[weights == 0] = 1
-combined_img = (combined_img / weights).astype(np.uint8)
+            i : (i + 1)
+        ] += img.reshape((img.shape[0], img.shape[1], 1))
 
 with tifffile.TiffWriter(img_out_path, bigtiff = True) as tiff:
     tiff.write(combined_img)
@@ -151,7 +136,9 @@ this_sample.add_coords(
     tissue_positions, name = "coords", mPerPx = m_per_px, size = SPOT_DIAMETER_M
 )
 
-this_sample.add_image(tiff = img_out_path, channels = 'rgb', scale = m_per_px)
+this_sample.add_image(
+    tiff = img_out_path, channels = list(sample_info.index), scale = m_per_px
+)
 
 sample_df = pd.DataFrame(
     {
