@@ -65,7 +65,7 @@ def get_theta(roi_df, label1, label2):
         #   Use the definition of a dot product to solve for theta (the angle
         #   between the 2 edges):
         #   a @ b = |a||b|cos(theta)
-        theta += np.arccos(a_edge @ b_edge / avg_mag)
+        theta += avg_mag * np.arccos(a_edge @ b_edge / avg_mag)
     
     #   Return the weighted average of estimates based on edge lengths
     return theta / np.sum(weights)
