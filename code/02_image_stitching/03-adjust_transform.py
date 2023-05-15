@@ -25,8 +25,14 @@ init_estimate = np.array(
         [19, 52, 0],
         [102, 742, 0],
         [1236, 797, 0]
-    ]
+    ],
+    dtype = np.float64
 )
+
+#   Capture areas we'll compare ROIs (in pairs) for in order to deduce
+#   adjustments to the translations + rotations. The convention here will be to
+#   rotate and translate the second element of the pair to match the first
+pairs = [('B1', 'C1'), ('A1', 'D1')]
 
 ################################################################################
 #   Function definitions
@@ -140,6 +146,13 @@ for i in range(sample_info.shape[0]):
     
     init_estimate[i, :2] /= spaceranger_json['tissue_hires_scalef']
 
+#   Initialize a DataFrame of transformations for each sample. Include a
+#   before and after (not adjusted vs. adjusted)
+estimate_df = pd.DataFrame(init_estimate, columns = ['x', 'y', 'theta'])
+estimate_df['adjusted'] = False
+estimate_df['sample_id'] = sample_info.index
+estimate_df = pd.concat([estimate_df, estimate_df.assign(adjusted = True)])
+
 ################################################################################
 #   Read in ROIs from Samui and use to deduce adjustments to initial
 #   transformation estimates
@@ -158,35 +171,58 @@ roi_df = pd.DataFrame(
     }
 )
 
-#   Extract ROIs of each label into separate arrays. Every ROI is paired,
-#   so a and b should be identical in dimension
-label1 = 'B1_artifact_centroid'
-label2 = 'C1_artifact_centroid'
-a = np.array(roi_df.loc[roi_df['label'] == label1, ['x', 'y']])
-b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
-assert a.shape == b.shape
-
-print("Error of initial guess for aligment of B1 and C1:")
-init_err = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
-print(f"{round(init_err, 2)} spot diameters")
-
-print("Error after simply translating:")
-err = get_avg_distance(a, b - np.mean(b - a, axis = 0), roi_json['mPerPx'], SPOT_DIAMETER_M)
-print(f"{round(err, 2)} spot diameters")
-
-#   Determine how much to rotate 'b' and apply that rotation
-theta = get_theta(a, b)
-rot = np.array(
-    [
-        [np.cos(theta), -1 * np.sin(theta)],
-        [np.sin(theta), np.cos(theta)]
-    ]
+#   Initialize a DataFrame of pairwise relationships between capture areas,
+#   involving translations and rotations required for the second member of the
+#   pair to best line up with the first, and associated error metrics for the
+#   resulting alignment (before and after).
+pairwise_df = pd.DataFrame(pairs, columns = ['capture_area1', 'capture_area2'])
+other_columns = (
+    'x', 'y', 'theta', 'before_err_rmse', 'before_err_avg', 'after_err_rmse',
+    'after_err_avg'
 )
-b = (rot @ b.T).T
+for col in other_columns:
+    pairwise_df[col] = None
 
-#   Now translate 'b' to minimize error between ROIs of 'a' and 'b'
-b -= np.mean(b - a, axis = 0)
+#   Loop through pairs of capture areas to compute transformations and error
+#   information, adding it to 'pairwise_df'
+for pair in pairs:
+    #   Extract ROIs of each label into separate arrays. Every ROI is paired,
+    #   so a and b should be identical in dimension
+    label1 = pair[0] + '_artifact_centroid'
+    label2 = pair[1] + '_artifact_centroid'
+    a = np.array(roi_df.loc[roi_df['label'] == label1, ['x', 'y']])
+    b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
+    assert a.shape == b.shape
 
-print("Error after rotating and translating:")
-err = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
-print(f"{round(err, 2)} spot diameters")
+    #   Calculate initial error metrics
+    init_err_avg = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
+    init_err_rmse = get_rmse(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
+    pairwise_df.loc[
+            (pairwise_df['capture_area1'] == pair[0]) &
+            (pairwise_df['capture_area2'] == pair[1]),
+            ['before_err_avg', 'before_err_rmse']
+        ] = [init_err_avg, init_err_rmse]
+
+    #   Determine how much to rotate 'b' and apply that rotation
+    theta = get_theta(a, b)
+    rot = np.array(
+        [
+            [np.cos(theta), -1 * np.sin(theta)],
+            [np.sin(theta), np.cos(theta)]
+        ]
+    )
+    b = (rot @ b.T).T
+
+    #   Now translate 'b' to minimize error between ROIs of 'a' and 'b'
+    trans = np.mean(b - a, axis = 0)
+    b -= trans
+
+    #   Add error metrics after applying transformation, and the transformation
+    #   itself (translation and theta)
+    err_avg = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
+    err_rmse = get_rmse(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
+    pairwise_df.loc[
+            (pairwise_df['capture_area1'] == pair[0]) &
+            (pairwise_df['capture_area2'] == pair[1]),
+            ['after_err_avg', 'after_err_rmse', 'x', 'y', 'theta']
+        ] = [err_avg, err_rmse, trans[0], trans[1], theta]
