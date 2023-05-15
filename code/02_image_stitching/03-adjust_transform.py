@@ -172,11 +172,11 @@ with open(roi_json_path, 'r') as f:
     roi_json = json.load(f)
 
 #   Form a DataFrame with x and y coordinates (in full-resolution pixels) and
-#   the associated label
+#   the associated label. x and y follow ImageJ coordinate system
 roi_df = pd.DataFrame(
     {
         'x': pd.Series([x['coords'][0] for x in roi_json['rois']]) / roi_json['mPerPx'],
-        'y': pd.Series([x['coords'][1] for x in roi_json['rois']]) / roi_json['mPerPx'],
+        'y': -1 * pd.Series([x['coords'][1] for x in roi_json['rois']]) / roi_json['mPerPx'],
         'label': [x['label'] for x in roi_json['rois']]
     }
 )
@@ -213,7 +213,9 @@ for pair in pairs:
             ['before_err_avg', 'before_err_rmse']
         ] = [init_err_avg, init_err_rmse]
 
-    #   Determine how much to rotate 'b' and apply that rotation
+    #   Determine how much to rotate 'b' and apply that rotation. Center
+    #   rotation at the top left of the image so that rotation parameters
+    #   aren't dependent on the initial translation estimates
     theta = get_theta(a, b)
     rot = np.array(
         [
@@ -221,7 +223,18 @@ for pair in pairs:
             [np.sin(theta), np.cos(theta)]
         ]
     )
-    b = (rot @ b.T).T
+
+    #   The translation from the origin to the top left of the capture area
+    origin_to_corner = np.array(
+        estimate_df.loc[
+            (estimate_df['sample_id'] == 'Br8325_' + pair[1]) &
+            ~estimate_df['adjusted'],
+            ['x', 'y']
+        ]
+    ).reshape((1, 2))
+
+    #   Rotate about the top-left corner of the capture area
+    b = (rot @ (b - origin_to_corner).T).T + origin_to_corner
 
     #   Now translate 'b' to minimize error between ROIs of 'a' and 'b'
     trans = np.mean(b - a, axis = 0)
