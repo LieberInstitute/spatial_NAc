@@ -30,24 +30,16 @@ roi_df = pd.DataFrame(
 )
 
 #   Form a sort of polygon where each ROI is connected to exactly 2 other ROIs.
-#   Compute an angle between the edges formed by points with label1 vs. those of
-#   label2. Estimate theta via a weighted average of each estimate for a pair of
+#   Compute an angle between the edges formed by points (rows) in 'a' vs. those
+#   in 'b'. Estimate theta via a weighted average of each estimate for a pair of
 #   edges; weights are the geometric mean of the lengths of each pair of edges.
 #   Intuitively, this means a pair of long edges gives a more accurate estimate
 #   of theta than a pair of short edges.
 # 
-#   Return (translation, theta) where theta is in radians (the angle such
-#   that rotating points of label2 counter-clockwise by theta would result in
-#   points that line up angularly with points of label1). 'translation' is the
-#   vector to be added to points of label2 to minimize the resulting average
-#   distance between pairs of ROIs.
-def get_transform(roi_df, label1, label2):
-    #   Extract ROIs of each label into separate arrays. Every ROI is paired,
-    #   so a and b should be identical in dimension
-    a = np.array(roi_df.loc[roi_df['label'] == label1, ['x', 'y']])
-    b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
-    assert a.shape == b.shape
-
+#   Return theta in radians (the angle such that rotating points in 'b'
+#   counter-clockwise by theta would result in points that line up angularly
+#   with points in 'a'.
+def get_theta(a, b, tol = 1e-8):
     weights = np.zeros(a.shape[0])
     theta = 0
 
@@ -69,18 +61,35 @@ def get_transform(roi_df, label1, label2):
         weights[i] = avg_mag
 
         #   Use the definition of a dot product to solve for theta (the angle
-        #   between the 2 edges):
+        #   between the 2 edges). Note that by convention, theta is positive!
         #   a @ b = |a||b|cos(theta)
-        theta += avg_mag * np.arccos(a_edge @ b_edge / avg_mag)
+        theta_mag = np.arccos(a_edge @ b_edge / avg_mag)
+        assert theta_mag >= 0, theta_mag
+
+        #   If necessary, switch the sign of theta to represent the clockwise
+        #   rotation necessary to line up with a when applied to b. Here,
+        #   we simply check if applying the rotation in this way creates
+        #   alignment (a dot product very close to 1), and negate theta
+        #   otherwise
+        rot = np.array(
+            [
+                [np.cos(theta_mag), -1 * np.sin(theta_mag)],
+                [np.sin(theta_mag), np.cos(theta_mag)]
+            ]
+        )
+        if abs((rot @ a_edge) @ b_edge / avg_mag - 1) < tol:
+            theta_mag *= -1
+
+        #   Add one term of the weighted sum
+        theta += avg_mag * theta_mag
     
-    #   Return (translation, angle). Here the angle (theta) is the weighted sum
-    #   of theta estimates by edge length
-    return (np.mean(a - b, axis = 0), theta / np.sum(weights))
+    #   Return the weighted sum of theta estimates by edge length
+    return theta / np.sum(weights)
 
 #   Return the root mean squared euclidean distance between ROIs in number of
 #   spot diameters. Here 'a' and 'b' are each supposed to contain ROIs such
 #   that row 1 in a is the point paired with row 1 of b
-def get_error(a, b, M_PER_PX, SPOT_DIAMETER_M):
+def get_rmse(a, b, M_PER_PX, SPOT_DIAMETER_M):
     #   Sum of the squares of the edge lengths between each pair of ROIs, then
     #   take the square root of the result
     rmse = np.sqrt(
@@ -90,10 +99,48 @@ def get_error(a, b, M_PER_PX, SPOT_DIAMETER_M):
     #   Convert from full-resolution pixels to number of spot diameters
     return rmse * M_PER_PX / SPOT_DIAMETER_M
 
+#   Return the average euclidean distance between ROIs in 'a' and 'b', in
+#   spot diameters
+def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
+    err = np.mean(
+        #   For each pair, calculate the length between ROI in a and b 
+        np.sqrt(
+            (b - a)[:, 0] ** 2 + (b - a)[:, 1] ** 2
+        )
+    )
+
+    #   Convert from full-resolution pixels to number of spot diameters
+    return err * M_PER_PX / SPOT_DIAMETER_M
+
+#   Extract ROIs of each label into separate arrays. Every ROI is paired,
+#   so a and b should be identical in dimension
+label1 = 'B1_artifact_centroid'
+label2 = 'C1_artifact_centroid'
+a = np.array(roi_df.loc[roi_df['label'] == label1, ['x', 'y']])
+b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
+assert a.shape == b.shape
+
 print("Error of initial guess for aligment of B1 and C1:")
-err = get_error(
-    np.array(roi_df.loc[roi_df['label'] == 'B1_artifact_centroid', ['x', 'y']]),
-    np.array(roi_df.loc[roi_df['label'] == 'C1_artifact_centroid', ['x', 'y']]),
-    roi_json['mPerPx'], SPOT_DIAMETER_M
+init_err = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
+print(f"{round(init_err, 2)} spot diameters")
+
+print("Error after simply translating:")
+err = get_avg_distance(a, b - np.mean(b - a, axis = 0), roi_json['mPerPx'], SPOT_DIAMETER_M)
+print(f"{round(err, 2)} spot diameters")
+
+#   Determine how much to rotate 'b' and apply that rotation
+theta = get_theta(a, b)
+rot = np.array(
+    [
+        [np.cos(theta), -1 * np.sin(theta)],
+        [np.sin(theta), np.cos(theta)]
+    ]
 )
-print(f"{round(err, 2)} spot diemeters")
+b = (rot @ b.T).T
+
+#   Now translate 'b' to minimize error between ROIs of 'a' and 'b'
+b -= np.mean(b - a, axis = 0)
+
+print("Error of adjusted aligment of B1 and C1:")
+err = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
+print(f"{round(err, 2)} spot diameters")
