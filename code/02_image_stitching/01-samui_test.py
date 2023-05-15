@@ -15,25 +15,14 @@ Image.MAX_IMAGE_PIXELS = None
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
+estimate_path = here(
+    'processed-data', '02_image_stitching', 'transformation_estimates.csv'
+)
 out_dir = here('processed-data', '02_image_stitching', 'combined_Br8325')
 img_out_path = here('processed-data', '02_image_stitching', 'combined_Br8325.tif')
 
 #   55-micrometer diameter for Visium spot
 SPOT_DIAMETER_M = 55e-6
-
-#   Array defining an affine transformation:
-#   [x0', y0'] = trans[0] @ [x0, y0, 1]
-trans = np.array(
-    [
-        [[1, 0, 1365], [0, 1, 18]],
-        [[1, 0, 19], [0, 1, 52]],
-        [[1, 0, 102], [0, 1, 742]],
-        [[1, 0, 1236], [0, 1, 797]]
-    ],
-    dtype = np.float64
-)
-
-Path(out_dir).mkdir(parents = True, exist_ok = True)
 
 #   Read in sample info and subset to the samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
@@ -43,30 +32,82 @@ sample_info = sample_info.loc[
     :
 ]
 
-#   Loop through all samples and rescale translations to be at full resolutions
-#   (the initial definition of 'trans' uses high-resolution values). Grab
-#   image dimensions so we can compute the dimensions of the combined image
+################################################################################
+#   Define the transformation matrix
+################################################################################
+
+#   Check if the adjusted estimates exist (i.e. if we already ran this script to
+#   display in Samui, annotated ROIs, then ran '03-adjust_transform.py' to
+#   refine the initial transformations from ImageJ). If not, use the initial
+#   estimate from ImageJ
+if Path(estimate_path).exists():
+    #   Read in the adjusted transformations
+    estimates_df = pd.read_csv(estimate_path)
+    a = estimates_df.loc[estimates_df['adjusted']]
+
+    #   Array defining an affine transformation:
+    #   [x0', y0'] = trans[0] @ [x0, y0, 1]
+    trans = np.array(
+        [
+            [
+                [
+                    np.cos(a['theta'].iloc[i]),
+                    -1 * np.sin(a['theta'].iloc[i]),
+                    a['x'].iloc[i]
+                ],
+                [
+                    np.sin(a['theta'].iloc[i]),
+                    np.cos(a['theta'].iloc[i]),
+                    a['y'].iloc[i]
+                ]
+            ]
+            for i in range(a.shape[0])
+        ],
+        dtype = np.float64
+    )
+else:
+    #   Array defining an affine transformation:
+    #   [x0', y0'] = trans[0] @ [x0, y0, 1]
+    trans = np.array(
+        [
+            [[1, 0, 1365], [0, 1, 18]],
+            [[1, 0, 19], [0, 1, 52]],
+            [[1, 0, 102], [0, 1, 742]],
+            [[1, 0, 1236], [0, 1, 797]]
+        ],
+        dtype = np.float64
+    )
+
+    #   The above translations are in high resolution. Scale to full resolution
+    for i in range(sample_info.shape[0]):
+        #   Grab high-res scale factor and scale translations accordingly
+        json_path = os.path.join(
+            sample_info['spaceranger_dir'].iloc[i], 'scalefactors_json.json'
+        )
+        with open(json_path, 'r') as f:
+            spaceranger_json = json.load(f)
+        
+        trans[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
+
+#   Translations must be an integer number of pixels. Flip x and y to follow
+#   Samui conventions
+trans[:, :, 2] = np.flip(np.round(trans[:, :, 2]), axis = 1)
+
+Path(out_dir).mkdir(parents = True, exist_ok = True)
+
+################################################################################
+#   Determine image shapes and initialize the combined image
+################################################################################
+
+#   Loop through all samples and grab image dimensions so we can compute
+#   the dimensions of the combined image. Doesn't load the images into memory
 img_shapes = []
 for i in range(sample_info.shape[0]):
-    #   Grab high-res scale factor and scale translations accordingly
-    json_path = os.path.join(
-        sample_info['spaceranger_dir'].iloc[i], 'scalefactors_json.json'
-    )
-    with open(json_path, 'r') as f:
-        spaceranger_json = json.load(f)
-    
-    trans[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
-
-    #   Grab image dimensions without loading into memory
     tif = tifffile.TiffFile(sample_info['raw_image_path'].iloc[i])
     img_shapes.append(tif.pages[0].shape)
     tif.close()
 
 img_shapes = np.array(img_shapes)
-
-#   Translations must be an integer number of pixels. Flip x and y to follow
-#   Samui conventions
-trans[:, :, 2] = np.flip(np.round(trans[:, :, 2]), axis = 1)
 
 #   Initialize the combined tiff
 max0, max1 = np.max(trans[:, :, 2] + img_shapes[:, :2], axis = 0).astype(int)
