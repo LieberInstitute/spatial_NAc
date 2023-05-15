@@ -9,12 +9,22 @@ import os
 
 SPOT_DIAMETER_M = 55e-6
 
+#   Inputs
 roi_json_path = here(
     'processed-data', '02_image_stitching', 'rois_combined_Br8325.json'
 )
 
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
+)
+
+#   Outputs
+estimate_path = here(
+    'processed-data', '02_image_stitching', 'transformation_estimates.csv'
+)
+
+pairwise_path = here(
+    'processed-data', '02_image_stitching', 'pairwise_errors.csv'
 )
 
 #   Initial estimates of (by row): x translation, y translation, theta in
@@ -226,3 +236,22 @@ for pair in pairs:
             (pairwise_df['capture_area2'] == pair[1]),
             ['after_err_avg', 'after_err_rmse', 'x', 'y', 'theta']
         ] = [err_avg, err_rmse, trans[0], trans[1], theta]
+
+
+#   Use information about adjustments to form a final table of (x, y)
+#   translations and theta values, that can be used to prepare for reviewing
+#   in Samui
+for i in range(pairwise_df.shape[0]):
+    estimate_df.loc[
+        estimate_df['sample_id'].str.contains(
+            pairwise_df['capture_area2'].iloc[i]
+        ) &
+        estimate_df['adjusted'],
+        ['x', 'y', 'theta']
+    ] += pairwise_df.loc[:, ['x', 'y', 'theta']].iloc[i]
+
+#   Write estimates and pairwise errors to disk
+estimate_df.to_csv(estimate_path, index = False)
+pairwise_df.to_csv(pairwise_path, index = False)
+
+session_info.show()
