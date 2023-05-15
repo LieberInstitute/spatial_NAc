@@ -10,6 +10,8 @@ from loopy.sample import Sample
 import tifffile
 from PIL import Image
 
+SPOT_DIAMETER_M = 55e-6
+
 roi_json_path = here(
     'processed-data', '02_image_stitching', 'rois_combined_Br8325.json'
 )
@@ -32,16 +34,20 @@ roi_df = pd.DataFrame(
 #   label2. Estimate theta via a weighted average of each estimate for a pair of
 #   edges; weights are the geometric mean of the lengths of each pair of edges.
 #   Intuitively, this means a pair of long edges gives a more accurate estimate
-#   of theta than a pair of short edges. Return theta in radians (the angle such
+#   of theta than a pair of short edges.
+# 
+#   Return (translation, theta) where theta is in radians (the angle such
 #   that rotating points of label2 counter-clockwise by theta would result in
-#   points that line up angularly with points of label1)
-def get_theta(roi_df, label1, label2):
+#   points that line up angularly with points of label1). 'translation' is the
+#   vector to be added to points of label2 to minimize the resulting average
+#   distance between pairs of ROIs.
+def get_transform(roi_df, label1, label2):
     #   Extract ROIs of each label into separate arrays. Every ROI is paired,
     #   so a and b should be identical in dimension
     a = np.array(roi_df.loc[roi_df['label'] == label1, ['x', 'y']])
     b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
-
     assert a.shape == b.shape
+
     weights = np.zeros(a.shape[0])
     theta = 0
 
@@ -67,5 +73,27 @@ def get_theta(roi_df, label1, label2):
         #   a @ b = |a||b|cos(theta)
         theta += avg_mag * np.arccos(a_edge @ b_edge / avg_mag)
     
-    #   Return the weighted average of estimates based on edge lengths
-    return theta / np.sum(weights)
+    #   Return (translation, angle). Here the angle (theta) is the weighted sum
+    #   of theta estimates by edge length
+    return (np.mean(a - b, axis = 0), theta / np.sum(weights))
+
+#   Return the root mean squared euclidean distance between ROIs in number of
+#   spot diameters. Here 'a' and 'b' are each supposed to contain ROIs such
+#   that row 1 in a is the point paired with row 1 of b
+def get_error(a, b, M_PER_PX, SPOT_DIAMETER_M):
+    #   Sum of the squares of the edge lengths between each pair of ROIs, then
+    #   take the square root of the result
+    rmse = np.sqrt(
+        (b - a)[:, 0] @ (b - a)[:, 0] + (b - a)[:, 1] @ (b - a)[:, 1]
+    )
+
+    #   Convert from full-resolution pixels to number of spot diameters
+    return rmse * M_PER_PX / SPOT_DIAMETER_M
+
+print("Error of initial guess for aligment of B1 and C1:")
+err = get_error(
+    np.array(roi_df.loc[roi_df['label'] == 'B1_artifact_centroid', ['x', 'y']]),
+    np.array(roi_df.loc[roi_df['label'] == 'C1_artifact_centroid', ['x', 'y']]),
+    roi_json['mPerPx'], SPOT_DIAMETER_M
+)
+print(f"{round(err, 2)} spot diemeters")
