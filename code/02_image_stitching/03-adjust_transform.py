@@ -6,9 +6,6 @@ import numpy as np
 import pandas as pd
 import json
 import os
-from loopy.sample import Sample
-import tifffile
-from PIL import Image
 
 SPOT_DIAMETER_M = 55e-6
 
@@ -16,18 +13,24 @@ roi_json_path = here(
     'processed-data', '02_image_stitching', 'rois_combined_Br8325.json'
 )
 
-with open(roi_json_path, 'r') as f:
-    roi_json = json.load(f)
-
-#   Form a DataFrame with x and y coordinates (in full-resolution pixels) and
-#   the associated label
-roi_df = pd.DataFrame(
-    {
-        'x': pd.Series([x['coords'][0] for x in roi_json['rois']]) / roi_json['mPerPx'],
-        'y': pd.Series([x['coords'][1] for x in roi_json['rois']]) / roi_json['mPerPx'],
-        'label': [x['label'] for x in roi_json['rois']]
-    }
+sample_info_path = here(
+    'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
+
+#   Initial estimates of (by row): x translation, y translation, theta in
+#   radians (counterclockwise relative to canvas)
+init_estimate = np.array(
+    [
+        [1365, 18, 0],
+        [19, 52, 0],
+        [102, 742, 0],
+        [1236, 797, 0]
+    ]
+)
+
+################################################################################
+#   Function definitions
+################################################################################
 
 #   Form a sort of polygon where each ROI is connected to exactly 2 other ROIs.
 #   Compute an angle between the edges formed by points (rows) in 'a' vs. those
@@ -90,10 +93,11 @@ def get_theta(a, b, tol = 1e-8):
 #   spot diameters. Here 'a' and 'b' are each supposed to contain ROIs such
 #   that row 1 in a is the point paired with row 1 of b
 def get_rmse(a, b, M_PER_PX, SPOT_DIAMETER_M):
-    #   Sum of the squares of the edge lengths between each pair of ROIs, then
+    #   Mean of the squares of the edge lengths between each pair of ROIs, then
     #   take the square root of the result
     rmse = np.sqrt(
-        (b - a)[:, 0] @ (b - a)[:, 0] + (b - a)[:, 1] @ (b - a)[:, 1]
+        ((b - a)[:, 0] @ (b - a)[:, 0] + (b - a)[:, 1] @ (b - a)[:, 1]) /
+        a.shape[0]
     )
 
     #   Convert from full-resolution pixels to number of spot diameters
@@ -111,6 +115,48 @@ def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
 
     #   Convert from full-resolution pixels to number of spot diameters
     return err * M_PER_PX / SPOT_DIAMETER_M
+
+################################################################################
+#   Process initial transformation estimates to be at full resolution
+################################################################################
+
+#   Read in sample info and subset to the samples of interest
+sample_info = pd.read_csv(sample_info_path, index_col = 0)
+sample_info = sample_info.loc[
+    (sample_info['Brain'] == "Br8325") &
+    (sample_info['Sample #'] != "32v_svb"),
+    :
+]
+
+#   Loop through all samples and rescale translations to be at full resolutions
+#   (the initial definition of 'init_estimate' uses high-resolution values).
+for i in range(sample_info.shape[0]):
+    #   Grab high-res scale factor and scale translations accordingly
+    json_path = os.path.join(
+        sample_info['spaceranger_dir'].iloc[i], 'scalefactors_json.json'
+    )
+    with open(json_path, 'r') as f:
+        spaceranger_json = json.load(f)
+    
+    init_estimate[i, :2] /= spaceranger_json['tissue_hires_scalef']
+
+################################################################################
+#   Read in ROIs from Samui and use to deduce adjustments to initial
+#   transformation estimates
+################################################################################
+
+with open(roi_json_path, 'r') as f:
+    roi_json = json.load(f)
+
+#   Form a DataFrame with x and y coordinates (in full-resolution pixels) and
+#   the associated label
+roi_df = pd.DataFrame(
+    {
+        'x': pd.Series([x['coords'][0] for x in roi_json['rois']]) / roi_json['mPerPx'],
+        'y': pd.Series([x['coords'][1] for x in roi_json['rois']]) / roi_json['mPerPx'],
+        'label': [x['label'] for x in roi_json['rois']]
+    }
+)
 
 #   Extract ROIs of each label into separate arrays. Every ROI is paired,
 #   so a and b should be identical in dimension
@@ -141,6 +187,6 @@ b = (rot @ b.T).T
 #   Now translate 'b' to minimize error between ROIs of 'a' and 'b'
 b -= np.mean(b - a, axis = 0)
 
-print("Error of adjusted aligment of B1 and C1:")
+print("Error after rotating and translating:")
 err = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
 print(f"{round(err, 2)} spot diameters")
