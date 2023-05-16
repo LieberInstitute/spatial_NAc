@@ -62,9 +62,6 @@ def get_theta(a, b, tol = 1e-8):
     weights = np.zeros(a.shape[0])
     theta = 0
 
-    #   Ensure row i in a refers to the same ROI as row i in b for all i
-    b = arrange_b(a, b)
-
     #   Loop through every pair of points such that a given ROI connects to a
     #   total of 2 edges used to compute theta. Note that the order here is
     #   arbitrary, and results can in theory change (very subtly) if we didn't
@@ -218,6 +215,9 @@ for pair in pairs:
     b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
     assert a.shape == b.shape
 
+    #   Ensure row i in a refers to the same ROI as row i in b for all i
+    b = arrange_b(a, b)
+
     #   Calculate initial error metrics
     init_err_avg = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
     init_err_rmse = get_rmse(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
@@ -251,8 +251,8 @@ for pair in pairs:
     b = (rot @ (b - origin_to_corner).T).T + origin_to_corner
 
     #   Now translate 'b' to minimize error between ROIs of 'a' and 'b'
-    trans = np.mean(b - a, axis = 0)
-    b -= trans
+    trans = np.mean(a - b, axis = 0)
+    b += trans
 
     #   Add error metrics after applying transformation, and the transformation
     #   itself (translation and theta)
