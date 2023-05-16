@@ -18,8 +18,8 @@ sample_info_path = here(
 estimate_path = here(
     'processed-data', '02_image_stitching', 'transformation_estimates.csv'
 )
-out_dir = here('processed-data', '02_image_stitching', 'combined_Br8325')
-img_out_path = here('processed-data', '02_image_stitching', 'combined_Br8325.tif')
+out_dir = here('processed-data', '02_image_stitching', 'combined_Br8325_{}')
+img_out_path = here('processed-data', '02_image_stitching', 'combined_Br8325_{}.tif')
 
 #   55-micrometer diameter for Visium spot
 SPOT_DIAMETER_M = 55e-6
@@ -65,6 +65,12 @@ if Path(estimate_path).exists():
         ],
         dtype = np.float64
     )
+
+    #   x and y switch, so angles invert
+    theta = -1 * np.array(estimates_df.loc[estimates_df['adjusted'], 'theta'])
+
+    out_dir = Path(str(out_dir).format('adjusted'))
+    img_out_path = Path(str(img_out_path).format('adjusted'))
 else:
     #   Array defining an affine transformation:
     #   [x0', y0'] = trans[0] @ [x0, y0, 1]
@@ -88,12 +94,17 @@ else:
             spaceranger_json = json.load(f)
         
         trans[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
+    
+    theta = np.zeros(sample_info.shape[0])
+
+    out_dir = Path(str(out_dir).format('initial'))
+    img_out_path = Path(str(img_out_path).format('initial'))
 
 #   Translations must be an integer number of pixels. Flip x and y to follow
 #   Samui conventions
 trans[:, :, 2] = np.flip(np.round(trans[:, :, 2]), axis = 1)
 
-Path(out_dir).mkdir(parents = True, exist_ok = True)
+out_dir.mkdir(parents = True, exist_ok = True)
 
 ################################################################################
 #   Determine image shapes and initialize the combined image
@@ -130,7 +141,11 @@ tissue_positions_list = []
 ################################################################################
 
 for i in range(sample_info.shape[0]):
-    img = np.array(Image.open(sample_info['raw_image_path'].iloc[i]).convert('L'))
+    img = Image.open(sample_info['raw_image_path'].iloc[i]).convert('L')
+
+    #   Rotate about the top left corner of the image
+    this_theta = 180 * theta[i] / np.pi # '.rotate' uses degrees, not radians
+    img = np.array(img.rotate(this_theta, expand = False, center = (0, 0)))
 
     #   Read in the tissue positions file to get spatial coordinates. Index by
     #   barcode + sample ID, and subset to only spots within tissue
@@ -170,7 +185,7 @@ with tifffile.TiffWriter(img_out_path, bigtiff = True) as tiff:
 #   "sample"
 ################################################################################
 
-this_sample = Sample(name = Path(out_dir).name, path = out_dir)
+this_sample = Sample(name = out_dir.name, path = out_dir)
 
 tissue_positions = pd.concat(tissue_positions_list)[['x', 'y']].astype(int)
 this_sample.add_coords(
