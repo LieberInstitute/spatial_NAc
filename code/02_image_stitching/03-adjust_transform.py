@@ -62,6 +62,9 @@ def get_theta(a, b, tol = 1e-8):
     weights = np.zeros(a.shape[0])
     theta = 0
 
+    #   Ensure row i in a refers to the same ROI as row i in b for all i
+    b = arrange_b(a, b)
+
     #   Loop through every pair of points such that a given ROI connects to a
     #   total of 2 edges used to compute theta. Note that the order here is
     #   arbitrary, and results can in theory change (very subtly) if we didn't
@@ -131,6 +134,17 @@ def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
 
     #   Convert from full-resolution pixels to number of spot diameters
     return err * M_PER_PX / SPOT_DIAMETER_M
+
+#   Return a row-ordering of b that lines up with the rows of a. The algorithm
+#   assumes the same ROI between a and b is closer than any other combination
+#   of ROIs between a and b
+def arrange_b(a, b):
+    indices = np.zeros(a.shape[0], dtype = np.uint16)
+    #   For each ROI in a, find the index of the closest ROI in b
+    for i in range(a.shape[0]):
+        indices[i] = np.argmin(np.sum((b - a[i, :]) * (b - a[i, :]), axis = 1))
+    
+    return b[indices, :].copy()
 
 ################################################################################
 #   Process initial transformation estimates to be at full resolution
