@@ -9,9 +9,11 @@ import os
 
 SPOT_DIAMETER_M = 55e-6
 
+this_slide = 'V11U08-082'
+
 #   Inputs
 roi_json_path = here(
-    'processed-data', '02_image_stitching', 'rois_combined_Br8325.json'
+    'processed-data', '02_image_stitching', 'rois_combined_{}.json'
 )
 
 sample_info_path = here(
@@ -20,29 +22,19 @@ sample_info_path = here(
 
 #   Outputs
 estimate_path = here(
-    'processed-data', '02_image_stitching', 'transformation_estimates.csv'
+    'processed-data', '02_image_stitching', 'transformation_estimates_{}.csv'
 )
 
 pairwise_path = here(
-    'processed-data', '02_image_stitching', 'pairwise_errors.csv'
-)
-
-#   Initial estimates of (by row): x translation, y translation, theta in
-#   radians (counterclockwise relative to canvas)
-init_estimate = np.array(
-    [
-        [1365, 18, 0],
-        [19, 52, 0],
-        [102, 742, 0],
-        [1236, 797, 0]
-    ],
-    dtype = np.float64
+    'processed-data', '02_image_stitching', 'pairwise_errors_{}.csv'
 )
 
 #   Capture areas we'll compare ROIs (in pairs) for in order to deduce
 #   adjustments to the translations + rotations. The convention here will be to
 #   rotate and translate the second element of the pair to match the first
-pairs = [('B1', 'C1'), ('A1', 'D1')]
+array_pairs = {
+    'V11U08-082': [('B1', 'C1'), ('A1', 'D1')]
+}
 
 ################################################################################
 #   Function definitions
@@ -147,13 +139,29 @@ def arrange_b(a, b):
 #   Process initial transformation estimates to be at full resolution
 ################################################################################
 
-#   Read in sample info and subset to the samples of interest
+#   Read in sample info and subset to slide of interest, with capture areas in
+#   order
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
-sample_info = sample_info.loc[
-    (sample_info['Brain'] == "Br8325") &
-    (sample_info['Sample #'] != "32v_svb"),
-    :
-]
+sample_info = sample_info.loc[sample_info['Slide #'] == this_slide, :]
+sample_info = sample_info.loc[sample_info.index.sort_values()]
+
+#   Adjusts paths for this slide
+roi_json_path = Path(str(roi_json_path).format(this_slide))
+estimate_path = Path(str(estimate_path).format(this_slide))
+pairwise_path = Path(str(pairwise_path).format(this_slide))
+
+#   Initial estimates of (by row): x translation, y translation, theta in
+#   radians (counterclockwise relative to canvas)
+init_estimate = np.array(
+    sample_info.loc[
+        :,
+        [
+            'initial_transform_x', 'initial_transform_y',
+            'initial_transform_theta'
+        ]
+    ],
+    dtype = np.float64
+)
 
 #   Loop through all samples and rescale translations to be at full resolutions
 #   (the initial definition of 'init_estimate' uses high-resolution values).
@@ -196,7 +204,9 @@ roi_df = pd.DataFrame(
 #   involving translations and rotations required for the second member of the
 #   pair to best line up with the first, and associated error metrics for the
 #   resulting alignment (before and after).
-pairwise_df = pd.DataFrame(pairs, columns = ['capture_area1', 'capture_area2'])
+pairwise_df = pd.DataFrame(
+    array_pairs[this_slide], columns = ['capture_area1', 'capture_area2']
+)
 other_columns = (
     'x', 'y', 'theta', 'before_err_rmse', 'before_err_avg', 'after_err_rmse',
     'after_err_avg'
@@ -206,7 +216,7 @@ for col in other_columns:
 
 #   Loop through pairs of capture areas to compute transformations and error
 #   information, adding it to 'pairwise_df'
-for pair in pairs:
+for pair in array_pairs[this_slide]:
     #   Extract ROIs of each label into separate arrays. Every ROI is paired,
     #   so a and b should be identical in dimension
     label1 = pair[0] + '_artifact_centroid'
@@ -241,7 +251,7 @@ for pair in pairs:
     #   The translation from the origin to the top left of the capture area
     origin_to_corner = np.array(
         estimate_df.loc[
-            (estimate_df['sample_id'] == 'Br8325_' + pair[1]) &
+            (estimate_df['sample_id'] == f"{this_slide}_{pair[1]}") &
             ~estimate_df['adjusted'],
             ['x', 'y']
         ]
@@ -270,9 +280,7 @@ for pair in pairs:
 #   in Samui
 for i in range(pairwise_df.shape[0]):
     estimate_df.loc[
-        estimate_df['sample_id'].str.contains(
-            pairwise_df['capture_area2'].iloc[i]
-        ) &
+        estimate_df['sample_id'] == f"{this_slide}_{pairwise_df['capture_area2'].iloc[i]}" &
         estimate_df['adjusted'],
         ['x', 'y', 'theta']
     ] += pairwise_df.loc[:, ['x', 'y', 'theta']].iloc[i]
