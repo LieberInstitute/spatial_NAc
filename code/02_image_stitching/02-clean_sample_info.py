@@ -111,7 +111,8 @@ sample_info['raw_image_path'] = sample_info['temp']
 sample_info['spaceranger_dir'] = [
     Path(x)
     for x in here(
-        'processed-data', '01_spaceranger', sample_info.index, 'outs', 'spatial'
+        'processed-data', '01_spaceranger_reorg', sample_info.index, 'outs',
+        'spatial'
     )
 ]
 
