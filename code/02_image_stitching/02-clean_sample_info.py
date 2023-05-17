@@ -159,9 +159,11 @@ for brain in sample_info['Brain'].unique():
 
 #   Combine across brains, then merge into sample_info
 transform_df = pd.concat(transform_df_list)
+index = sample_info.index
 sample_info = pd.merge(
     sample_info, transform_df, how = 'left', on = ['Array #', 'Brain']
 )
+sample_info.index = index
 
 sample_info.to_csv(out_path)
 
