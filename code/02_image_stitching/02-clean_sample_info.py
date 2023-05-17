@@ -3,8 +3,10 @@ from pathlib import Path
 import session_info
 import os
 import glob
+import re
 
 import pandas as pd
+import numpy as np
 
 out_path = here('processed-data', '02_image_stitching', 'sample_info_clean.csv')
 
@@ -15,6 +17,8 @@ sample_info_paths = [
 ]
 
 sr_info_path = here('code', '01_spaceranger', 'spaceranger_parameters.txt')
+
+imagej_xml_path = here('processed-data', '02_image_stitching', 'ImageJ_out', '{}.xml')
 
 ################################################################################
 #   Functions
@@ -39,6 +43,18 @@ def get_img_path(sample_info, i):
         return a[0]
     else:
         return None
+
+#   Get a numpy array representing transformation matrices from ImageJ (of shape
+#   (n, 2, 3) for n capture areas), return theta (of shape (n,)), the angles
+#   determined by the rotation-matrix portion of 'mat'
+def theta_from_mat(mat):
+    #   Determine theta by using arccos. Here the real angle might by theta_cos
+    #   or -1 * theta_cos
+    theta_cos = np.arccos(mat[:, 0, 0])
+
+    #   Use 'theta_cos', but negate it when sin(theta) is negative, to account
+    #   for the convention that arccos returns positive angles
+    return theta_cos * (2 * (mat[:, 1, 0] > 0) - 1)
 
 ################################################################################
 #   Gather sample info
@@ -65,7 +81,7 @@ sample_info['Brain'] = (
         .replace(to_replace = '\.0$', value = '', regex = True)
 )
 
-sample_info.index = sample_info['Brain'] + '_' + sample_info['Array #']
+sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 
 ################################################################################
 #   Determine the path to the full-resolution/raw images and spaceranger output
@@ -77,7 +93,7 @@ sr_info = pd.read_csv(sr_info_path, header = 0, sep = '\t', index_col = 0)
 sample_info['raw_image_path'] = sr_info.iloc[:, 2]
 
 #   Try a glob-based method to find image paths for all samples
-b = [get_img_path(sample_info, i) for i in range(sample_info.shape[0])]
+sample_info['temp'] = [get_img_path(sample_info, i) for i in range(sample_info.shape[0])]
 
 #   We'll prefer the glob-based method. Just verify it agrees with the
 #   spaceranger info where both are defined
@@ -98,6 +114,53 @@ sample_info['spaceranger_dir'] = [
         'processed-data', '01_spaceranger', sample_info.index, 'outs', 'spatial'
     )
 ]
+
+################################################################################
+#   Add the initial transformation estimates for image stitching from ImageJ
+################################################################################
+
+transform_df_list = []
+for brain in sample_info['Brain'].unique():
+    #   Get the path to the ImageJ XML output for this brain. If it exists,
+    #   read it in and continue. Otherwise, move to the next brain
+    this_imagej_xml_path = Path(str(imagej_xml_path).format(brain))
+    if not this_imagej_xml_path.exists():
+        continue
+
+    with open(this_imagej_xml_path) as f:
+        this_imagej_xml = f.read()
+    
+    #   Grab the transformation matrices and import as numpy array with the
+    #   structure used in 01-samui_test.py
+    matrices = re.findall(r'matrix\(.*\)', this_imagej_xml)
+    trans_mat = [re.sub(r'matrix|[\(\)]', '', x).split(',') for x in matrices]
+    trans_mat = np.transpose(
+        np.array([[int(float(y)) for y in x] for x in trans_mat])
+            .reshape((-1, 3, 2)),
+        axes = [0, 2, 1]
+    )[1:, :, :]
+
+    #   Compile transformation information for this brain in a DataFrame
+    transform_df_list.append(
+            pd.DataFrame(
+            {
+                'initial_transform_x': trans_mat[:, 0, 2],
+                'initial_transform_y': trans_mat[:, 1, 2],
+                'initial_transform_theta': theta_from_mat(trans_mat),
+                'Array #': [
+                    x.split('_')[1]
+                    for x in re.findall(r'Br[0-9]{4}_[ABCD]1', this_imagej_xml)
+                ],
+                'Brain': brain
+            }
+        )
+    )
+
+#   Combine across brains, then merge into sample_info
+transform_df = pd.concat(transform_df_list)
+sample_info = pd.merge(
+    sample_info, transform_df, how = 'left', on = ['Array #', 'Brain']
+)
 
 sample_info.to_csv(out_path)
 
