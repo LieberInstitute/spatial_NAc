@@ -12,25 +12,37 @@ from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = None
 
+this_slide = 'V11U08-082'
+
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 estimate_path = here(
-    'processed-data', '02_image_stitching', 'transformation_estimates.csv'
+    'processed-data', '02_image_stitching', 'transformation_estimates_{}.csv'
 )
-out_dir = here('processed-data', '02_image_stitching', 'combined_Br8325_{}')
-img_out_path = here('processed-data', '02_image_stitching', 'combined_Br8325_{}.tif')
+out_dir = here('processed-data', '02_image_stitching', 'combined_{}_{}')
+img_out_path = here('processed-data', '02_image_stitching', 'combined_{}_{}.tif')
 
 #   55-micrometer diameter for Visium spot
 SPOT_DIAMETER_M = 55e-6
 
-#   Read in sample info and subset to the samples of interest
+#   Read in sample info and subset to slide of interest, with capture areas in
+#   order
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
-sample_info = sample_info.loc[
-    (sample_info['Brain'] == "Br8325") &
-    (sample_info['Sample #'] != "32v_svb"),
-    :
-]
+sample_info = sample_info.loc[sample_info['Slide #'] == this_slide, :]
+sample_info = sample_info.loc[sample_info.index.sort_values()]
+
+#   Determine sample and run dependent paths (is this to display the initial
+#   transformation from ImageJ or the adjusted transformation?)
+estimate_path = Path(str(estimate_path).format(this_slide))
+is_adjusted = estimate_path.exists()
+if is_adjusted:
+    file_suffix = 'adjusted'
+else:
+    file_suffix = 'initial'
+
+out_dir = Path(str(out_dir).format(this_slide, file_suffix))
+img_out_path = Path(str(img_out_path).format(this_slide, file_suffix))
 
 ################################################################################
 #   Define the transformation matrix
@@ -40,51 +52,47 @@ sample_info = sample_info.loc[
 #   display in Samui, annotated ROIs, then ran '03-adjust_transform.py' to
 #   refine the initial transformations from ImageJ). If not, use the initial
 #   estimate from ImageJ
-if Path(estimate_path).exists():
+if is_adjusted:
     #   Read in the adjusted transformations
     estimates_df = pd.read_csv(estimate_path)
-    a = estimates_df.loc[estimates_df['adjusted']]
+    estimates_df = estimates_df.loc[estimates_df['adjusted']]
+else:
+    estimates_df = sample_info.rename(
+        {
+            'initial_transform_x': 'x',
+            'initial_transform_y': 'y',
+            'initial_transform_theta': 'theta'
+        },
+        axis = 1
+    )
 
-    #   Array defining an affine transformation:
-    #   [x0', y0'] = trans[0] @ [x0, y0, 1]
-    trans = np.array(
+#   Array defining an affine transformation:
+#   [x0', y0'] = trans[0] @ [x0, y0, 1]
+trans = np.array(
+    [
         [
             [
-                [
-                    np.cos(a['theta'].iloc[i]),
-                    -1 * np.sin(a['theta'].iloc[i]),
-                    a['x'].iloc[i]
-                ],
-                [
-                    np.sin(a['theta'].iloc[i]),
-                    np.cos(a['theta'].iloc[i]),
-                    a['y'].iloc[i]
-                ]
+                np.cos(estimates_df['theta'].iloc[i]),
+                -1 * np.sin(estimates_df['theta'].iloc[i]),
+                estimates_df['x'].iloc[i]
+            ],
+            [
+                np.sin(estimates_df['theta'].iloc[i]),
+                np.cos(estimates_df['theta'].iloc[i]),
+                estimates_df['y'].iloc[i]
             ]
-            for i in range(a.shape[0])
-        ],
-        dtype = np.float64
-    )
+        ]
+        for i in range(estimates_df.shape[0])
+    ],
+    dtype = np.float64
+)
 
-    #   x and y switch, so angles invert
-    theta = -1 * np.array(estimates_df.loc[estimates_df['adjusted'], 'theta'])
+#   x and y switch, so angles invert
+theta = -1 * np.array(estimates_df['theta'])
 
-    out_dir = Path(str(out_dir).format('adjusted'))
-    img_out_path = Path(str(img_out_path).format('adjusted'))
-else:
-    #   Array defining an affine transformation:
-    #   [x0', y0'] = trans[0] @ [x0, y0, 1]
-    trans = np.array(
-        [
-            [[1, 0, 1365], [0, 1, 18]],
-            [[1, 0, 19], [0, 1, 52]],
-            [[1, 0, 102], [0, 1, 742]],
-            [[1, 0, 1236], [0, 1, 797]]
-        ],
-        dtype = np.float64
-    )
-
-    #   The above translations are in high resolution. Scale to full resolution
+if not is_adjusted:
+    #   The initial translations are in high resolution. Scale to full
+    #   resolution
     for i in range(sample_info.shape[0]):
         #   Grab high-res scale factor and scale translations accordingly
         json_path = os.path.join(
@@ -94,11 +102,6 @@ else:
             spaceranger_json = json.load(f)
         
         trans[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
-    
-    theta = np.zeros(sample_info.shape[0])
-
-    out_dir = Path(str(out_dir).format('initial'))
-    img_out_path = Path(str(img_out_path).format('initial'))
 
 #   Translations must be an integer number of pixels. Flip x and y to follow
 #   Samui conventions
