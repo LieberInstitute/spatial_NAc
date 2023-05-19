@@ -66,6 +66,10 @@ else:
         axis = 1
     )
 
+#   x and y switch, so angles invert
+estimates_df['theta'] *= -1
+theta = np.array(estimates_df['theta'])
+
 #   Array defining an affine transformation:
 #   [x0', y0'] = trans[0] @ [x0, y0, 1]
 trans = np.array(
@@ -87,9 +91,6 @@ trans = np.array(
     dtype = np.float64
 )
 
-#   x and y switch, so angles invert
-theta = -1 * np.array(estimates_df['theta'])
-
 if not is_adjusted:
     #   The initial translations are in high resolution. Scale to full
     #   resolution
@@ -103,9 +104,10 @@ if not is_adjusted:
         
         trans[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
 
-#   Translations must be an integer number of pixels. Flip x and y to follow
-#   Samui conventions
-trans[:, :, 2] = np.flip(np.round(trans[:, :, 2]), axis = 1)
+#   Flip x and y to follow Samui conventions. Translations must be an integer
+#   number of pixels
+trans = np.flip(trans, axis = 1)
+trans[:, :, 2] = np.round(trans[:, :, 2])
 
 out_dir.mkdir(parents = True, exist_ok = True)
 
@@ -165,9 +167,9 @@ for i in range(sample_info.shape[0]):
     tissue_positions.index = tissue_positions.index + '_' + sample_info.index[i]
 
     #   Apply affine transform of coordinates
-    tissue_positions[['y', 'x']] = (
+    tissue_positions[['x', 'y']] = (
         trans[i] @ 
-        np.array(tissue_positions.assign(ones = 1)[['y', 'x', 'ones']]).T
+        np.array(tissue_positions.assign(ones = 1)[['x', 'y', 'ones']]).T
     ).T
 
     tissue_positions_list.append(tissue_positions)
@@ -196,7 +198,7 @@ this_sample.add_coords(
 )
 
 this_sample.add_image(
-    tiff = img_out_path, channels = list(sample_info.index), scale = m_per_px
+    tiff = img_out_path, channels = [x.split('_')[-1] for x in sample_info.index], scale = m_per_px
 )
 
 sample_df = pd.DataFrame(

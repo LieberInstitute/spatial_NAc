@@ -1,8 +1,8 @@
 #!/bin/bash
 #$ -cwd
 #$ -N "samui_test"
-#$ -o ../../processed-data/02_image_stitching/01-samui_test.log
-#$ -e ../../processed-data/02_image_stitching/01-samui_test.log
+#$ -o ../../processed-data/02_image_stitching/01-samui_test_V11U08-082_adjusted.log
+#$ -e ../../processed-data/02_image_stitching/01-samui_test_V11U08-082_adjusted.log
 #$ -l mf=40G,h_vmem=40G
 
 echo "**** Job starts ****"
