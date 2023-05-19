@@ -6,13 +6,16 @@ import numpy as np
 import pandas as pd
 import json
 import os
+import sys
 from loopy.sample import Sample
 import tifffile
 from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = None
 
-this_slide = 'V11U08-082'
+#   Grab the slide number and 
+this_slide, file_suffix = sys.argv[1:]
+assert file_suffix in ('initial', 'adjusted')
 
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
@@ -35,11 +38,7 @@ sample_info = sample_info.loc[sample_info.index.sort_values()]
 #   Determine sample and run dependent paths (is this to display the initial
 #   transformation from ImageJ or the adjusted transformation?)
 estimate_path = Path(str(estimate_path).format(this_slide))
-is_adjusted = estimate_path.exists()
-if is_adjusted:
-    file_suffix = 'adjusted'
-else:
-    file_suffix = 'initial'
+is_adjusted = file_suffix == 'adjusted'
 
 out_dir = Path(str(out_dir).format(this_slide, file_suffix))
 img_out_path = Path(str(img_out_path).format(this_slide, file_suffix))
@@ -106,8 +105,7 @@ if not is_adjusted:
 
 #   Flip x and y to follow Samui conventions. Translations must be an integer
 #   number of pixels
-trans = np.flip(trans, axis = 1)
-trans[:, :, 2] = np.round(trans[:, :, 2])
+trans[:, :, 2] = np.flip(np.round(trans[:, :, 2]), axis = 1)
 
 out_dir.mkdir(parents = True, exist_ok = True)
 
@@ -167,9 +165,9 @@ for i in range(sample_info.shape[0]):
     tissue_positions.index = tissue_positions.index + '_' + sample_info.index[i]
 
     #   Apply affine transform of coordinates
-    tissue_positions[['x', 'y']] = (
+    tissue_positions[['y', 'x']] = (
         trans[i] @ 
-        np.array(tissue_positions.assign(ones = 1)[['x', 'y', 'ones']]).T
+        np.array(tissue_positions.assign(ones = 1)[['y', 'x', 'ones']]).T
     ).T
 
     tissue_positions_list.append(tissue_positions)

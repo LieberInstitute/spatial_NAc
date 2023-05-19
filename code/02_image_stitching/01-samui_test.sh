@@ -1,10 +1,16 @@
 #!/bin/bash
 #$ -cwd
 #$ -N "samui_test"
-#$ -o ../../processed-data/02_image_stitching/01-samui_test_V11U08-082_adjusted.log
-#$ -e ../../processed-data/02_image_stitching/01-samui_test_V11U08-082_adjusted.log
+#$ -o /dev/null
+#$ -e /dev/null
 #$ -l mf=40G,h_vmem=40G
 
+slide="V11U08-082"
+mode="adjusted"
+
+log_path="../../processed-data/02_image_stitching/01-samui_test_${slide}_${mode}.log"
+
+{
 echo "**** Job starts ****"
 date
 echo "**** JHPCE info ****"
@@ -14,7 +20,8 @@ echo "Job name: ${JOB_NAME}"
 echo "Hostname: ${HOSTNAME}"
 
 module load loopy/1.0.0-next.24
-python 01-samui_test.py
+python 01-samui_test.py $slide $mode
 
 echo "**** Job ends ****"
 date
+} > $log_path 2>&1
