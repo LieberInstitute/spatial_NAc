@@ -6,10 +6,11 @@ import numpy as np
 import pandas as pd
 import json
 import os
+import sys
 
 SPOT_DIAMETER_M = 55e-6
 
-this_slide = 'V11U08-082'
+this_slide = sys.argv[1]
 
 #   Inputs
 roi_json_path = here(
@@ -33,7 +34,9 @@ pairwise_path = here(
 #   adjustments to the translations + rotations. The convention here will be to
 #   rotate and translate the second element of the pair to match the first
 array_pairs = {
-    'V11U08-082': [('B1', 'C1'), ('A1', 'D1')]
+    'V11U08-082': [('B1', 'C1'), ('A1', 'D1')],
+    'V11U23-406': [('A1', 'B1')],
+    'V11U23-404': []
 }
 
 ################################################################################
