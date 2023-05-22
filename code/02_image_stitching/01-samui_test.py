@@ -44,6 +44,52 @@ out_dir = Path(str(out_dir).format(this_slide, file_suffix))
 img_out_path = Path(str(img_out_path).format(this_slide, file_suffix))
 
 ################################################################################
+#   Functions
+################################################################################
+
+#   Given a PIL Image 'img', rotate counter-clockwise by theta (radians) about
+#   the top left of the image (0, 0), and return (a, b) where a is a numpy
+#   array (whose dimensions typically expand), and b is a shape (2,) numpy
+#   array giving 'trans_vec' + the adjustments needed to place the the top-left
+#   corner of the image at the same point, given the expansion of a's dimensions
+def smart_rotate(img, trans_vec, theta):
+    #   Rotate about the top left corner of the image
+    theta_deg = 180 * theta / np.pi # '.rotate' uses degrees, not radians
+    img_np = np.array(img.rotate(theta_deg, expand = True, center = (0, 0)))
+
+    #   (Negative) angle the top edge of the image makes with the diagonal,
+    #   and the length of that diagonal. We'll need these to calculate
+    #   where the bottom-right corner of the image moves as a function of
+    #   theta
+    theta_r = np.arctan(img.size[1] / img.size[0])
+    r = np.linalg.norm(img.size)
+
+    #   Consider the image as a rectangle, and rotate that rectangle about the
+    #   top-left corner (which is considered the origin). Track where all 4
+    #   corners of the rectangle go, since that determines where the originally
+    #   top-left corner ends up relative to the expanded-dimension numpy array's
+    #   top-left corner. 'adjust' is simply the vector difference between those
+    #   corners
+    adjust = np.array(
+        [
+            max(
+                0,
+                img.size[0] * np.sin(theta),
+                img.size[1] * np.sin(theta - np.pi / 2),
+                r * np.sin(theta - theta_r)
+            ),
+            min(
+                0,
+                img.size[0] * np.cos(theta),
+                img.size[1] * np.cos(theta - np.pi / 2),
+                r * np.cos(theta - theta_r)
+            )
+        ]
+    )
+
+    return (img_np, trans_vec - adjust)
+
+################################################################################
 #   Define the transformation matrix
 ################################################################################
 
@@ -145,10 +191,7 @@ tissue_positions_list = []
 
 for i in range(sample_info.shape[0]):
     img = Image.open(sample_info['raw_image_path'].iloc[i]).convert('L')
-
-    #   Rotate about the top left corner of the image
-    this_theta = 180 * theta[i] / np.pi # '.rotate' uses degrees, not radians
-    img = np.array(img.rotate(this_theta, expand = False, center = (0, 0)))
+    img, trans_img = smart_rotate(img, trans[i, :, 2], theta[i])
 
     #   Read in the tissue positions file to get spatial coordinates. Index by
     #   barcode + sample ID, and subset to only spots within tissue
@@ -175,8 +218,8 @@ for i in range(sample_info.shape[0]):
     #   "Place this image" on the combined image, considering translations. Use
     #   separate channels for each image
     combined_img[
-            int(trans[i, 0, 2]): int(trans[i, 0, 2] + img.shape[0]),
-            int(trans[i, 1, 2]): int(trans[i, 1, 2] + img.shape[1]),
+            int(trans_img[0]): int(trans_img[0] + img.shape[0]),
+            int(trans_img[1]): int(trans_img[1] + img.shape[1]),
             i : (i + 1)
         ] += img.reshape((img.shape[0], img.shape[1], 1))
 
