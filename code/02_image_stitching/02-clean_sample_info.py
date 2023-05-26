@@ -4,6 +4,7 @@ import session_info
 import os
 import glob
 import re
+import json
 
 import pandas as pd
 import numpy as np
@@ -131,15 +132,45 @@ for brain in sample_info['Brain'].unique():
     with open(this_imagej_xml_path) as f:
         this_imagej_xml = f.read()
     
+    array_nums = [
+        x.split('_')[1]
+        for x in re.findall(r'Br[0-9]{4}_[ABCD]1', this_imagej_xml)
+    ]
+    
     #   Grab the transformation matrices and import as numpy array with the
     #   structure used in 01-samui_test.py
     matrices = re.findall(r'matrix\(.*\)', this_imagej_xml)
     trans_mat = [re.sub(r'matrix|[\(\)]', '', x).split(',') for x in matrices]
     trans_mat = np.transpose(
-        np.array([[int(float(y)) for y in x] for x in trans_mat])
+        np.array(
+            [[int(float(y)) for y in x] for x in trans_mat], dtype = np.float64
+        )
             .reshape((-1, 3, 2)),
         axes = [0, 2, 1]
     )[1:, :, :]
+
+    #   Grab sample info for this brain, ordered how the array numbers
+    #   appear in the ImageJ output. Assumes a given brain is on exactly
+    #   1 slide (not always true!)
+    this_sample_info = sample_info.loc[sample_info['Brain'] == brain, :]
+    this_sample_info = this_sample_info.loc[
+        [
+            this_sample_info['Slide #'].iloc[i] + '_' + array_nums[i]
+            for i in range(len(array_nums))
+        ]
+    ]
+
+    #   Adjust translations to represent pixels in full resolution
+    for i in range(len(array_nums)):
+        #   Grab high-res scale factor and scale translations accordingly
+        json_path = os.path.join(
+            this_sample_info['spaceranger_dir'].iloc[i],
+            'scalefactors_json.json'
+        )
+        with open(json_path, 'r') as f:
+            spaceranger_json = json.load(f)
+        
+        trans_mat[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
 
     #   Compile transformation information for this brain in a DataFrame
     transform_df_list.append(
@@ -148,10 +179,7 @@ for brain in sample_info['Brain'].unique():
                 'initial_transform_x': trans_mat[:, 0, 2],
                 'initial_transform_y': trans_mat[:, 1, 2],
                 'initial_transform_theta': theta_from_mat(trans_mat),
-                'Array #': [
-                    x.split('_')[1]
-                    for x in re.findall(r'Br[0-9]{4}_[ABCD]1', this_imagej_xml)
-                ],
+                'Array #': array_nums,
                 'Brain': brain
             }
         )
