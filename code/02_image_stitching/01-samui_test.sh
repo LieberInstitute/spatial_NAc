@@ -3,10 +3,10 @@
 #$ -N "samui_test"
 #$ -o /dev/null
 #$ -e /dev/null
-#$ -l mf=40G,h_vmem=40G,h_fsize=50G
+#$ -l mf=60G,h_vmem=60G,h_fsize=50G
 
-slide="V11U23-404"
-mode="initial"
+slide="V11U08-082"
+mode="adjusted"
 
 log_path="../../processed-data/02_image_stitching/01-samui_test_${slide}_${mode}.log"
 

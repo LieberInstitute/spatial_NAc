@@ -47,22 +47,18 @@ img_out_path = Path(str(img_out_path).format(this_slide, file_suffix))
 #   Functions
 ################################################################################
 
-#   Given a PIL Image 'img', rotate counter-clockwise by theta (radians) about
-#   the top left of the image (0, 0), and return (a, b) where a is a numpy
-#   array (whose dimensions typically expand), and b is a shape (2,) numpy
-#   array giving 'trans_vec' + the adjustments needed to place the the top-left
-#   corner of the image at the same point, given the expansion of a's dimensions
-def smart_rotate(img, trans_vec, theta):
-    #   Rotate about the top left corner of the image
-    theta_deg = 180 * theta / np.pi # '.rotate' uses degrees, not radians
-    img_np = np.array(img.rotate(theta_deg, expand = True, center = (0, 0)))
-
+#   Given the size (shape) of a PIL Image 'img', simulate a rotation
+#   counter-clockwise by theta (radians) about the top left of the image (0, 0),
+#   and return the translation (shape (2,) numpy array) needed to add to the
+#   indices of the numpy array given by np.array(img.rotate([theta in degrees]))
+#   to correctly apply the rotation about the top left of the image
+def adjust_trans(img_shape, theta):
     #   (Negative) angle the top edge of the image makes with the diagonal,
     #   and the length of that diagonal. We'll need these to calculate
     #   where the bottom-right corner of the image moves as a function of
     #   theta
-    theta_r = np.arctan(img.size[1] / img.size[0])
-    r = np.linalg.norm(img.size)
+    theta_r = np.arctan(img_shape[1] / img_shape[0])
+    r = np.linalg.norm(img_shape)
 
     #   Consider the image as a rectangle, and rotate that rectangle about the
     #   top-left corner (which is considered the origin). Track where all 4
@@ -74,20 +70,53 @@ def smart_rotate(img, trans_vec, theta):
         [
             max(
                 0,
-                img.size[0] * np.sin(theta),
-                img.size[1] * np.sin(theta - np.pi / 2),
+                img_shape[0] * np.sin(theta),
+                img_shape[1] * np.sin(theta - np.pi / 2),
                 r * np.sin(theta - theta_r)
             ),
             min(
                 0,
-                img.size[0] * np.cos(theta),
-                img.size[1] * np.cos(theta - np.pi / 2),
+                img_shape[0] * np.cos(theta),
+                img_shape[1] * np.cos(theta - np.pi / 2),
                 r * np.cos(theta - theta_r)
             )
         ]
     )
 
-    return (img_np, trans_vec - adjust)
+    return adjust
+
+#   Given a numpy array of shape (n, 2) representing the shapes of n images
+#   (stored as numpy arrays), and 'trans', the shape (n, 2, 3) numpy array
+#   used to represent affine transformations of n images in this script,
+#   return a shape (n, 2) numpy array representing the shapes of n images
+#   after applying .rotate(expand = True) to the PIL Image version of each
+#   image
+def rotate_shapes(shapes, trans):
+    #   For each image shape, form a list of coordinates for the corners of the
+    #   rectangle representing the image
+    start_points = np.array(
+        [
+            [(0, 0), (0, shapes[i, 1]), (shapes[i, 0], 0), shapes[i]]
+            for i in range(shapes.shape[0])
+        ],
+        dtype = np.float64
+    )
+
+    #   Apply the appropriate rotation to each of those points for each image
+    end_points = np.array(
+        [
+            (trans[i, :, :2] @ start_points[i, :, :].T).T
+            for i in range(shapes.shape[0])
+        ],
+        dtype = np.float64
+    )
+
+    #   Return the image dimensions of the rotated image by forming a rectangle
+    #   that fits all 4 corners of each image
+    end_shape = np.ceil(
+        np.max(end_points, axis = 1) - np.min(end_points, axis = 1)
+    ).astype(int)
+    return end_shape
 
 ################################################################################
 #   Define the transformation matrix
@@ -136,19 +165,6 @@ trans = np.array(
     dtype = np.float64
 )
 
-if not is_adjusted:
-    #   The initial translations are in high resolution. Scale to full
-    #   resolution
-    for i in range(sample_info.shape[0]):
-        #   Grab high-res scale factor and scale translations accordingly
-        json_path = os.path.join(
-            sample_info['spaceranger_dir'].iloc[i], 'scalefactors_json.json'
-        )
-        with open(json_path, 'r') as f:
-            spaceranger_json = json.load(f)
-        
-        trans[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
-
 #   Flip x and y to follow Samui conventions. Translations must be an integer
 #   number of pixels
 trans[:, :, 2] = np.flip(np.round(trans[:, :, 2]), axis = 1)
@@ -168,10 +184,25 @@ for i in range(sample_info.shape[0]):
     tif.close()
 
 img_shapes = np.array(img_shapes)
+rotated_shapes = rotate_shapes(img_shapes[:, :2], trans)
 
-#   Initialize the combined tiff
-max0, max1 = np.max(trans[:, :, 2] + img_shapes[:, :2], axis = 0).astype(int)
-combined_img = np.zeros((max0, max1, sample_info.shape[0]), dtype = np.uint8)
+trans_img = np.array(
+    [
+        trans[i, :, 2] +
+        adjust_trans(np.flip(img_shapes[i, :2]), theta[i])
+        for i in range(sample_info.shape[0])
+    ],
+    dtype = np.float64
+)
+trans_img = np.round(trans_img).astype(int)
+assert np.all(trans_img > 0), "Overall-negative translations for images not currently supported"
+
+#   Initialize the combined tiff. Determine the boundaries by computing the
+#   maximal coordinates in each dimension of each rotated and translated image
+max0, max1 = np.max(rotated_shapes + trans_img, axis = 0)
+combined_img = np.zeros(
+    (max0 + 1, max1 + 1, sample_info.shape[0]), dtype = np.uint8
+)
 
 #   For now, just read in one JSON file and assume all samples are roughly on
 #   the same spatial scale (spots have the same diameter in pixels)
@@ -190,8 +221,11 @@ tissue_positions_list = []
 ################################################################################
 
 for i in range(sample_info.shape[0]):
-    img = Image.open(sample_info['raw_image_path'].iloc[i]).convert('L')
-    img, trans_img = smart_rotate(img, trans[i, :, 2], theta[i])
+    img_pil = Image.open(sample_info['raw_image_path'].iloc[i]).convert('L')
+
+    #   Rotate about the top left corner of the image
+    theta_deg = 180 * theta[i] / np.pi # '.rotate' uses degrees, not radians
+    img = np.array(img_pil.rotate(theta_deg, expand = True), dtype = np.uint8)
 
     #   Read in the tissue positions file to get spatial coordinates. Index by
     #   barcode + sample ID, and subset to only spots within tissue
@@ -218,8 +252,8 @@ for i in range(sample_info.shape[0]):
     #   "Place this image" on the combined image, considering translations. Use
     #   separate channels for each image
     combined_img[
-            int(trans_img[0]): int(trans_img[0] + img.shape[0]),
-            int(trans_img[1]): int(trans_img[1] + img.shape[1]),
+            trans_img[i, 0]: trans_img[i, 0] + img.shape[0],
+            trans_img[i, 1]: trans_img[i, 1] + img.shape[1],
             i : (i + 1)
         ] += img.reshape((img.shape[0], img.shape[1], 1))
 
@@ -239,7 +273,9 @@ this_sample.add_coords(
 )
 
 this_sample.add_image(
-    tiff = img_out_path, channels = [x.split('_')[-1] for x in sample_info.index], scale = m_per_px
+    tiff = img_out_path,
+    channels = [x.split('_')[-1] for x in sample_info.index],
+    scale = m_per_px
 )
 
 sample_df = pd.DataFrame(
