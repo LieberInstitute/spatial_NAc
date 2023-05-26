@@ -166,18 +166,6 @@ init_estimate = np.array(
     dtype = np.float64
 )
 
-#   Loop through all samples and rescale translations to be at full resolutions
-#   (the initial definition of 'init_estimate' uses high-resolution values).
-for i in range(sample_info.shape[0]):
-    #   Grab high-res scale factor and scale translations accordingly
-    json_path = os.path.join(
-        sample_info['spaceranger_dir'].iloc[i], 'scalefactors_json.json'
-    )
-    with open(json_path, 'r') as f:
-        spaceranger_json = json.load(f)
-    
-    init_estimate[i, :2] /= spaceranger_json['tissue_hires_scalef']
-
 #   Initialize a DataFrame of transformations for each sample. Include a
 #   before and after (not adjusted vs. adjusted)
 estimate_df = pd.DataFrame(init_estimate, columns = ['x', 'y', 'theta'])
@@ -283,7 +271,7 @@ for pair in array_pairs[this_slide]:
 #   in Samui
 for i in range(pairwise_df.shape[0]):
     estimate_df.loc[
-        estimate_df['sample_id'] == f"{this_slide}_{pairwise_df['capture_area2'].iloc[i]}" &
+        (estimate_df['sample_id'] == f"{this_slide}_{pairwise_df['capture_area2'].iloc[i]}") &
         estimate_df['adjusted'],
         ['x', 'y', 'theta']
     ] += pairwise_df.loc[:, ['x', 'y', 'theta']].iloc[i]
