@@ -14,7 +14,8 @@ out_path = here('processed-data', '02_image_stitching', 'sample_info_clean.csv')
 sample_info_paths = [
     here('raw-data', 'sample_info', 'Visium-samples-for-seq-1v_svb-16v_svb.xlsx'),
     here('raw-data', 'sample_info', 'Visium_NAc_Round3_072822_SVB-complete_info.xlsx'),
-    here('raw-data', 'sample_info', 'Visium_NAc_Round4_081022_SVB-complete_info_final.xlsx')
+    here('raw-data', 'sample_info', 'Visium_NAc_Round4_081022_SVB-complete_info_final.xlsx'),
+    here('raw-data', 'sample_info', 'SPage_20230225.xlsx')
 ]
 
 sr_info_path = here('code', '01_spaceranger', 'spaceranger_parameters.txt')
@@ -69,7 +70,7 @@ def theta_from_mat(mat):
 sample_info_list = [
         (
             pd.read_excel(x)
-                .drop(columns = "NOTE", errors = "ignore")
+                .loc[:, ['Tissue', 'Brain', 'Slide #', 'Array #']]
                 .dropna()
         )
             for x in sample_info_paths
@@ -82,9 +83,16 @@ sample_info['Brain'] = (
         .astype(str)
         #   Add 'Br' if it's missing
         .replace(to_replace = r'^([0-9])', value = r'Br\1', regex = True)
+        #   Remove prefix of "Hs_" if it's present
+        .replace('^Hs_', '', regex = True)
         #   Remove decimals
         .replace(to_replace = '\.0$', value = '', regex = True)
 )
+
+#   Make tissue (brain region) consistent
+sample_info['Tissue'] = sample_info['Tissue'].str.lower()
+sample_info.loc[sample_info['Tissue'] == 'nac', 'Tissue'] = 'NAc'
+sample_info.loc[sample_info['Tissue'] == 'dacc', 'Tissue'] = 'dACC'
 
 sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 
@@ -112,6 +120,7 @@ sample_info['raw_image_path'][~sample_info['raw_image_path'].isna() & sample_inf
 
 #   We'll just use the paths retrieved with the glob method
 sample_info['raw_image_path'] = sample_info['temp']
+sample_info.drop('temp', axis = 1, inplace = True)
 
 sample_info['spaceranger_dir'] = [
     Path(x)
@@ -158,10 +167,7 @@ for slide in all_slides:
     #   Grab sample info for this slide, ordered how the array numbers
     #   appear in the ImageJ output
     this_sample_info = sample_info.loc[
-        [
-            this_sample_info['Slide #'].iloc[i] + '_' + array_nums[i]
-            for i in range(len(array_nums))
-        ]
+        [slide + '_' + array_nums[i] for i in range(len(array_nums))]
     ]
 
     #   Adjust translations to represent pixels in full resolution
@@ -193,7 +199,7 @@ for slide in all_slides:
 transform_df = pd.concat(transform_df_list)
 index = sample_info.index
 sample_info = pd.merge(
-    sample_info, transform_df, how = 'left', on = ['Array #', 'Slide #']
+    sample_info, transform_df, how = 'left', on = ['Slide #', 'Array #']
 )
 sample_info.index = index
 
