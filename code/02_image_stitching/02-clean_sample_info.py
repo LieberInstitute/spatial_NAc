@@ -21,6 +21,10 @@ sr_info_path = here('code', '01_spaceranger', 'spaceranger_parameters.txt')
 
 imagej_xml_path = here('processed-data', '02_image_stitching', 'ImageJ_out', '{}.xml')
 
+#   Every slide expected to have ImageJ output (an initial estimate of image
+#   transformations))
+all_slides = ['V11U08-082', 'V11U23-406', 'V12D07-074']
+
 ################################################################################
 #   Functions
 ################################################################################
@@ -122,16 +126,17 @@ sample_info['spaceranger_dir'] = [
 ################################################################################
 
 transform_df_list = []
-for brain in sample_info['Brain'].unique():
-    #   Get the path to the ImageJ XML output for this brain. If it exists,
-    #   read it in and continue. Otherwise, move to the next brain
-    this_imagej_xml_path = Path(str(imagej_xml_path).format(brain))
-    if not this_imagej_xml_path.exists():
-        continue
+for slide in all_slides:
+    assert slide in sample_info['Slide #'].unique(), f"{slide} not found in 'sample_info'"
 
-    with open(this_imagej_xml_path) as f:
+    #   Open the ImageJ XML output for this slide
+    with open(Path(str(imagej_xml_path).format(slide))) as f:
         this_imagej_xml = f.read()
     
+    #   Clean the file; make sure new lines only separate XML elements
+    this_imagej_xml = re.sub('\n', '', this_imagej_xml)
+    this_imagej_xml = re.sub('>', '>\n', this_imagej_xml)
+
     array_nums = [
         x.split('_')[1]
         for x in re.findall(r'Br[0-9]{4}_[ABCD]1', this_imagej_xml)
@@ -139,21 +144,20 @@ for brain in sample_info['Brain'].unique():
     
     #   Grab the transformation matrices and import as numpy array with the
     #   structure used in 01-samui_test.py
-    matrices = re.findall(r'matrix\(.*\)', this_imagej_xml)
-    trans_mat = [re.sub(r'matrix|[\(\)]', '', x).split(',') for x in matrices]
+    matrices = re.findall(r'matrix\(.*\)".*file_path=', this_imagej_xml)
+    trans_mat = [re.sub(r'matrix\((.*)\).*', '\\1', x).split(',') for x in matrices]
     trans_mat = np.transpose(
         np.array(
             [[int(float(y)) for y in x] for x in trans_mat], dtype = np.float64
         )
             .reshape((-1, 3, 2)),
         axes = [0, 2, 1]
-    )[1:, :, :]
+    )
+    assert trans_mat.shape == (4, 2, 3), "Improperly read ImageJ XML outputs"
 
-    #   Grab sample info for this brain, ordered how the array numbers
-    #   appear in the ImageJ output. Assumes a given brain is on exactly
-    #   1 slide (not always true!)
-    this_sample_info = sample_info.loc[sample_info['Brain'] == brain, :]
-    this_sample_info = this_sample_info.loc[
+    #   Grab sample info for this slide, ordered how the array numbers
+    #   appear in the ImageJ output
+    this_sample_info = sample_info.loc[
         [
             this_sample_info['Slide #'].iloc[i] + '_' + array_nums[i]
             for i in range(len(array_nums))
@@ -172,7 +176,7 @@ for brain in sample_info['Brain'].unique():
         
         trans_mat[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
 
-    #   Compile transformation information for this brain in a DataFrame
+    #   Compile transformation information for this slide in a DataFrame
     transform_df_list.append(
             pd.DataFrame(
             {
@@ -180,16 +184,16 @@ for brain in sample_info['Brain'].unique():
                 'initial_transform_y': trans_mat[:, 1, 2],
                 'initial_transform_theta': theta_from_mat(trans_mat),
                 'Array #': array_nums,
-                'Brain': brain
+                'Slide #': slide
             }
         )
     )
 
-#   Combine across brains, then merge into sample_info
+#   Combine across slides, then merge into sample_info
 transform_df = pd.concat(transform_df_list)
 index = sample_info.index
 sample_info = pd.merge(
-    sample_info, transform_df, how = 'left', on = ['Array #', 'Brain']
+    sample_info, transform_df, how = 'left', on = ['Array #', 'Slide #']
 )
 sample_info.index = index
 
