@@ -195,7 +195,7 @@ trans_img = np.array(
     dtype = np.float64
 )
 trans_img = np.round(trans_img).astype(int)
-assert np.all(trans_img > 0), "Overall-negative translations for images not currently supported"
+assert np.all(trans_img >= 0), "Overall-negative translations for images not currently supported"
 
 #   Initialize the combined tiff. Determine the boundaries by computing the
 #   maximal coordinates in each dimension of each rotated and translated image

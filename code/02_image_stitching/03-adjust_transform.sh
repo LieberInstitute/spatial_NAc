@@ -5,7 +5,7 @@
 #$ -e /dev/null
 #$ -l mf=5G,h_vmem=5G
 
-slide="V11U23-406"
+slide="V11U08-082"
 
 log_path="../../processed-data/02_image_stitching/03-adjust_transform_${slide}.log"
 

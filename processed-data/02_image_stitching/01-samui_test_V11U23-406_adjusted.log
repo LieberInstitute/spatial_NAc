@@ -1,14 +1,50 @@
 **** Job starts ****
-Fri May 26 17:12:46 EDT 2023
+Tue May 30 10:57:13 EDT 2023
 **** JHPCE info ****
 User: neagles
-Job id: 3205139
+Job id: 3209748
 Job name: samui_test
-Hostname: compute-120.cm.cluster
+Hostname: compute-142.cm.cluster
 Loading LIBD module for loopy/1.0.0-next.24
-Traceback (most recent call last):
-  File "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/02_image_stitching/01-samui_test.py", line 198, in <module>
-    assert np.all(trans_img > 0), "Overall-negative translations for images not currently supported"
-AssertionError: Overall-negative translations for images not currently supported
+[10:59:05] INFO     Transforming                                    logger.py:27
+                    /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spa             
+                    tial_NAc/code/02_image_stitching/../../processe             
+                    d-data/02_image_stitching/combined_V11U23-406_a             
+                    djusted/combined_V11U23-406_adjusted.tif to                 
+                    COG.                                                        
+           INFO     'combined_V11U23-406_adjusted' Executing queued logger.py:27
+                    functions                                                   
+           INFO     combined_V11U23-406_adjusted Adding coords      logger.py:27
+                    'coords'                                                    
+[10:59:06] INFO     Writing uncompressed GeoTIFF                    logger.py:27
+                    /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spa             
+                    tial_NAc/code/02_image_stitching/../../processe             
+                    d-data/02_image_stitching/combined_V11U23-406_a             
+                    djusted/combined_V11U23-406_adjusted.tif                    
+[11:00:08] INFO     Writing COG                                     logger.py:27
+                    /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spa             
+                    tial_NAc/code/02_image_stitching/../../processe             
+                    d-data/02_image_stitching/combined_V11U23-406_a             
+                    djusted/combined_V11U23-406_adjusted.tif                    
+[11:02:28] INFO     combined_V11U23-406_adjusted Adding csv feature logger.py:27
+                    'Sample Info'                                               
+[11:02:30] INFO     'combined_V11U23-406_adjusted' written to       logger.py:27
+                    /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spa             
+                    tial_NAc/code/02_image_stitching/../../processe             
+                    d-data/02_image_stitching/combined_V11U23-406_a             
+                    djusted                                                     
+-----
+PIL                 9.4.0
+loopy               NA
+numpy               1.23.5
+pandas              1.5.3
+pyhere              1.0.0
+session_info        1.0.0
+tifffile            2023.2.3
+-----
+Python 3.10.9 | packaged by conda-forge | (main, Feb  2 2023, 20:20:04) [GCC 11.3.0]
+Linux-3.10.0-1160.el7.x86_64-x86_64-with-glibc2.17
+-----
+Session information updated at 2023-05-30 11:02
 **** Job ends ****
-Fri May 26 17:13:15 EDT 2023
+Tue May 30 11:02:31 EDT 2023
