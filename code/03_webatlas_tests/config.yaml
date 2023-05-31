@@ -1,0 +1,33 @@
+outdir: /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/03_webatlas_tests/
+
+args:
+  h5ad:
+    compute_embeddings: True
+  spaceranger:
+    save_h5ad: True
+
+projects:
+  - project: Spatial_NAc
+    datasets:
+      - dataset: V11U08-082_A1
+        title: "Visium V11U08-082_A1"
+        data:
+          -
+            data_type: spaceranger
+            data_path: /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/01_spaceranger_reorg/V11U08-082_A1/
+          -
+            data_type: raw_image
+            data_path: /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/raw-data/images/CS2/round1/06-02-2022_V11U08-082_Br8325_Round1_A1.tif
+
+vitessce_options:
+  spatial:
+    xy: "obsm/spatial"
+  mappings:
+    obsm/X_umap: [0,1]
+    obsm/X_pca: [0,1]
+  factors:
+    - "obs/sample"
+  sets:
+    - "obs/clustering"
+  matrix: "X"
+layout: advanced
