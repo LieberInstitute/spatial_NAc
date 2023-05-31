@@ -18,13 +18,27 @@ sample_info_paths = [
     here('raw-data', 'sample_info', 'SPage_20230225.xlsx')
 ]
 
-sr_info_path = here('code', '01_spaceranger', 'spaceranger_parameters.txt')
-
 imagej_xml_path = here('processed-data', '02_image_stitching', 'ImageJ_out', '{}.xml')
 
 #   Every slide expected to have ImageJ output (an initial estimate of image
 #   transformations))
 all_slides = ['V11U08-082', 'V11U23-406', 'V12D07-074']
+
+#   Which "round" a given slide was part of: this info is necessary to uniquely
+#   determine where the raw image is for a given sample. In some cases, there
+#   isn't enough information to determine round, so it's left NA
+rounds = {
+    'V11U08-082': 1,
+    'V11U08-083': 1,
+    'V11U23-404': 2,
+    'V11U23-406': 2,
+    'V11U23-403': 3,
+    'V11U23-405': 3,
+    'V11D01-385': np.NaN,
+    'V12D07-074': 5,
+    'V11D01-386': np.NaN,
+    'V12N28-334': np.NaN
+}
 
 ################################################################################
 #   Functions
@@ -35,20 +49,21 @@ all_slides = ['V11U08-082', 'V11U23-406', 'V12D07-074']
 def get_img_path(sample_info, i):
     img_dir = here('raw-data', 'images', 'CS2')
     
+    #   For samples with no known round, return None
+    if sample_info['Round'].isna().iloc[i]:
+        return None
+    
     a = glob.glob(
         os.path.join(
             img_dir,
-            'round*',
-            '*_' + sample_info['Slide #'].iloc[i] + '*' +
-                sample_info['Brain'].iloc[i] + '_*' +
+            'round' + str(int(sample_info['Round'].iloc[i])),
+            '*' + sample_info['Brain'].iloc[i] + '_*' +
                 sample_info['Array #'].iloc[i] + '.tif'
         )
     )
-    
-    if len(a) == 1:
-        return a[0]
-    else:
-        return None
+
+    assert len(a) == 1, "Did not find exactly one raw image"
+    return a[0]
 
 #   Get a numpy array representing transformation matrices from ImageJ (of shape
 #   (n, 2, 3) for n capture areas), return theta (of shape (n,)), the angles
@@ -96,31 +111,18 @@ sample_info.loc[sample_info['Tissue'] == 'dacc', 'Tissue'] = 'dACC'
 
 sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 
+#   Add "round" where that information can be uniquely deduced
+sample_info['Round'] = [rounds[x] for x in sample_info['Slide #']]
+
 ################################################################################
 #   Determine the path to the full-resolution/raw images and spaceranger output
 #   directories
 ################################################################################
 
-#   Grab the image paths for samples run through spaceranger
-sr_info = pd.read_csv(sr_info_path, header = 0, sep = '\t', index_col = 0)
-sample_info['raw_image_path'] = sr_info.iloc[:, 2]
-
 #   Try a glob-based method to find image paths for all samples
-sample_info['temp'] = [get_img_path(sample_info, i) for i in range(sample_info.shape[0])]
-
-#   We'll prefer the glob-based method. Just verify it agrees with the
-#   spaceranger info where both are defined
-non_null_indices = ~sample_info['temp'].isna() & \
-    ~sample_info['raw_image_path'].isna()
-assert all(sample_info['temp'][non_null_indices] == sample_info['raw_image_path'][non_null_indices])
-
-#   Verify the spaceranger info is a subset of the glob-based paths (actually,
-#   there's one path that is known to be bad)
-sample_info['raw_image_path'][~sample_info['raw_image_path'].isna() & sample_info['temp'].isna()]
-
-#   We'll just use the paths retrieved with the glob method
-sample_info['raw_image_path'] = sample_info['temp']
-sample_info.drop('temp', axis = 1, inplace = True)
+sample_info['raw_image_path'] = [
+    get_img_path(sample_info, i) for i in range(sample_info.shape[0])
+]
 
 sample_info['spaceranger_dir'] = [
     Path(x)
