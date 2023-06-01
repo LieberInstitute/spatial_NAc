@@ -13,35 +13,42 @@ from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = None
 
-#   Grab the slide number and 
-this_slide, file_suffix = sys.argv[1:]
+#   Parse command-line arguments, ultimately determining:
+#       1. whether to produce the combined image of the initial or adjusted
+#          estimates
+#       2. the sample IDs (slide + arrays) to include in the combined image
+this_slide, arrays, file_suffix = sys.argv[1:]
+sample_ids = [f'{this_slide}_{x}' for x in arrays.split('_')]
 assert file_suffix in ('initial', 'adjusted')
 
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
-estimate_path = here(
-    'processed-data', '02_image_stitching', 'transformation_estimates_{}.csv'
+estimate_path = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'transformation_estimates_{this_slide}_{arrays}.csv'
+    )
 )
-out_dir = here('processed-data', '02_image_stitching', 'combined_{}_{}')
-img_out_path = here('processed-data', '02_image_stitching', 'combined_{}_{}.tif')
+out_dir = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'combined_{this_slide}_{arrays}_{file_suffix}'
+    )
+)
+img_out_path = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'combined_{this_slide}_{arrays}_{file_suffix}.tif'
+    )
+)
 
 #   55-micrometer diameter for Visium spot
 SPOT_DIAMETER_M = 55e-6
 
-#   Read in sample info and subset to slide of interest, with capture areas in
-#   order
+#   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
-sample_info = sample_info.loc[sample_info['Slide #'] == this_slide, :]
-sample_info = sample_info.loc[sample_info.index.sort_values()]
-
-#   Determine sample and run dependent paths (is this to display the initial
-#   transformation from ImageJ or the adjusted transformation?)
-estimate_path = Path(str(estimate_path).format(this_slide))
-is_adjusted = file_suffix == 'adjusted'
-
-out_dir = Path(str(out_dir).format(this_slide, file_suffix))
-img_out_path = Path(str(img_out_path).format(this_slide, file_suffix))
+sample_info = sample_info.loc[sample_ids, :]
 
 ################################################################################
 #   Functions
@@ -126,7 +133,7 @@ def rotate_shapes(shapes, trans):
 #   display in Samui, annotated ROIs, then ran '03-adjust_transform.py' to
 #   refine the initial transformations from ImageJ). If not, use the initial
 #   estimate from ImageJ
-if is_adjusted:
+if file_suffix == 'adjusted':
     #   Read in the adjusted transformations
     estimates_df = pd.read_csv(estimate_path)
     estimates_df = estimates_df.loc[estimates_df['adjusted']]
