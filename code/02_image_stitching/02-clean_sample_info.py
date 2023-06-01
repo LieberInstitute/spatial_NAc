@@ -18,11 +18,7 @@ sample_info_paths = [
     here('raw-data', 'sample_info', 'SPage_20230225.xlsx')
 ]
 
-imagej_xml_path = here('processed-data', '02_image_stitching', 'ImageJ_out', '{}.xml')
-
-#   Every slide expected to have ImageJ output (an initial estimate of image
-#   transformations))
-all_slides = ['V11U08-082', 'V11U23-406', 'V12D07-074']
+xml_map_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 
 #   Which "round" a given slide was part of: this info is necessary to uniquely
 #   determine where the raw image is for a given sample. In some cases, there
@@ -136,26 +132,35 @@ sample_info['spaceranger_dir'] = [
 #   Add the initial transformation estimates for image stitching from ImageJ
 ################################################################################
 
+xml_map = pd.read_csv(xml_map_path, index_col = 'Slide')
+xml_map.index.name = 'sample_id'
+xml_map['Slide #'] = [x.split('_')[0] for x in xml_map.index]
+
 transform_df_list = []
-for slide in all_slides:
+for slide in xml_map['Slide #'].unique():
     assert slide in sample_info['Slide #'].unique(), f"{slide} not found in 'sample_info'"
 
-    #   Open the ImageJ XML output for this slide
-    with open(Path(str(imagej_xml_path).format(slide))) as f:
-        this_imagej_xml = f.read()
+    #   Open the ImageJ XML output for this slide. Assumes every array in a slide
+    #   is in the same XML file associated with each slide
+    imagej_xml_path = Path(
+        here() /
+        xml_map.loc[xml_map['Slide #'] == slide, 'XML file name'].iloc[0]
+    )
+    with open(imagej_xml_path) as f:
+        imagej_xml = f.read()
     
     #   Clean the file; make sure new lines only separate XML elements
-    this_imagej_xml = re.sub('\n', '', this_imagej_xml)
-    this_imagej_xml = re.sub('>', '>\n', this_imagej_xml)
+    imagej_xml = re.sub('\n', '', imagej_xml)
+    imagej_xml = re.sub('>', '>\n', imagej_xml)
 
     array_nums = [
-        x.split('_')[1]
-        for x in re.findall(r'Br[0-9]{4}_[ABCD]1', this_imagej_xml)
+        re.sub('[_/]', '', x)
+        for x in re.findall(rf'_[ABCD]1/', imagej_xml)
     ]
     
     #   Grab the transformation matrices and import as numpy array with the
     #   structure used in 01-samui_test.py
-    matrices = re.findall(r'matrix\(.*\)".*file_path=', this_imagej_xml)
+    matrices = re.findall(r'matrix\(.*\)".*file_path=', imagej_xml)
     trans_mat = [re.sub(r'matrix\((.*)\).*', '\\1', x).split(',') for x in matrices]
     trans_mat = np.transpose(
         np.array(
@@ -164,7 +169,7 @@ for slide in all_slides:
             .reshape((-1, 3, 2)),
         axes = [0, 2, 1]
     )
-    assert trans_mat.shape == (4, 2, 3), "Improperly read ImageJ XML outputs"
+    assert trans_mat.shape[1:3] == (2, 3), "Improperly read ImageJ XML outputs"
 
     #   Grab sample info for this slide, ordered how the array numbers
     #   appear in the ImageJ output
