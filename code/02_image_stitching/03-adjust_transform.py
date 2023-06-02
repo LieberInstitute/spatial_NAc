@@ -47,7 +47,7 @@ pairwise_path = Path(
 #   rotate and translate the second element of the pair to match the first
 array_pairs = {
     'V11U08-082': [('B1', 'C1'), ('A1', 'D1')],
-    'V11U23-406': [('A1', 'B1')],
+    'V11U23-406': [('C1', 'D1')],
     'V12D07-074': [('C1', 'D1')]
 }
 
