@@ -11,6 +11,7 @@ import sys
 SPOT_DIAMETER_M = 55e-6
 
 this_slide, arrays = sys.argv[1:]
+sample_ids = [f'{this_slide}_{x}' for x in arrays.split('_')]
 
 #   Inputs
 roi_json_path = Path(
@@ -153,16 +154,9 @@ def arrange_b(a, b):
 #   Process initial transformation estimates to be at full resolution
 ################################################################################
 
-#   Read in sample info and subset to slide of interest, with capture areas in
-#   order
+#   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
-sample_info = sample_info.loc[sample_info['Slide #'] == this_slide, :]
-sample_info = sample_info.loc[sample_info.index.sort_values()]
-
-#   Adjusts paths for this slide
-roi_json_path = Path(str(roi_json_path).format(this_slide))
-estimate_path = Path(str(estimate_path).format(this_slide))
-pairwise_path = Path(str(pairwise_path).format(this_slide))
+sample_info = sample_info.loc[sample_ids, :]
 
 #   Initial estimates of (by row): x translation, y translation, theta in
 #   radians (counterclockwise relative to canvas)
@@ -228,7 +222,7 @@ for pair in array_pairs[this_slide]:
     assert a.shape == b.shape
 
     #   Ensure row i in a refers to the same ROI as row i in b for all i
-    b = arrange_b(a, b)
+    # b = arrange_b(a, b)
 
     #   Calculate initial error metrics
     init_err_avg = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
