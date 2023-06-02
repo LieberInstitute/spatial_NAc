@@ -10,24 +10,35 @@ import sys
 
 SPOT_DIAMETER_M = 55e-6
 
-this_slide = sys.argv[1]
+this_slide, arrays = sys.argv[1:]
 
 #   Inputs
-roi_json_path = here(
-    'processed-data', '02_image_stitching', 'rois_combined_{}.json'
+roi_json_path = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'rois_combined_{this_slide}_{arrays}.json'
+    )
 )
 
-sample_info_path = here(
-    'processed-data', '02_image_stitching', 'sample_info_clean.csv'
+sample_info_path = Path(
+    here(
+        'processed-data', '02_image_stitching', 'sample_info_clean.csv'
+    )
 )
 
 #   Outputs
-estimate_path = here(
-    'processed-data', '02_image_stitching', 'transformation_estimates_{}.csv'
+estimate_path = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'transformation_estimates_{this_slide}_{arrays}.csv'
+    )
 )
 
-pairwise_path = here(
-    'processed-data', '02_image_stitching', 'pairwise_errors_{}.csv'
+pairwise_path = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'pairwise_errors_{this_slide}_{arrays}.csv'
+    )
 )
 
 #   Capture areas we'll compare ROIs (in pairs) for in order to deduce
@@ -36,7 +47,7 @@ pairwise_path = here(
 array_pairs = {
     'V11U08-082': [('B1', 'C1'), ('A1', 'D1')],
     'V11U23-406': [('A1', 'B1')],
-    'V11U23-404': []
+    'V12D07-074': [('C1', 'D1')]
 }
 
 ################################################################################
