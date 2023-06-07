@@ -20,46 +20,22 @@ sample_info_paths = [
 
 xml_map_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 
-#   Which "round" a given slide was part of: this info is necessary to uniquely
-#   determine where the raw image is for a given sample. In some cases, there
-#   isn't enough information to determine round, so it's left NA
-rounds = {
-    'V11U08-082': 1,
-    'V11U08-083': 1,
-    'V11U23-404': 2,
-    'V11U23-406': 2,
-    'V11U23-403': 3,
-    'V11U23-405': 3,
-    'V11D01-385': np.NaN,
-    'V12D07-074': 5,
-    'V11D01-386': np.NaN,
-    'V12N28-334': np.NaN
-}
-
 ################################################################################
 #   Functions
 ################################################################################
 
-#   Given the sample_info DataFrame and numeric index i, return the path to the
-#   full-resolution/ raw image, or None if it can't be found
-def get_img_path(sample_info, i):
-    img_dir = here('raw-data', 'images', 'CS2')
-    
-    #   For samples with no known round, return None
-    if sample_info['Round'].isna().iloc[i]:
-        return None
-    
-    a = glob.glob(
-        os.path.join(
-            img_dir,
-            'round' + str(int(sample_info['Round'].iloc[i])),
-            '*' + sample_info['Brain'].iloc[i] + '_*' +
-                sample_info['Array #'].iloc[i] + '.tif'
-        )
-    )
+#   Given the contents of the spaceranger '_invocation' file as a single string
+#   'file_string', return the path to the image used as input to spaceranger
+def parse_sr_invocation(file_string):
+    #   Find the line containing the image path, and confirm there is only
+    #   one image 
+    match = re.findall(r'tissue_image_paths.*=.*\[".*"\]', file_string)
+    assert len(match) == 1
 
-    assert len(a) == 1, "Did not find exactly one raw image"
-    return a[0]
+    #   Grab just the path and return
+    path = Path(re.sub(r'(tissue_image_paths|[ "\[\]=,])', '', match[0]))
+    assert path.exists()
+    return path
 
 #   Get a numpy array representing transformation matrices from ImageJ (of shape
 #   (n, 2, 3) for n capture areas), return theta (of shape (n,)), the angles
@@ -107,18 +83,10 @@ sample_info.loc[sample_info['Tissue'] == 'dacc', 'Tissue'] = 'dACC'
 
 sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 
-#   Add "round" where that information can be uniquely deduced
-sample_info['Round'] = [rounds[x] for x in sample_info['Slide #']]
-
 ################################################################################
 #   Determine the path to the full-resolution/raw images and spaceranger output
 #   directories
 ################################################################################
-
-#   Try a glob-based method to find image paths for all samples
-sample_info['raw_image_path'] = [
-    get_img_path(sample_info, i) for i in range(sample_info.shape[0])
-]
 
 sample_info['spaceranger_dir'] = [
     Path(x)
@@ -127,6 +95,23 @@ sample_info['spaceranger_dir'] = [
         'spatial'
     )
 ]
+
+#   Grab the full-resolution ("raw") image paths by extracting which images were
+#   used as input to spaceranger
+raw_image_paths = []
+for spaceranger_dir in sample_info['spaceranger_dir']:
+    invocation_path = spaceranger_dir.parent.parent / '_invocation'
+    
+    #   Spaceranger has not been run for all samples
+    if invocation_path.exists():
+        with open(invocation_path, 'r') as f:
+            invocation_str = f.read()
+        
+        raw_image_paths.append(parse_sr_invocation(invocation_str))
+    else:
+        raw_image_paths.append(None)
+
+sample_info['raw_image_path'] = raw_image_paths
 
 ################################################################################
 #   Add the initial transformation estimates for image stitching from ImageJ
