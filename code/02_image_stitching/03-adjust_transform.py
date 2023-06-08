@@ -48,7 +48,7 @@ pairwise_path = Path(
 array_pairs = {
     'V11U08-082': [('B1', 'C1'), ('A1', 'D1')],
     'V11U23-406': [('C1', 'D1')],
-    'V12D07-074': [('C1', 'D1')]
+    'V12D07-074': [('A1', 'B1'), ('A1', 'D1'), ('A1', 'C1')]
 }
 
 ################################################################################
@@ -139,16 +139,21 @@ def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
     #   Convert from full-resolution pixels to number of spot diameters
     return err * M_PER_PX / SPOT_DIAMETER_M
 
-#   Return a row-ordering of b that lines up with the rows of a. The algorithm
+#   Return a row-ordering of a that lines up with the rows of b. The algorithm
 #   assumes the same ROI between a and b is closer than any other combination
-#   of ROIs between a and b
-def arrange_b(a, b):
-    indices = np.zeros(a.shape[0], dtype = np.uint16)
-    #   For each ROI in a, find the index of the closest ROI in b
-    for i in range(a.shape[0]):
-        indices[i] = np.argmin(np.sum((b - a[i, :]) * (b - a[i, :]), axis = 1))
+#   of ROIs between a and b. 'a' may also be subset; only ROIs in a that are
+#   paired with those in b are kept.
+def arrange_a(a, b):
+    indices = np.zeros(b.shape[0], dtype = np.uint16)
+
+    #   For each ROI in b, find the index of the closest ROI in a
+    for i in range(b.shape[0]):
+        indices[i] = np.argmin(np.sum((a - b[i, :]) * (a - b[i, :]), axis = 1))
     
-    return b[indices, :].copy()
+    #   There's a problem if an ROI in a is used twice
+    assert np.unique(indices).shape[0] == indices.shape[0]
+    
+    return a[indices, :].copy()
 
 ################################################################################
 #   Process initial transformation estimates to be at full resolution
@@ -219,10 +224,11 @@ for pair in array_pairs[this_slide]:
     label2 = pair[1] + '_artifact_centroid'
     a = np.array(roi_df.loc[roi_df['label'] == label1, ['x', 'y']])
     b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
-    assert a.shape == b.shape
 
-    #   Ensure row i in a refers to the same ROI as row i in b for all i
-    # b = arrange_b(a, b)
+    #   Ensure row i in a refers to the same ROI as row i in b for all i. Subset
+    #   the ROIs in a to those matching ROIs in b
+    a = arrange_a(a, b)
+    assert a.shape == b.shape
 
     #   Calculate initial error metrics
     init_err_avg = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
