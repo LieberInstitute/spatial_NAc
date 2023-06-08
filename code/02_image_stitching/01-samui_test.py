@@ -202,7 +202,11 @@ trans_img = np.array(
     dtype = np.float64
 )
 trans_img = np.round(trans_img).astype(int)
-assert np.all(trans_img >= 0), "Overall-negative translations for images not currently supported"
+
+#   Equally translate images and spot coords such that the minimum pixel
+#   occupied by any image is at (0, 0) (also potentially saving memory)
+trans[:, :, 2] -= np.min(trans_img, axis = 0)
+trans_img -= np.min(trans_img, axis = 0)
 
 #   Initialize the combined tiff. Determine the boundaries by computing the
 #   maximal coordinates in each dimension of each rotated and translated image
