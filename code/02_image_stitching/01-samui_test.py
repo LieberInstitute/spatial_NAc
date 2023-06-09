@@ -33,13 +33,19 @@ estimate_path = Path(
 out_dir = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'combined_{this_slide}_{arrays}_{file_suffix}'
+        f'combined_{this_slide}_{arrays}_{file_suffix}2'
     )
 )
 img_out_path = Path(
     here(
         'processed-data', '02_image_stitching',
         f'combined_{this_slide}_{arrays}_{file_suffix}.tif'
+    )
+)
+tissue_out_path = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'tissue_positions_{this_slide}_{arrays}.csv'
     )
 )
 
@@ -75,7 +81,7 @@ def adjust_trans(img_shape, theta):
     #   corners
     adjust = np.array(
         [
-            max(
+            -1 * max(
                 0,
                 img_shape[0] * np.sin(theta),
                 img_shape[1] * np.sin(theta - np.pi / 2),
@@ -91,6 +97,19 @@ def adjust_trans(img_shape, theta):
     )
 
     return adjust
+
+#   Unit tests of 'adjust_trans'
+def is_equal(a, b, tol):
+    return np.sum((a - b) @ (a - b)) < tol
+
+tol = 1e-10
+assert is_equal(adjust_trans((100, 150), 2 * np.pi), np.zeros(2), tol)
+assert is_equal(adjust_trans((87, 13), np.pi), np.array([-13, -87]), tol)
+assert is_equal(
+    adjust_trans((4, 4), np.pi / 4),
+    np.array([-2 * np.sqrt(2), 0]),
+    tol
+)
 
 #   Given a numpy array of shape (n, 2) representing the shapes of n images
 #   (stored as numpy arrays), and 'trans', the shape (n, 2, 3) numpy array
@@ -270,6 +289,18 @@ for i in range(sample_info.shape[0]):
 
 with tifffile.TiffWriter(img_out_path, bigtiff = True) as tiff:
     tiff.write(combined_img)
+
+#   Also export tissue positions with SpatialExperiment-friendly colnames
+tissue_positions_r = tissue_positions.rename(
+    {
+        'row': 'array_row', 'col': 'array_col', 'y': 'pxl_row_in_fullres',
+        'x': 'pxl_row_in_fullres'
+    },
+    axis = 1
+)
+tissue_positions_r.index.name = 'key'
+
+tissue_positions_r.to_csv(tissue_out_path, index = True)
 
 ################################################################################
 #   Use the Samui API to create the importable directory for this combined
