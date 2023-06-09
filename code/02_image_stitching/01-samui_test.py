@@ -33,7 +33,7 @@ estimate_path = Path(
 out_dir = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'combined_{this_slide}_{arrays}_{file_suffix}2'
+        f'combined_{this_slide}_{arrays}_{file_suffix}'
     )
 )
 img_out_path = Path(
@@ -291,16 +291,17 @@ with tifffile.TiffWriter(img_out_path, bigtiff = True) as tiff:
     tiff.write(combined_img)
 
 #   Also export tissue positions with SpatialExperiment-friendly colnames
-tissue_positions_r = tissue_positions.rename(
-    {
-        'row': 'array_row', 'col': 'array_col', 'y': 'pxl_row_in_fullres',
-        'x': 'pxl_row_in_fullres'
-    },
-    axis = 1
-)
-tissue_positions_r.index.name = 'key'
+if file_suffix == 'adjusted':
+    tissue_positions_r = tissue_positions.rename(
+        {
+            'row': 'array_row', 'col': 'array_col', 'y': 'pxl_row_in_fullres',
+            'x': 'pxl_row_in_fullres'
+        },
+        axis = 1
+    )
+    tissue_positions_r.index.name = 'key'
 
-tissue_positions_r.to_csv(tissue_out_path, index = True)
+    tissue_positions_r.to_csv(tissue_out_path, index = True)
 
 ################################################################################
 #   Use the Samui API to create the importable directory for this combined
