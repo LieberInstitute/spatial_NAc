@@ -35,3 +35,20 @@ this_sample_info = sample_info |>
     filter(slide_num == 'V12D07-074')
 
 these_coords = coords |> filter(sample_id %in% this_sample_info$sample_id)
+
+#   TODO: (probably in another script) check if the relationship between
+#   array_row and pixel_row, etc is stable. Try multiple datasets and samples
+
+#   Horribly confusingly, 'array_row' increases with 'pxl_col_in_fullres', not
+#   'pxl_row_in_fullres'
+MAX = max(these_coords$pxl_col_in_fullres)
+MIN = min(these_coords$pxl_col_in_fullres)
+these_coords$array_row_new = round(
+    (NUM_ROW - 1) * (these_coords$pxl_col_in_fullres - MIN) / (MAX - MIN)
+)
+
+MAX = max(these_coords$pxl_row_in_fullres)
+MIN = min(these_coords$pxl_row_in_fullres)
+these_coords$array_col_new = round(
+    (NUM_COL - 1) * (these_coords$pxl_row_in_fullres - MIN) / (MAX - MIN)
+)
