@@ -358,13 +358,8 @@ combined_img = merge_image_export(
 )
 Image.fromarray(combined_img).save(img_out_export_path)
 
+#   Handle the spot coordinates
 for i in range(sample_info.shape[0]):
-    img_pil = Image.open(sample_info['raw_image_path'].iloc[i]).convert('L')
-
-    #   Rotate about the top left corner of the image
-    theta_deg = 180 * theta[i] / np.pi # '.rotate' uses degrees, not radians
-    img = np.array(img_pil.rotate(theta_deg, expand = True), dtype = np.uint8)
-
     #   Read in the tissue positions file to get spatial coordinates. Index by
     #   barcode + sample ID, and subset to only spots within tissue
     tissue_path = os.path.join(
@@ -413,7 +408,7 @@ this_sample.add_coords(
 )
 
 this_sample.add_image(
-    tiff = img_out_path,
+    tiff = img_out_browser_path,
     channels = [x.split('_')[-1] for x in sample_info.index],
     scale = m_per_px
 )
