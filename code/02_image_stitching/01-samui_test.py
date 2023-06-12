@@ -36,10 +36,16 @@ out_dir = Path(
         f'combined_{this_slide}_{arrays}_{file_suffix}'
     )
 )
-img_out_path = Path(
+img_out_browser_path = Path(
     here(
         'processed-data', '02_image_stitching',
         f'combined_{this_slide}_{arrays}_{file_suffix}.tif'
+    )
+)
+img_out_export_path = Path(
+    here(
+        'processed-data', '02_image_stitching',
+        f'highres_combined_{this_slide}_{arrays}.png'
     )
 )
 tissue_out_path = Path(
@@ -144,6 +150,100 @@ def rotate_shapes(shapes, trans):
     ).astype(int)
     return end_shape
 
+#   sample_info: pd.DataFrame of sample information with rows representing
+#       samples and containing a 'raw_image_path' column with paths to full-
+#       resolution images
+#   theta: np.array (shape (N,)) containing rotations of every sample in radians
+#   trans_img: np.array (shape (N, 2)) giving translations of every sample
+#       (after any rotations)
+#   max0, max1: integers giving shape of merged image to create
+#
+#   Return the combined full-resolution image containing all samples
+#   after performing transformations (an np.array). Each sample occupies one
+#   channel of the image (so RGB is reduced to grayscale). Intended for use
+#   in creating the Samui-viewable image
+def merge_image_browser(sample_info, theta, trans_img, max0, max1):
+    #   Initialize the combined tiff. Determine the boundaries by computing the
+    #   maximal coordinates in each dimension of each rotated and translated
+    #   image
+    combined_img = np.zeros(
+        (max0 + 1, max1 + 1, sample_info.shape[0]), dtype = np.uint8
+    )
+
+    for i in range(sample_info.shape[0]):
+        img_pil = Image.open(sample_info['raw_image_path'].iloc[i]).convert('L')
+
+        #   Rotate about the top left corner of the image
+        theta_deg = 180 * theta[i] / np.pi # '.rotate' uses degrees, not radians
+        img = np.array(
+            img_pil.rotate(theta_deg, expand = True), dtype = np.uint8
+        )
+
+        #   "Place this image" on the combined image, considering translations.
+        #   Use separate channels for each image
+        combined_img[
+                trans_img[i, 0]: trans_img[i, 0] + img.shape[0],
+                trans_img[i, 1]: trans_img[i, 1] + img.shape[1],
+                i : (i + 1)
+            ] += img.reshape((img.shape[0], img.shape[1], 1))
+    
+    return combined_img
+
+#   sample_info: pd.DataFrame of sample information with rows representing
+#       samples and containing a 'raw_image_path' column with paths to full-
+#       resolution images
+#   theta: np.array (shape (N,)) containing rotations of every sample in radians
+#   trans_img: np.array (shape (N, 2)) giving translations of every sample
+#       (after any rotations)
+#   max0, max1: integers giving shape of merged image to create
+#   highres_sf: high-resolution scale factor from spaceranger for any sample
+#
+#   Return the combined high-resolution RGB image containing all samples
+#   after performing transformations (an np.array)
+def merge_image_export(sample_info, theta, trans_img, max0, max1, highres_sf):
+    #   Rescale relevant variables to reflect pixels in high resolution
+    scaled_trans_img = (trans_img * highres_sf).astype(np.int32)
+    max0 = round(max0 * highres_sf)
+    max1 = round(max1 * highres_sf)
+
+    #   Initialize the combined tiff. Determine the boundaries by computing the
+    #   maximal coordinates in each dimension of each rotated and translated
+    #   image
+    combined_img = np.zeros((max0 + 1, max1 + 1, 3), dtype = np.float64)
+    weights = np.zeros((max0 + 1, max1 + 1, 1), dtype = np.float64)
+
+    for i in range(sample_info.shape[0]):
+        #   Read in full-res RGB image and scale to high res
+        img_pil = Image.open(sample_info['raw_image_path'].iloc[i])
+        scaled_size = tuple([round(x * highres_sf) for x in img_pil.size])
+        img_pil = img_pil.resize(scaled_size)
+
+        #   Rotate about the top left corner of the image
+        theta_deg = 180 * theta[i] / np.pi # '.rotate' uses degrees, not radians
+        img = np.array(
+            img_pil.rotate(theta_deg, expand = True), dtype = np.uint8
+        )
+
+        #   "Place this image" on the combined image, considering translations.
+        combined_img[
+                scaled_trans_img[i, 0]: scaled_trans_img[i, 0] + img.shape[0],
+                scaled_trans_img[i, 1]: scaled_trans_img[i, 1] + img.shape[1],
+                :
+            ] += img
+        
+        #   Count how many times a pixel is added to
+        weights[
+                scaled_trans_img[i, 0]: scaled_trans_img[i, 0] + img.shape[0],
+                scaled_trans_img[i, 1]: scaled_trans_img[i, 1] + img.shape[1],
+                :
+            ] += 1
+    
+    #   Average the color across all images that overlap a given pixel
+    weights[weights == 0] = 1
+    combined_img = (combined_img / weights).astype(np.uint8)
+    
+    return combined_img
+
 ################################################################################
 #   Define the transformation matrix
 ################################################################################
@@ -227,13 +327,6 @@ trans_img = np.round(trans_img).astype(int)
 trans[:, :, 2] -= np.min(trans_img, axis = 0)
 trans_img -= np.min(trans_img, axis = 0)
 
-#   Initialize the combined tiff. Determine the boundaries by computing the
-#   maximal coordinates in each dimension of each rotated and translated image
-max0, max1 = np.max(rotated_shapes + trans_img, axis = 0)
-combined_img = np.zeros(
-    (max0 + 1, max1 + 1, sample_info.shape[0]), dtype = np.uint8
-)
-
 #   For now, just read in one JSON file and assume all samples are roughly on
 #   the same spatial scale (spots have the same diameter in pixels)
 json_path = os.path.join(
@@ -249,6 +342,21 @@ tissue_positions_list = []
 ################################################################################
 #   Read in and translate images and spot coordinates
 ################################################################################
+
+max0, max1 = np.max(rotated_shapes + trans_img, axis = 0)
+
+#   Write the full-resolution combined TIFF needed by Samui
+combined_img = merge_image_browser(sample_info, theta, trans_img, max0, max1)
+with tifffile.TiffWriter(img_out_browser_path, bigtiff = True) as tiff:
+    tiff.write(combined_img)
+
+#   Write the high-resolution combined PNG needed for the SpatialExperiment
+#   object
+combined_img = merge_image_export(
+    sample_info, theta, trans_img, max0, max1,
+    spaceranger_json['tissue_hires_scalef']
+)
+Image.fromarray(combined_img).save(img_out_export_path)
 
 for i in range(sample_info.shape[0]):
     img_pil = Image.open(sample_info['raw_image_path'].iloc[i]).convert('L')
@@ -279,23 +387,12 @@ for i in range(sample_info.shape[0]):
 
     tissue_positions_list.append(tissue_positions)
 
-    #   "Place this image" on the combined image, considering translations. Use
-    #   separate channels for each image
-    combined_img[
-            trans_img[i, 0]: trans_img[i, 0] + img.shape[0],
-            trans_img[i, 1]: trans_img[i, 1] + img.shape[1],
-            i : (i + 1)
-        ] += img.reshape((img.shape[0], img.shape[1], 1))
-
-with tifffile.TiffWriter(img_out_path, bigtiff = True) as tiff:
-    tiff.write(combined_img)
-
 #   Also export tissue positions with SpatialExperiment-friendly colnames
 if file_suffix == 'adjusted':
     tissue_positions_r = tissue_positions.rename(
         {
             'row': 'array_row', 'col': 'array_col', 'y': 'pxl_row_in_fullres',
-            'x': 'pxl_row_in_fullres'
+            'x': 'pxl_col_in_fullres'
         },
         axis = 1
     )
