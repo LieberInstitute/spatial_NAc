@@ -64,42 +64,33 @@ these_coords = coords |> filter(sample_id %in% this_sample_info$sample_id)
 #   columns but on a much larger area. By convention, we'll have array row
 #   increase with pixel row and array col increase with pixel col.
 
-#-------------------------------------------------------------------------------
-#   Determine which array row a given spot should be assigned
-#-------------------------------------------------------------------------------
+MIN_ROW = min(these_coords$pxl_row_in_fullres)
+INTERVAL_ROW = (max(these_coords$pxl_row_in_fullres) - MIN_ROW) / (NUM_ROW - 1)
+    
+MIN_COL = min(these_coords$pxl_col_in_fullres)
+INTERVAL_COL = (max(these_coords$pxl_col_in_fullres) - MIN_COL) / (NUM_COL - 1)
 
-MAX = max(these_coords$pxl_row_in_fullres)
-MIN = min(these_coords$pxl_row_in_fullres)
 these_coords$array_row = round(
-    (NUM_ROW - 1) * (these_coords$pxl_row_in_fullres - MIN) / (MAX - MIN)
+    (these_coords$pxl_row_in_fullres - MIN_ROW) / INTERVAL_ROW
 )
+these_coords$array_col = (these_coords$pxl_col_in_fullres - MIN_COL) /
+    INTERVAL_COL
 
-#-------------------------------------------------------------------------------
-#   Given the newly assigned array row, determine which array column a given
-#   spot should be assigned
-#-------------------------------------------------------------------------------
+#   Actually, columns are constrained to be even for even rows and odd for odd
+#   rows. Round accordingly
+these_coords$array_col[these_coords$array_row %% 2 == 0] = these_coords |>
+    filter(these_coords$array_row %% 2 == 0) |>
+    mutate(temp = round(array_col / 2) * 2) |>
+    pull(temp)
+these_coords$array_col[these_coords$array_row %% 2 == 1] = these_coords |>
+    filter(these_coords$array_row %% 2 == 1) |>
+    mutate(temp = round(array_col / 2 + 0.5) * 2 - 1) |>
+    pull(temp)
 
-MAX = max(these_coords$pxl_col_in_fullres)
-MIN = min(these_coords$pxl_col_in_fullres)
-
-#   The pixel distance between array row i and row i+1
-INTERVAL_SIZE = (MAX - MIN) / (NUM_COL - 1)
-
-#   'min_vec' gives the minimum 'pxl_row_in_fullres' values possible for spots
-#   in the corresponding new array row. Odd rows have columns shifted in the
-#   positive direction by one INTERVAL_SIZE. Also, row 0 (strangely) essentially
-#   skips the first column (this is just how Visium capture areas are)
-min_vec = MIN + INTERVAL_SIZE * (these_coords$array_row %% 2 == 1)
-min_vec[match(0, these_coords$array_row)] = MIN + INTERVAL_SIZE * 2
-
-#   The interval size here is doubled because for a given row, only every other
-#   column value is possible. We multiply by 2 because we're still indexing as
-#   if every column is possible
-these_coords$array_col = 2 * round(
-        (these_coords$pxl_col_in_fullres - min_vec) / (2 * INTERVAL_SIZE)
-    ) +
-    #   Odd rows have columns start at 1, not 0
-    (these_coords$array_row %% 2 == 1)
+#   Now make new pixel columns based on just the array values (these columns
+#   give the coordinates for given array row/cols)
+these_coords$pxl_row_rounded = MIN_ROW + these_coords$array_row * INTERVAL_ROW
+these_coords$pxl_col_rounded = MIN_COL + these_coords$array_col * INTERVAL_COL
 
 #-------------------------------------------------------------------------------
 #   Verify the newly assigned array row and cols have reasonable values
@@ -125,6 +116,9 @@ stopifnot(min(these_coords$array_col) == 0)
 stopifnot(max(these_coords$array_row) == 77)
 stopifnot(max(these_coords$array_col) == 127)
 
+#   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
+if (any((these_coords$array_row == 0) & (these_coords$array_col == 0))) stop()
+
 ################################################################################
 #   Visually assess array_row and array_col
 ################################################################################
@@ -148,4 +142,3 @@ p = ggplot(these_coords) +
 pdf(file.path(plot_dir, paste0('spots_', this_slide, '.pdf')))
 print(p)
 dev.off()
-
