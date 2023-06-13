@@ -384,7 +384,7 @@ for i in range(sample_info.shape[0]):
 
 #   Also export tissue positions with SpatialExperiment-friendly colnames
 if file_suffix == 'adjusted':
-    tissue_positions_r = tissue_positions.rename(
+    tissue_positions_r = pd.concat(tissue_positions_list).rename(
         {
             'row': 'array_row', 'col': 'array_col', 'y': 'pxl_row_in_fullres',
             'x': 'pxl_col_in_fullres'
