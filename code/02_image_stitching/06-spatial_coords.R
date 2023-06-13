@@ -12,10 +12,16 @@ sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 
+plot_dir = here('plots', '02_image_stitching')
+
 #   55-micrometer diameter for Visium spot
 SPOT_DIAMETER_M = 55e-6
 NUM_COL = 128
 NUM_ROW = 78
+
+################################################################################
+#   Read in sample info and spot coordinate info
+################################################################################
 
 coords = do.call(rbind, lapply(tissue_paths, read.csv)) |> as_tibble()
 coords$sample_id = paste(
@@ -42,8 +48,9 @@ coords |>
     print()
 
 #   Subset to 1 donor (TODO: not by slide; make more general)
+this_slide = 'V12D07-074'
 this_sample_info = sample_info |>
-    filter(slide_num == 'V12D07-074')
+    filter(slide_num == this_slide)
 
 these_coords = coords |> filter(sample_id %in% this_sample_info$sample_id)
 
@@ -117,3 +124,28 @@ stopifnot(min(these_coords$array_row) == 0)
 stopifnot(min(these_coords$array_col) == 0)
 stopifnot(max(these_coords$array_row) == 77)
 stopifnot(max(these_coords$array_col) == 127)
+
+################################################################################
+#   Visually assess array_row and array_col
+################################################################################
+
+p = ggplot(these_coords) +
+    geom_point(
+        aes(
+            x = pxl_col_in_fullres,
+            y = max(pxl_row_in_fullres) - pxl_row_in_fullres,
+            color = sample_id
+        ),
+        size = 0.1
+    ) +
+    coord_fixed() +
+    labs(
+        x = 'Full-res pixels (width)', y = 'Full-res pixels (height)',
+        color = 'Sample ID'
+    ) + 
+    guides(color = guide_legend(override.aes = list(size = 1.5)))
+
+pdf(file.path(plot_dir, paste0('spots_', this_slide, '.pdf')))
+print(p)
+dev.off()
+
