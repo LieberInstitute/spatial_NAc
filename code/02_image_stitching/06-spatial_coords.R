@@ -123,6 +123,7 @@ if (any((these_coords$array_row == 0) & (these_coords$array_col == 0))) stop()
 #   Visually assess array_row and array_col
 ################################################################################
 
+#   Plot the transformed spots as-is for reference
 p = ggplot(these_coords) +
     geom_point(
         aes(
@@ -139,6 +140,39 @@ p = ggplot(these_coords) +
     ) + 
     guides(color = guide_legend(override.aes = list(size = 1.5)))
 
-pdf(file.path(plot_dir, paste0('spots_', this_slide, '.pdf')))
+pdf(file.path(plot_dir, paste0('raw_spots_', this_slide, '.pdf')))
 print(p)
 dev.off()
+
+#   Plot the spots aligned to the new Visium grid
+p = ggplot(these_coords) +
+    geom_point(
+        aes(
+            x = pxl_col_rounded,
+            y = max(pxl_row_rounded) - pxl_row_rounded,
+            color = sample_id
+        ),
+        size = 0.5
+    ) +
+    coord_fixed() +
+    labs(
+        x = 'Full-res pixels (width)', y = 'Full-res pixels (height)',
+        color = 'Sample ID', title = 'Spot Positions (Aligned to Array)'
+    ) + 
+    guides(color = guide_legend(override.aes = list(size = 1.5)))
+
+pdf(file.path(plot_dir, paste0('aligned_spots_', this_slide, '.pdf')))
+print(p)
+dev.off()
+
+################################################################################
+#   Measure error in aligning (rounding) pixel coordinates to fit array
+################################################################################
+
+#   First check how many spots mapped to the same array coordinates
+p = these_coords |>
+    group_by(array_col, array_row) |>
+    summarize(n = n()) |>
+    ggplot() +
+        geom_histogram(aes(x = n)) +
+        labs(x = "Num spots per array coordinate")
