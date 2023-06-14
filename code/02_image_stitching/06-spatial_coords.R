@@ -42,7 +42,7 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
     INTERVAL_ROW = inter_spot_dist_px * cos(pi / 6)
         
     MIN_COL = min(these_coords$pxl_col_in_fullres)
-    INTERVAL_COL = inter_spot_dist_px
+    INTERVAL_COL = inter_spot_dist_px / 2
 
     these_coords$array_row = round(
         (these_coords$pxl_row_in_fullres - MIN_ROW) / INTERVAL_ROW
@@ -58,7 +58,7 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
         pull(temp)
     these_coords$array_col[these_coords$array_row %% 2 == 1] = these_coords |>
         filter(these_coords$array_row %% 2 == 1) |>
-        mutate(temp = round(array_col / 2 + 0.5) * 2 - 1) |>
+        mutate(temp = round(array_col / 2 - 0.5) * 2 + 1) |>
         pull(temp)
 
     #   Now make new pixel columns based on just the array values (these columns
@@ -85,14 +85,8 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
         stopifnot()
 
     #   Check range of array row and col
-    if (min(these_coords$array_row) != 0) {
-        warning(paste0('Min array row was ', min(these_coords$array_row), '!'))
-        these_coords$array_row[these_coords$array_row < 0] = 0
-    }
-    if (min(these_coords$array_col) != 0) {
-        warning(paste0('Min array col was ', min(these_coords$array_col), '!'))
-        these_coords$array_col[these_coords$array_col < 0] = 0
-    }
+    stopifnot(min(these_coords$array_row) == 0)
+    stopifnot(min(these_coords$array_col) == 0)
 
     #   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
     if (any((these_coords$array_row == 0) & (these_coords$array_col == 0))) stop()
@@ -230,6 +224,14 @@ dev.off()
 #   Measure error in aligning (rounding) pixel coordinates to fit array
 ################################################################################
 
+#   Verify that for a single sample, mappings were unique
+p = these_coords |>
+    group_by(sample_id, array_col, array_row) |>
+    summarize(n = n()) |>
+    ggplot() +
+        geom_histogram(aes(x = n)) +
+        labs(x = "Num spots per array coordinate")
+
 #   First check how many spots mapped to the same array coordinates
 p = these_coords |>
     group_by(array_col, array_row) |>
@@ -244,7 +246,7 @@ these_coords |>
         d = mean(
             (pxl_row_in_fullres - pxl_row_rounded) ** 2 +
             (pxl_col_in_fullres - pxl_col_rounded) ** 2
-        ) ** 0.5 / sr_json$spot_diameter_fullres
+        ) ** 0.5 / INTER_SPOT_DIST_PX
     ) |>
     pull(d) |>
     print()
