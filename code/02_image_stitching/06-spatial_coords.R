@@ -94,17 +94,6 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
     return(these_coords)
 }
 
-get_frac_duplicated = function(these_coords) {
-    frac_duplicated = these_coords |>
-        group_by(array_col, array_row) |>
-        summarize(n = n()) |>
-        ungroup() |>
-        summarize(frac_dup = mean(n > 1)) |>
-        pull(frac_dup)
-    
-    return(frac_duplicated)
-}
-
 ################################################################################
 #   Read in sample info and spot coordinate info
 ################################################################################
@@ -158,25 +147,12 @@ PX_PER_M = sr_json$spot_diameter_fullres / SPOT_DIAMETER_M
 INTER_SPOT_DIST_PX = INTER_SPOT_DIST_M * PX_PER_M
 
 ################################################################################
-#   Overwrite array_row and array_col with new values appropriate for a merged
-#   image
+#   Visually assess array_row and array_col after fitting to "new grid"
 ################################################################################
 
-divisor = 1
-inter_spot_dist_px = INTER_SPOT_DIST_PX / divisor
-these_coords = fit_to_array(these_coords, inter_spot_dist_px)
-frac_duplicated_points = get_frac_duplicated(these_coords)
-while(frac_duplicated_points > 0.1) {
-    divisor = divisor + 1
-    inter_spot_dist_px = INTER_SPOT_DIST_PX / divisor
-
-    these_coords = fit_to_array(these_coords, inter_spot_dist_px)
-    frac_duplicated_points = get_frac_duplicated(these_coords)
-}
-
-################################################################################
-#   Visually assess array_row and array_col
-################################################################################
+#   Adjust 'array_row' and 'array_col' with values appropriate for the new
+#   coordinate system (a larger Visium grid with equal inter-spot distances)
+these_coords = fit_to_array(these_coords, INTER_SPOT_DIST_PX)
 
 #   Plot the transformed spots as-is for reference
 p = ggplot(these_coords) +
