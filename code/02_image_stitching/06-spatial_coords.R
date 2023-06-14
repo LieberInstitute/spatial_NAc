@@ -1,6 +1,7 @@
 library(here)
 library(tidyverse)
 library(jaffelab)
+library(rjson)
 
 tissue_paths = list.files(
     here('processed-data', '02_image_stitching'),
@@ -14,10 +15,12 @@ sample_info_path = here(
 
 plot_dir = here('plots', '02_image_stitching')
 
-#   55-micrometer diameter for Visium spot
+#   55-micrometer diameter for Visium spot; 100 micrometers between spots
 SPOT_DIAMETER_M = 55e-6
-NUM_COL = 128
-NUM_ROW = 78
+INTER_SPOT_DIST_M = 100e-6
+
+# NUM_COL = 128
+# NUM_ROW = 78
 
 ################################################################################
 #   Read in sample info and spot coordinate info
@@ -54,6 +57,23 @@ this_sample_info = sample_info |>
 
 these_coords = coords |> filter(sample_id %in% this_sample_info$sample_id)
 
+#-------------------------------------------------------------------------------
+#   Select an appropriate number of array rows and columns for this slide such
+#   that the distance between spots on the new grid matches the Visium standard
+#-------------------------------------------------------------------------------
+
+sr_json = fromJSON(
+    file = file.path(
+        this_sample_info$spaceranger_dir[1], "scalefactors_json.json"
+    )
+)
+
+#   Since we have the spot diameter both in pixels and meters, compute the
+#   image's pixel/m ratio. Then use that to compute the distance between spots
+#   in pixels
+PX_PER_M = sr_json$spot_diameter_fullres / SPOT_DIAMETER_M
+INTER_SPOT_DIST_PX = INTER_SPOT_DIST_M * PX_PER_M
+
 ################################################################################
 #   Overwrite array_row and array_col with new values appropriate for a merged
 #   image
@@ -65,10 +85,10 @@ these_coords = coords |> filter(sample_id %in% this_sample_info$sample_id)
 #   increase with pixel row and array col increase with pixel col.
 
 MIN_ROW = min(these_coords$pxl_row_in_fullres)
-INTERVAL_ROW = (max(these_coords$pxl_row_in_fullres) - MIN_ROW) / (NUM_ROW - 1)
+INTERVAL_ROW = INTER_SPOT_DIST_PX * cos(pi / 6)
     
 MIN_COL = min(these_coords$pxl_col_in_fullres)
-INTERVAL_COL = (max(these_coords$pxl_col_in_fullres) - MIN_COL) / (NUM_COL - 1)
+INTERVAL_COL = INTER_SPOT_DIST_PX
 
 these_coords$array_row = round(
     (these_coords$pxl_row_in_fullres - MIN_ROW) / INTERVAL_ROW
@@ -152,7 +172,7 @@ p = ggplot(these_coords) +
             y = max(pxl_row_rounded) - pxl_row_rounded,
             color = sample_id
         ),
-        size = 0.5
+        size = 0.1
     ) +
     coord_fixed() +
     labs(
