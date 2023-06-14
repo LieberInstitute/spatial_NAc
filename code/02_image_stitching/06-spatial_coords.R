@@ -23,6 +23,95 @@ INTER_SPOT_DIST_M = 100e-6
 # NUM_ROW = 78
 
 ################################################################################
+#   Functions
+################################################################################
+
+#   Given 'these_coords', a tibble whose rows represent samples of the same
+#   donor, and containing columns 'array_row', 'array_col',
+#   'pxl_row_in_fullres', and 'pxl_col_in_fullres', modify the 'array_row' and
+#   'array_col' columns to represent a larger Visium capture area containing
+#   all samples in a common coordinate system. 'inter_spot_dist_px' gives the
+#   distance between any 2 spots in the new coordinates, and so the number of
+#   array rows/cols generally changes from the Visium standards of 78 and 128
+#   (and even changes in ratio between num rows and num cols). Return the same
+#   tibble with modified 'array_row' + 'array_col' columns, as well as new
+#   'pxl_row_rounded' and 'pxl_col_rounded' columns representing the pixel
+#   coordinates rounded to the nearest exact array coordinates.
+fit_to_array = function(these_coords, inter_spot_dist_px) {
+    MIN_ROW = min(these_coords$pxl_row_in_fullres)
+    INTERVAL_ROW = inter_spot_dist_px * cos(pi / 6)
+        
+    MIN_COL = min(these_coords$pxl_col_in_fullres)
+    INTERVAL_COL = inter_spot_dist_px
+
+    these_coords$array_row = round(
+        (these_coords$pxl_row_in_fullres - MIN_ROW) / INTERVAL_ROW
+    )
+    these_coords$array_col = (these_coords$pxl_col_in_fullres - MIN_COL) /
+        INTERVAL_COL
+
+    #   Actually, columns are constrained to be even for even rows and odd for
+    #   odd rows. Round accordingly
+    these_coords$array_col[these_coords$array_row %% 2 == 0] = these_coords |>
+        filter(these_coords$array_row %% 2 == 0) |>
+        mutate(temp = round(array_col / 2) * 2) |>
+        pull(temp)
+    these_coords$array_col[these_coords$array_row %% 2 == 1] = these_coords |>
+        filter(these_coords$array_row %% 2 == 1) |>
+        mutate(temp = round(array_col / 2 + 0.5) * 2 - 1) |>
+        pull(temp)
+
+    #   Now make new pixel columns based on just the array values (these columns
+    #   give the coordinates for given array row/cols)
+    these_coords$pxl_row_rounded = MIN_ROW + these_coords$array_row * INTERVAL_ROW
+    these_coords$pxl_col_rounded = MIN_COL + these_coords$array_col * INTERVAL_COL
+
+    #-------------------------------------------------------------------------------
+    #   Verify the newly assigned array row and cols have reasonable values
+    #-------------------------------------------------------------------------------
+
+    #   Even array rows can only use even column indices
+    these_coords |>
+        filter(array_row %% 2 == 0) |>
+        summarize(a = all(array_col %% 2 == 0)) |>
+        pull(a) |>
+        stopifnot()
+
+    #   Odd array rows can only use odd column indices
+    these_coords |>
+        filter(array_row %% 2 == 1) |>
+        summarize(a = all(array_col %% 2 == 1)) |>
+        pull(a) |>
+        stopifnot()
+
+    #   Check range of array row and col
+    if (min(these_coords$array_row) != 0) {
+        warning(paste0('Min array row was ', min(these_coords$array_row), '!'))
+        these_coords$array_row[these_coords$array_row < 0] = 0
+    }
+    if (min(these_coords$array_col) != 0) {
+        warning(paste0('Min array col was ', min(these_coords$array_col), '!'))
+        these_coords$array_col[these_coords$array_col < 0] = 0
+    }
+
+    #   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
+    if (any((these_coords$array_row == 0) & (these_coords$array_col == 0))) stop()
+
+    return(these_coords)
+}
+
+get_frac_duplicated = function(these_coords) {
+    frac_duplicated = these_coords |>
+        group_by(array_col, array_row) |>
+        summarize(n = n()) |>
+        ungroup() |>
+        summarize(frac_dup = mean(n > 1)) |>
+        pull(frac_dup)
+    
+    return(frac_duplicated)
+}
+
+################################################################################
 #   Read in sample info and spot coordinate info
 ################################################################################
 
@@ -79,65 +168,17 @@ INTER_SPOT_DIST_PX = INTER_SPOT_DIST_M * PX_PER_M
 #   image
 ################################################################################
 
-#   Essentially, we're placing the merged set of transformed images on a 
-#   "new Visium capture area". It contains the traditional number of rows and
-#   columns but on a much larger area. By convention, we'll have array row
-#   increase with pixel row and array col increase with pixel col.
+divisor = 1
+inter_spot_dist_px = INTER_SPOT_DIST_PX / divisor
+these_coords = fit_to_array(these_coords, inter_spot_dist_px)
+frac_duplicated_points = get_frac_duplicated(these_coords)
+while(frac_duplicated_points > 0.1) {
+    divisor = divisor + 1
+    inter_spot_dist_px = INTER_SPOT_DIST_PX / divisor
 
-MIN_ROW = min(these_coords$pxl_row_in_fullres)
-INTERVAL_ROW = INTER_SPOT_DIST_PX * cos(pi / 6)
-    
-MIN_COL = min(these_coords$pxl_col_in_fullres)
-INTERVAL_COL = INTER_SPOT_DIST_PX
-
-these_coords$array_row = round(
-    (these_coords$pxl_row_in_fullres - MIN_ROW) / INTERVAL_ROW
-)
-these_coords$array_col = (these_coords$pxl_col_in_fullres - MIN_COL) /
-    INTERVAL_COL
-
-#   Actually, columns are constrained to be even for even rows and odd for odd
-#   rows. Round accordingly
-these_coords$array_col[these_coords$array_row %% 2 == 0] = these_coords |>
-    filter(these_coords$array_row %% 2 == 0) |>
-    mutate(temp = round(array_col / 2) * 2) |>
-    pull(temp)
-these_coords$array_col[these_coords$array_row %% 2 == 1] = these_coords |>
-    filter(these_coords$array_row %% 2 == 1) |>
-    mutate(temp = round(array_col / 2 + 0.5) * 2 - 1) |>
-    pull(temp)
-
-#   Now make new pixel columns based on just the array values (these columns
-#   give the coordinates for given array row/cols)
-these_coords$pxl_row_rounded = MIN_ROW + these_coords$array_row * INTERVAL_ROW
-these_coords$pxl_col_rounded = MIN_COL + these_coords$array_col * INTERVAL_COL
-
-#-------------------------------------------------------------------------------
-#   Verify the newly assigned array row and cols have reasonable values
-#-------------------------------------------------------------------------------
-
-#   Even array rows can only use even column indices
-these_coords |>
-    filter(array_row %% 2 == 0) |>
-    summarize(a = all(array_col %% 2 == 0)) |>
-    pull(a) |>
-    stopifnot()
-
-#   Odd array rows can only use odd column indices
-these_coords |>
-    filter(array_row %% 2 == 1) |>
-    summarize(a = all(array_col %% 2 == 1)) |>
-    pull(a) |>
-    stopifnot()
-
-#   Check range of array row and col
-stopifnot(min(these_coords$array_row) == 0)
-stopifnot(min(these_coords$array_col) == 0)
-stopifnot(max(these_coords$array_row) == 77)
-stopifnot(max(these_coords$array_col) == 127)
-
-#   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
-if (any((these_coords$array_row == 0) & (these_coords$array_col == 0))) stop()
+    these_coords = fit_to_array(these_coords, inter_spot_dist_px)
+    frac_duplicated_points = get_frac_duplicated(these_coords)
+}
 
 ################################################################################
 #   Visually assess array_row and array_col
@@ -172,7 +213,7 @@ p = ggplot(these_coords) +
             y = max(pxl_row_rounded) - pxl_row_rounded,
             color = sample_id
         ),
-        size = 0.1
+        size = 0.1 / divisor
     ) +
     coord_fixed() +
     labs(
@@ -196,3 +237,14 @@ p = these_coords |>
     ggplot() +
         geom_histogram(aes(x = n)) +
         labs(x = "Num spots per array coordinate")
+
+#   Mean alignment error in spot diameters
+these_coords |>
+    summarize(
+        d = mean(
+            (pxl_row_in_fullres - pxl_row_rounded) ** 2 +
+            (pxl_col_in_fullres - pxl_col_rounded) ** 2
+        ) ** 0.5 / sr_json$spot_diameter_fullres
+    ) |>
+    pull(d) |>
+    print()
