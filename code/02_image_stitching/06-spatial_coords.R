@@ -2,6 +2,7 @@ library(here)
 library(tidyverse)
 library(jaffelab)
 library(rjson)
+library(cowplot)
 
 tissue_paths = list.files(
     here('processed-data', '02_image_stitching'),
@@ -154,6 +155,10 @@ INTER_SPOT_DIST_PX = INTER_SPOT_DIST_M * PX_PER_M
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
 these_coords = fit_to_array(these_coords, INTER_SPOT_DIST_PX)
 
+#-------------------------------------------------------------------------------
+#   Spot plots
+#-------------------------------------------------------------------------------
+
 #   Plot the transformed spots as-is for reference
 p = ggplot(these_coords) +
     geom_point(
@@ -196,33 +201,58 @@ pdf(file.path(plot_dir, paste0('aligned_spots_', this_slide, '.pdf')))
 print(p)
 dev.off()
 
+#-------------------------------------------------------------------------------
+#   Plots measuring mapping of multiple spots to the same array coordinates
+#-------------------------------------------------------------------------------
+
+#   Verify that for a single sample, mappings were unique
+dup_coords = these_coords |>
+    group_by(sample_id, array_col, array_row) |>
+    summarize(n = n()) |>
+    ungroup()
+
+p1 = ggplot(dup_coords) +
+    geom_histogram(
+        aes(x = n, fill = sample_id), bins = length(unique(dup_coords$n)),
+        color = "black"
+    ) +
+    facet_wrap(~sample_id, nrow = 1) +
+    labs(
+        x = "Num spots per array coordinate", fill = "Sample ID",
+        title = "Within-sample duplication of spot mappings"
+    )
+
+#   Then check how many spots mapped to the same array coordinates, agnostic
+#   to sample
+dup_coords = these_coords |>
+    group_by(array_col, array_row) |>
+    summarize(n = n()) |>
+    ungroup()
+
+p2 = ggplot(dup_coords) +
+    geom_histogram(aes(x = n), bins = length(unique(dup_coords$n))) +
+    labs(
+        x = "Num spots per array coordinate",
+        title = "Overall duplication of spot mappings"
+    )
+
+pdf(file.path(plot_dir, 'spot_duplication.pdf'))
+plot_grid(p1, p2, nrow = 2)
+dev.off()
+
 ################################################################################
 #   Measure error in aligning (rounding) pixel coordinates to fit array
 ################################################################################
 
-#   Verify that for a single sample, mappings were unique
-p = these_coords |>
-    group_by(sample_id, array_col, array_row) |>
-    summarize(n = n()) |>
-    ggplot() +
-        geom_histogram(aes(x = n)) +
-        labs(x = "Num spots per array coordinate")
-
-#   First check how many spots mapped to the same array coordinates
-p = these_coords |>
-    group_by(array_col, array_row) |>
-    summarize(n = n()) |>
-    ggplot() +
-        geom_histogram(aes(x = n)) +
-        labs(x = "Num spots per array coordinate")
-
 #   Mean alignment error in spot diameters
+print("Mean alignment error in spot diameters:")
 these_coords |>
     summarize(
         d = mean(
             (pxl_row_in_fullres - pxl_row_rounded) ** 2 +
             (pxl_col_in_fullres - pxl_col_rounded) ** 2
-        ) ** 0.5 / INTER_SPOT_DIST_PX
+        ) ** 0.5 / sr_json$spot_diameter_fullres
     ) |>
     pull(d) |>
+    round(2) |>
     print()
