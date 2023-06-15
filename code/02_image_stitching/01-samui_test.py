@@ -55,8 +55,14 @@ tissue_out_path = Path(
     )
 )
 
-#   55-micrometer diameter for Visium spot
+#   55-micrometer diameter for Visium spot but 65-micrometer spot diameter used
+#   in 'spot_diameter_fullres' calculation for spaceranger JSON. The
+#   difference between 55 and 65 does indeed exist and is properly documented,
+#   but is likely a bug in the sense the choice was probably unintentional
+#   https://kb.10xgenomics.com/hc/en-us/articles/360035487812-What-is-the-size-of-the-spots-on-the-Visium-Gene-Expression-Slide-
+#   https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/spatial
 SPOT_DIAMETER_M = 55e-6
+SPOT_DIAMETER_JSON_M = 65e-6
 
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
@@ -335,7 +341,7 @@ json_path = os.path.join(
 with open(json_path, 'r') as f:
     spaceranger_json = json.load(f)
 
-m_per_px = SPOT_DIAMETER_M / spaceranger_json['spot_diameter_fullres']
+m_per_px = SPOT_DIAMETER_JSON_M / spaceranger_json['spot_diameter_fullres']
 
 tissue_positions_list = []
 

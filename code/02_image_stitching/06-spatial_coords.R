@@ -16,12 +16,17 @@ sample_info_path = here(
 
 plot_dir = here('plots', '02_image_stitching')
 
-#   55-micrometer diameter for Visium spot; 100 micrometers between spots
+#   55-micrometer diameter for Visium spot; 100 micrometers between spots;
+#   65-micrometer spot diameter used in 'spot_diameter_fullres' calculation for
+#   spaceranger JSON. See documentation for respective quantities. The
+#   difference between 55 and 65 does indeed exist and is properly documented,
+#   but is likely a bug in the sense the choice was probably unintentional
+#   https://kb.10xgenomics.com/hc/en-us/articles/360035487812-What-is-the-size-of-the-spots-on-the-Visium-Gene-Expression-Slide-
+#   https://kb.10xgenomics.com/hc/en-us/articles/360035487892-How-much-space-is-there-between-spots-referred-to-as-white-space-
+#   https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/spatial
 SPOT_DIAMETER_M = 55e-6
+SPOT_DIAMETER_JSON_M = 65e-6
 INTER_SPOT_DIST_M = 100e-6
-
-# NUM_COL = 128
-# NUM_ROW = 78
 
 ################################################################################
 #   Functions
@@ -144,8 +149,27 @@ sr_json = fromJSON(
 #   Since we have the spot diameter both in pixels and meters, compute the
 #   image's pixel/m ratio. Then use that to compute the distance between spots
 #   in pixels
-PX_PER_M = sr_json$spot_diameter_fullres / SPOT_DIAMETER_M
+PX_PER_M = sr_json$spot_diameter_fullres / SPOT_DIAMETER_JSON_M
 INTER_SPOT_DIST_PX = INTER_SPOT_DIST_M * PX_PER_M
+
+#   Sanity check on existing coordinates: spots should be 100um apart. If not,
+#   modify. TODO: look for pairs of array coordinates that exist; don't hardcode
+#   10, 11
+a = these_coords |>
+    filter(array_row == 10, array_col == 80) |>
+    head(1) |>
+    select(pxl_row_in_fullres, pxl_col_in_fullres)
+
+b = these_coords |>
+    filter(array_row == 11, array_col == 81) |>
+    head(1) |>
+    select(pxl_row_in_fullres, pxl_col_in_fullres)
+
+tol = 2
+observed_dist = sqrt(rowSums((a - b) ** 2))
+if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
+    stop('Transformed spots output from ImageJ/Samui were not close to 100um apart!')
+}
 
 ################################################################################
 #   Visually assess array_row and array_col after fitting to "new grid"
@@ -188,7 +212,7 @@ p = ggplot(these_coords) +
             y = max(pxl_row_rounded) - pxl_row_rounded,
             color = sample_id
         ),
-        size = 0.1 / divisor
+        size = 0.1
     ) +
     coord_fixed() +
     labs(
