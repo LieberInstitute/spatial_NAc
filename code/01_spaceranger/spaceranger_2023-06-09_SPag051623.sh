@@ -5,7 +5,8 @@
 #$ -N spatialNAC_spaceranger_2023-06-09
 #$ -o logs/spaceranger_2023-06-09_SPag051623.$TASK_ID.txt
 #$ -e logs/spaceranger_2023-06-09_SPag051623.$TASK_ID.txt
-
+#$ -t 1-8
+#$ -tc 8
 
 echo "**** Job starts ****"
 date
@@ -56,8 +57,8 @@ spaceranger count \
 ## Move output
 echo "Moving results to new location"
 date
-mkdir -p /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/01_spaceranger_reorg/${SAMPLE}/
-mv ${SAMPLE} /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/01_spaceranger_reorg/${SAMPLE}/
+mkdir -p /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/01_spaceranger_reorg/${SAMPLE}
+mv ${SAMPLE} /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/01_spaceranger_reorg/${SAMPLE}
 
 echo "**** Job ends ****"
 date
