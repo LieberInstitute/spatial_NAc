@@ -65,4 +65,35 @@ pdf(plot_path, width = 10, height = 5)
 print(p)
 dev.off()
 
+#   Given spatial coords 'coords', get the distance between neighboring spots
+#   to the spot at array value (start_row, start_col)
+get_dist = function(start_row, start_col, coords) {
+    a = coords |>
+        group_by(sample_id) |>
+        filter(array_row == start_row, array_col == start_col) |>
+        ungroup() |>
+        select(pxl_row_in_fullres, pxl_col_in_fullres)
+    b = coords |>
+        group_by(sample_id) |>
+        filter(array_row == start_row, array_col == start_col + 2) |>
+        ungroup() |>
+        select(pxl_row_in_fullres, pxl_col_in_fullres)
+
+    observed_dist = sqrt(rowSums((a - b) ** 2))
+    return(observed_dist)
+}
+
+#   Try 25 random pairs of coordinates across all samples, to verify they are
+#   consistent within and between arrays. Figured out the slight variation is
+#   due to rounding spot centers to the nearest integer pixel in full resolution
+num_points = 25
+rows_vec = sample(1:38, num_points, replace = FALSE) * 2
+cols_vec = sample(0:62, num_points, replace = FALSE) * 2
+d = map2(rows_vec, cols_vec, get_dist, coords) |>
+    unlist() |>
+    matrix(
+        ncol = coords |> pull(sample_id) |> unique() |> length()
+    )
+print(d)
+
 session_info()
