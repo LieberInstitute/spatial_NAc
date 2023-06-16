@@ -50,7 +50,7 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
     MIN_COL = min(these_coords$pxl_col_in_fullres)
     INTERVAL_COL = inter_spot_dist_px / 2
 
-    these_coords$array_row = round(
+    these_coords$array_row = clean_round(
         (these_coords$pxl_row_in_fullres - MIN_ROW) / INTERVAL_ROW
     )
     these_coords$array_col = (these_coords$pxl_col_in_fullres - MIN_COL) /
@@ -60,11 +60,11 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
     #   odd rows. Round accordingly
     these_coords$array_col[these_coords$array_row %% 2 == 0] = these_coords |>
         filter(these_coords$array_row %% 2 == 0) |>
-        mutate(temp = round(array_col / 2) * 2) |>
+        mutate(temp = clean_round(array_col / 2) * 2) |>
         pull(temp)
     these_coords$array_col[these_coords$array_row %% 2 == 1] = these_coords |>
         filter(these_coords$array_row %% 2 == 1) |>
-        mutate(temp = round(array_col / 2 - 0.5) * 2 + 1) |>
+        mutate(temp = clean_round(array_col / 2 - 0.5) * 2 + 1) |>
         pull(temp)
 
     #   Now make new pixel columns based on just the array values (these columns
@@ -100,6 +100,15 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
     return(these_coords)
 }
 
+clean_round = function(x) {
+    # if ((x * 10) %% 10 >= 5) {
+    #     return(ceiling(x))
+    # } else {
+    #     return(floor(x))
+    # }
+
+    return(floor(x) + ((x * 10) %% 10 >= 5))
+}
 ################################################################################
 #   Read in sample info and spot coordinate info
 ################################################################################
@@ -280,3 +289,43 @@ these_coords |>
     pull(d) |>
     round(2) |>
     print()
+
+#   Explore why duplication occurs
+dup_df = these_coords |>
+    filter(sample_id == unique(sample_id)[2]) |>
+    group_by(array_row, array_col) |>
+    mutate(n = n()) |>
+    ungroup() |>
+    filter(n > 1) |>
+    select(!n)
+
+rand_row_col = dup_df |>
+    slice_sample(n = 1)
+
+dup_df = dup_df |>
+    filter(
+        array_row == rand_row_col$array_row[1],
+        array_col == rand_row_col$array_col[1]
+    ) |>
+    mutate(
+        coord_type = "duplicate",
+        pxl_row = pxl_row_in_fullres,
+        pxl_col = pxl_col_in_fullres
+    )
+
+dup_df = these_coords |>
+    filter(
+        sample_id == unique(sample_id)[2],
+        abs(array_row - (dup_df |> head(1) |> pull(array_row))) <= 10,
+        abs(array_col - (dup_df |> head(1) |> pull(array_col))) <= 20,
+    ) |>
+    mutate(
+        coord_type = "nearby",
+        pxl_row = pxl_row_rounded,
+        pxl_col = pxl_col_rounded
+    ) |>
+    rbind(dup_df)
+
+ggplot(dup_df) +
+    geom_point(aes(x = pxl_row, y = pxl_col, color = coord_type)) +
+    coord_fixed()
