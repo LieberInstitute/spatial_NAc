@@ -3,6 +3,8 @@ library(tidyverse)
 library(jaffelab)
 library(rjson)
 library(cowplot)
+library(grid)
+library(gridExtra)
 
 tissue_paths = list.files(
     here('processed-data', '02_image_stitching'),
@@ -27,6 +29,8 @@ plot_dir = here('plots', '02_image_stitching')
 SPOT_DIAMETER_M = 55e-6
 SPOT_DIAMETER_JSON_M = 65e-6
 INTER_SPOT_DIST_M = 100e-6
+
+set.seed(0)
 
 ################################################################################
 #   Functions
@@ -211,7 +215,7 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
-these_coords = fit_to_array_new(these_coords, INTER_SPOT_DIST_PX)
+these_coords = fit_to_array(these_coords, INTER_SPOT_DIST_PX)
 
 #-------------------------------------------------------------------------------
 #   Spot plots
@@ -315,42 +319,77 @@ these_coords |>
     round(2) |>
     print()
 
-#   Explore why duplication occurs
-dup_df = these_coords |>
-    filter(sample_id == unique(sample_id)[2]) |>
-    group_by(array_row, array_col) |>
-    mutate(n = n()) |>
-    ungroup() |>
-    filter(n > 1) |>
-    select(!n)
+#-------------------------------------------------------------------------------
+#   Explore why/ where duplication occurs
+#-------------------------------------------------------------------------------
 
-rand_row_col = dup_df |>
-    slice_sample(n = 1)
+#   Take 4 random duplicated mappings from each sample ID
+dup_df_orig = these_coords |>
+    group_by(array_row, array_col, sample_id) |>
+    mutate(num_members = n()) |>
+    filter(num_members > 1) |>
+    slice_head(n = 1) |>
+    group_by(sample_id) |>
+    sample_n(size = 4, replace = FALSE) |>
+    select(!num_members)
 
-dup_df = dup_df |>
-    filter(
-        array_row == rand_row_col$array_row[1],
-        array_col == rand_row_col$array_col[1]
-    ) |>
-    mutate(
-        coord_type = "duplicate",
-        pxl_row = pxl_row_in_fullres,
-        pxl_col = pxl_col_in_fullres
-    )
+plot_list = list()
+for (i in 1:nrow(dup_df_orig)) {
+    #   Grab the set of source spots mapping to the same destination spot,
+    #   mark them as duplicates, and use their original pixel coordinates
+    dup_df = these_coords |>
+        filter(
+            sample_id == dup_df_orig$sample_id[i],
+            array_row == dup_df_orig$array_row[i],
+            array_col == dup_df_orig$array_col[i]
+        ) |>
+        mutate(
+            coord_type = "duplicate",
+            pxl_row = pxl_row_in_fullres,
+            pxl_col = pxl_col_in_fullres
+        )
+    
+    #   Grab the set of nearby source spots surrounding the duplicate mapping,
+    #   and use the rounded pixel coordinates from them
+    dup_df = these_coords |>
+        filter(
+            sample_id == dup_df_orig$sample_id[i],
+            abs(array_row - dup_df_orig$array_row[i]) <= 4,
+            abs(array_col - dup_df_orig$array_col[i]) <= 7,
+        ) |>
+        mutate(
+            coord_type = "nearby",
+            pxl_row = pxl_row_rounded,
+            pxl_col = pxl_col_rounded
+        ) |>
+        rbind(dup_df)
+    
+    plot_list[[i]] = ggplot(dup_df) +
+        geom_point(aes(x = pxl_col, y = pxl_row, color = coord_type)) +
+        coord_fixed()
 
-dup_df = these_coords |>
-    filter(
-        sample_id == unique(sample_id)[2],
-        abs(array_row - (dup_df |> head(1) |> pull(array_row))) <= 4,
-        abs(array_col - (dup_df |> head(1) |> pull(array_col))) <= 7,
-    ) |>
-    mutate(
-        coord_type = "nearby",
-        pxl_row = pxl_row_rounded,
-        pxl_col = pxl_col_rounded
-    ) |>
-    rbind(dup_df)
+    #   Grab the legend from the first plot (which matches all other legends)
+    if (i == 1) {
+        legend = get_legend(plot_list[[i]])
+    }
+    
+    plot_list[[i]] = plot_list[[i]] +
+        theme(
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.ticks.y = element_blank(),
+            axis.title.y = element_blank(),
+            legend.position = "none"
+        )
+}
 
-ggplot(dup_df) +
-    geom_point(aes(x = pxl_col, y = pxl_row, color = coord_type)) +
-    coord_fixed()
+plot_list[['legend']] = legend
+pdf(file.path(plot_dir, 'duplicated_sites.pdf'))
+grid.arrange(
+    grobs = plot_list, bottom = "pixel col", left = "pixel row", nrow = 4
+)
+dev.off()
+
+session_info()
