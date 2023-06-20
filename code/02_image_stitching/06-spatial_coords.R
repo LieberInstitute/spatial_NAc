@@ -26,6 +26,11 @@ sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 
+coords_path_out = here(
+    'processed-data', '02_image_stitching',
+    sprintf('spatial_coords_%s_%s.csv', opt$slide, opt$arrays)
+)
+
 plot_dir = here(
     'plots', '02_image_stitching', paste(opt$slide, opt$arrays, sep = '_')
 )
@@ -224,6 +229,12 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
 coords = fit_to_array(coords, INTER_SPOT_DIST_PX)
+
+write.csv(
+    coords |> select(!c(pxl_row_rounded, pxl_col_rounded)),
+    coords_path_out,
+    row.names = FALSE, quote = FALSE
+)
 
 #-------------------------------------------------------------------------------
 #   Spot plots
