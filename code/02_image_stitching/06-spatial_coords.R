@@ -32,6 +32,24 @@ INTER_SPOT_DIST_M = 100e-6
 #   Functions
 ################################################################################
 
+refine_fit = function(x, y, INTERVAL_X, INTERVAL_Y) {
+    #   Round x to the nearest integer, and track the error from doing so in the
+    #   variable 'dx'
+    dx = x - clean_round(x)
+    x = x - dx
+
+    #   Given x, round y to the nearest valid integer (y must be even iff x is),
+    #   and track the error from doing so in the variable 'dy'
+    dy = rep(0, length(y))
+    dy[x %% 2 == 0] = y[x %% 2 == 0] - clean_round(y[x %% 2 == 0] / 2) * 2
+    dy[x %% 2 == 1] = y[x %% 2 == 1] - (clean_round(y[x %% 2 == 1] / 2 - 0.5) * 2 + 1)
+    y = y - dy
+
+    #   Summarize error in Euclidean distance
+    error = sqrt((INTERVAL_X * dx) ** 2 + (INTERVAL_Y * dy) ** 2)
+    return(list(x, y, error))
+}
+
 #   Given 'these_coords', a tibble whose rows represent samples of the same
 #   donor, and containing columns 'array_row', 'array_col',
 #   'pxl_row_in_fullres', and 'pxl_col_in_fullres', modify the 'array_row' and
@@ -50,22 +68,31 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
     MIN_COL = min(these_coords$pxl_col_in_fullres)
     INTERVAL_COL = inter_spot_dist_px / 2
 
-    these_coords$array_row = clean_round(
-        (these_coords$pxl_row_in_fullres - MIN_ROW) / INTERVAL_ROW
-    )
-    these_coords$array_col = (these_coords$pxl_col_in_fullres - MIN_COL) /
+    #   Calculate what "ideal" array rows and cols should be (allowed to be any
+    #   float). Don't round yet
+    array_row_temp = (these_coords$pxl_row_in_fullres - MIN_ROW) / 
+        INTERVAL_ROW
+
+    array_col_temp = (these_coords$pxl_col_in_fullres - MIN_COL) /
         INTERVAL_COL
 
-    #   Actually, columns are constrained to be even for even rows and odd for
-    #   odd rows. Round accordingly
-    these_coords$array_col[these_coords$array_row %% 2 == 0] = these_coords |>
-        filter(these_coords$array_row %% 2 == 0) |>
-        mutate(temp = clean_round(array_col / 2) * 2) |>
-        pull(temp)
-    these_coords$array_col[these_coords$array_row %% 2 == 1] = these_coords |>
-        filter(these_coords$array_row %% 2 == 1) |>
-        mutate(temp = clean_round(array_col / 2 - 0.5) * 2 + 1) |>
-        pull(temp)
+    #   For now, find the nearest row first, then round to the nearest possible
+    #   column given the row
+    temp = refine_fit(array_row_temp, array_col_temp, INTERVAL_ROW, INTERVAL_COL)
+    error_row_first = temp[[3]]
+    these_coords$array_row = temp[[1]]
+    these_coords$array_col = temp[[2]]
+
+    #   Perform the opposite order (column then row). When this ordering results
+    #   in lower error, use it instead
+    temp = refine_fit(array_col_temp, array_row_temp, INTERVAL_COL, INTERVAL_ROW)
+    error_col_first = temp[[3]]
+    these_coords$array_row[error_row_first > error_col_first] = temp[[2]][
+        error_row_first > error_col_first
+    ]
+    these_coords$array_col[error_row_first > error_col_first] = temp[[1]][
+        error_row_first > error_col_first
+    ]
 
     #   Now make new pixel columns based on just the array values (these columns
     #   give the coordinates for given array row/cols)
@@ -100,15 +127,13 @@ fit_to_array = function(these_coords, inter_spot_dist_px) {
     return(these_coords)
 }
 
+#   Round to the nearest integer, always rounding up at 0.5. This consistent
+#   behavior is favorable for our application, where we want to minimize
+#   duplicate mappings
 clean_round = function(x) {
-    # if ((x * 10) %% 10 >= 5) {
-    #     return(ceiling(x))
-    # } else {
-    #     return(floor(x))
-    # }
-
     return(floor(x) + ((x * 10) %% 10 >= 5))
 }
+
 ################################################################################
 #   Read in sample info and spot coordinate info
 ################################################################################
@@ -186,7 +211,7 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
-these_coords = fit_to_array(these_coords, INTER_SPOT_DIST_PX)
+these_coords = fit_to_array_new(these_coords, INTER_SPOT_DIST_PX)
 
 #-------------------------------------------------------------------------------
 #   Spot plots
@@ -316,8 +341,8 @@ dup_df = dup_df |>
 dup_df = these_coords |>
     filter(
         sample_id == unique(sample_id)[2],
-        abs(array_row - (dup_df |> head(1) |> pull(array_row))) <= 10,
-        abs(array_col - (dup_df |> head(1) |> pull(array_col))) <= 20,
+        abs(array_row - (dup_df |> head(1) |> pull(array_row))) <= 4,
+        abs(array_col - (dup_df |> head(1) |> pull(array_col))) <= 7,
     ) |>
     mutate(
         coord_type = "nearby",
@@ -327,5 +352,5 @@ dup_df = these_coords |>
     rbind(dup_df)
 
 ggplot(dup_df) +
-    geom_point(aes(x = pxl_row, y = pxl_col, color = coord_type)) +
+    geom_point(aes(x = pxl_col, y = pxl_row, color = coord_type)) +
     coord_fixed()
