@@ -5,18 +5,32 @@ library(rjson)
 library(cowplot)
 library(grid)
 library(gridExtra)
+library(getopt)
+library(sessioninfo)
 
-tissue_paths = list.files(
-    here('processed-data', '02_image_stitching'),
-    pattern = '^tissue_positions_.*(_[ABCD]1){2,4}\\.csv$',
-    full.names = TRUE
+spec = matrix(
+    c(
+        "slide", "s", 1, "character", "Slide number",
+        "arrays", "a", 1, "character", "Array number"
+    ),
+    byrow = TRUE, ncol = 5
+)
+opt = getopt(spec)
+
+tissue_path = here(
+    'processed-data', '02_image_stitching',
+    sprintf('tissue_positions_%s_%s.csv', opt$slide, opt$arrays)
 )
 
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 
-plot_dir = here('plots', '02_image_stitching')
+plot_dir = here(
+    'plots', '02_image_stitching', paste(opt$slide, opt$arrays, sep = '_')
+)
+
+dir.create(plot_dir, showWarnings = FALSE)
 
 #   55-micrometer diameter for Visium spot; 100 micrometers between spots;
 #   65-micrometer spot diameter used in 'spot_diameter_fullres' calculation for
@@ -54,7 +68,7 @@ refine_fit = function(x, y, INTERVAL_X, INTERVAL_Y) {
     return(list(x, y, error))
 }
 
-#   Given 'these_coords', a tibble whose rows represent samples of the same
+#   Given 'coords', a tibble whose rows represent samples of the same
 #   donor, and containing columns 'array_row', 'array_col',
 #   'pxl_row_in_fullres', and 'pxl_col_in_fullres', modify the 'array_row' and
 #   'array_col' columns to represent a larger Visium capture area containing
@@ -65,70 +79,70 @@ refine_fit = function(x, y, INTERVAL_X, INTERVAL_Y) {
 #   tibble with modified 'array_row' + 'array_col' columns, as well as new
 #   'pxl_row_rounded' and 'pxl_col_rounded' columns representing the pixel
 #   coordinates rounded to the nearest exact array coordinates.
-fit_to_array = function(these_coords, inter_spot_dist_px) {
-    MIN_ROW = min(these_coords$pxl_row_in_fullres)
+fit_to_array = function(coords, inter_spot_dist_px) {
+    MIN_ROW = min(coords$pxl_row_in_fullres)
     INTERVAL_ROW = inter_spot_dist_px * cos(pi / 6)
         
-    MIN_COL = min(these_coords$pxl_col_in_fullres)
+    MIN_COL = min(coords$pxl_col_in_fullres)
     INTERVAL_COL = inter_spot_dist_px / 2
 
     #   Calculate what "ideal" array rows and cols should be (allowed to be any
     #   float). Don't round yet
-    array_row_temp = (these_coords$pxl_row_in_fullres - MIN_ROW) / 
+    array_row_temp = (coords$pxl_row_in_fullres - MIN_ROW) / 
         INTERVAL_ROW
 
-    array_col_temp = (these_coords$pxl_col_in_fullres - MIN_COL) /
+    array_col_temp = (coords$pxl_col_in_fullres - MIN_COL) /
         INTERVAL_COL
 
     #   For now, find the nearest row first, then round to the nearest possible
     #   column given the row
     temp = refine_fit(array_row_temp, array_col_temp, INTERVAL_ROW, INTERVAL_COL)
     error_row_first = temp[[3]]
-    these_coords$array_row = temp[[1]]
-    these_coords$array_col = temp[[2]]
+    coords$array_row = temp[[1]]
+    coords$array_col = temp[[2]]
 
     #   Perform the opposite order (column then row). When this ordering results
     #   in lower error, use it instead
     temp = refine_fit(array_col_temp, array_row_temp, INTERVAL_COL, INTERVAL_ROW)
     error_col_first = temp[[3]]
-    these_coords$array_row[error_row_first > error_col_first] = temp[[2]][
+    coords$array_row[error_row_first > error_col_first] = temp[[2]][
         error_row_first > error_col_first
     ]
-    these_coords$array_col[error_row_first > error_col_first] = temp[[1]][
+    coords$array_col[error_row_first > error_col_first] = temp[[1]][
         error_row_first > error_col_first
     ]
 
     #   Now make new pixel columns based on just the array values (these columns
     #   give the coordinates for given array row/cols)
-    these_coords$pxl_row_rounded = MIN_ROW + these_coords$array_row * INTERVAL_ROW
-    these_coords$pxl_col_rounded = MIN_COL + these_coords$array_col * INTERVAL_COL
+    coords$pxl_row_rounded = MIN_ROW + coords$array_row * INTERVAL_ROW
+    coords$pxl_col_rounded = MIN_COL + coords$array_col * INTERVAL_COL
 
     #-------------------------------------------------------------------------------
     #   Verify the newly assigned array row and cols have reasonable values
     #-------------------------------------------------------------------------------
 
     #   Even array rows can only use even column indices
-    these_coords |>
+    coords |>
         filter(array_row %% 2 == 0) |>
         summarize(a = all(array_col %% 2 == 0)) |>
         pull(a) |>
         stopifnot()
 
     #   Odd array rows can only use odd column indices
-    these_coords |>
+    coords |>
         filter(array_row %% 2 == 1) |>
         summarize(a = all(array_col %% 2 == 1)) |>
         pull(a) |>
         stopifnot()
 
     #   Check range of array row and col
-    stopifnot(min(these_coords$array_row) == 0)
-    stopifnot(min(these_coords$array_col) == 0)
+    stopifnot(min(coords$array_row) == 0)
+    stopifnot(min(coords$array_col) == 0)
 
     #   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
-    if (any((these_coords$array_row == 0) & (these_coords$array_col == 0))) stop()
+    if (any((coords$array_row == 0) & (coords$array_col == 0))) stop()
 
-    return(these_coords)
+    return(coords)
 }
 
 #   Round to the nearest integer, always rounding up at 0.5. This consistent
@@ -142,18 +156,19 @@ clean_round = function(x) {
 #   Read in sample info and spot coordinate info
 ################################################################################
 
-coords = do.call(rbind, lapply(tissue_paths, read.csv)) |> as_tibble()
-coords$sample_id = paste(
-    ss(coords$key, '_', 2), ss(coords$key, '_', 3), sep = '_'
-)
+coords = read.csv(tissue_path) |>
+    as_tibble() |>
+    mutate(sample_id = paste(ss(key, '_', 2), ss(key, '_', 3), sep = '_'))
 
+sample_ids = paste(opt$slide, strsplit(opt$arrays, '_')[[1]], sep = '_')
 sample_info = read.csv(sample_info_path) |>
     as_tibble() |>
     rename(
         sample_id = X,
         array_num = 'Array..',
         slide_num = 'Slide..' 
-    )
+    ) |>
+    filter(sample_id %in% sample_ids)
 
 print("Correlation relationship between array (a) and pixel (p) row/col:")
 coords |>
@@ -166,13 +181,6 @@ coords |>
     ) |>
     print()
 
-#   Subset to 1 donor (TODO: not by slide; make more general)
-this_slide = 'V12D07-074'
-this_sample_info = sample_info |>
-    filter(slide_num == this_slide)
-
-these_coords = coords |> filter(sample_id %in% this_sample_info$sample_id)
-
 #-------------------------------------------------------------------------------
 #   Select an appropriate number of array rows and columns for this slide such
 #   that the distance between spots on the new grid matches the Visium standard
@@ -180,7 +188,7 @@ these_coords = coords |> filter(sample_id %in% this_sample_info$sample_id)
 
 sr_json = fromJSON(
     file = file.path(
-        this_sample_info$spaceranger_dir[1], "scalefactors_json.json"
+        sample_info$spaceranger_dir[1], "scalefactors_json.json"
     )
 )
 
@@ -193,12 +201,12 @@ INTER_SPOT_DIST_PX = INTER_SPOT_DIST_M * PX_PER_M
 #   Sanity check on existing coordinates: spots should be 100um apart. If not,
 #   modify. TODO: look for pairs of array coordinates that exist; don't hardcode
 #   10, 11
-a = these_coords |>
+a = coords |>
     filter(array_row == 10, array_col == 80) |>
     head(1) |>
     select(pxl_row_in_fullres, pxl_col_in_fullres)
 
-b = these_coords |>
+b = coords |>
     filter(array_row == 11, array_col == 81) |>
     head(1) |>
     select(pxl_row_in_fullres, pxl_col_in_fullres)
@@ -215,14 +223,14 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
-these_coords = fit_to_array(these_coords, INTER_SPOT_DIST_PX)
+coords = fit_to_array(coords, INTER_SPOT_DIST_PX)
 
 #-------------------------------------------------------------------------------
 #   Spot plots
 #-------------------------------------------------------------------------------
 
 #   Plot the transformed spots as-is for reference
-p = ggplot(these_coords) +
+p = ggplot(coords) +
     geom_point(
         aes(
             x = pxl_col_in_fullres,
@@ -238,12 +246,12 @@ p = ggplot(these_coords) +
     ) + 
     guides(color = guide_legend(override.aes = list(size = 1.5)))
 
-pdf(file.path(plot_dir, paste0('raw_spots_', this_slide, '.pdf')))
+pdf(file.path(plot_dir, 'raw_spots.pdf'))
 print(p)
 dev.off()
 
 #   Plot the spots aligned to the new Visium grid
-p = ggplot(these_coords) +
+p = ggplot(coords) +
     geom_point(
         aes(
             x = pxl_col_rounded,
@@ -259,7 +267,7 @@ p = ggplot(these_coords) +
     ) + 
     guides(color = guide_legend(override.aes = list(size = 1.5)))
 
-pdf(file.path(plot_dir, paste0('aligned_spots_', this_slide, '.pdf')))
+pdf(file.path(plot_dir, 'aligned_spots.pdf'))
 print(p)
 dev.off()
 
@@ -268,7 +276,7 @@ dev.off()
 #-------------------------------------------------------------------------------
 
 #   Verify that for a single sample, mappings were unique
-dup_coords = these_coords |>
+dup_coords = coords |>
     group_by(sample_id, array_col, array_row) |>
     summarize(n = n()) |>
     ungroup()
@@ -286,7 +294,7 @@ p1 = ggplot(dup_coords) +
 
 #   Then check how many spots mapped to the same array coordinates, agnostic
 #   to sample
-dup_coords = these_coords |>
+dup_coords = coords |>
     group_by(array_col, array_row) |>
     summarize(n = n()) |>
     ungroup()
@@ -308,7 +316,7 @@ dev.off()
 
 #   Mean alignment error in spot diameters
 print("Mean alignment error in spot diameters:")
-these_coords |>
+coords |>
     summarize(
         d = mean(
             (pxl_row_in_fullres - pxl_row_rounded) ** 2 +
@@ -324,7 +332,7 @@ these_coords |>
 #-------------------------------------------------------------------------------
 
 #   Take 4 random duplicated mappings from each sample ID
-dup_df_orig = these_coords |>
+dup_df_orig = coords |>
     group_by(array_row, array_col, sample_id) |>
     mutate(num_members = n()) |>
     filter(num_members > 1) |>
@@ -337,7 +345,7 @@ plot_list = list()
 for (i in 1:nrow(dup_df_orig)) {
     #   Grab the set of source spots mapping to the same destination spot,
     #   mark them as duplicates, and use their original pixel coordinates
-    dup_df = these_coords |>
+    dup_df = coords |>
         filter(
             sample_id == dup_df_orig$sample_id[i],
             array_row == dup_df_orig$array_row[i],
@@ -351,7 +359,7 @@ for (i in 1:nrow(dup_df_orig)) {
     
     #   Grab the set of nearby source spots surrounding the duplicate mapping,
     #   and use the rounded pixel coordinates from them
-    dup_df = these_coords |>
+    dup_df = coords |>
         filter(
             sample_id == dup_df_orig$sample_id[i],
             abs(array_row - dup_df_orig$array_row[i]) <= 4,
