@@ -64,6 +64,9 @@ tissue_out_path = Path(
 SPOT_DIAMETER_M = 55e-6
 SPOT_DIAMETER_JSON_M = 65e-6
 
+HIGHRES_MAX_SIZE = 2000
+BACKGROUND_COLOR = (255, 255, 255)
+
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 sample_info = sample_info.loc[sample_ids, :]
@@ -201,12 +204,14 @@ def merge_image_browser(sample_info, theta, trans_img, max0, max1):
 #   theta: np.array (shape (N,)) containing rotations of every sample in radians
 #   trans_img: np.array (shape (N, 2)) giving translations of every sample
 #       (after any rotations)
-#   max0, max1: integers giving shape of merged image to create
+#   max0, max1: integers giving shape of full-res merged image
 #   highres_sf: high-resolution scale factor from spaceranger for any sample
 #
 #   Return the combined high-resolution RGB image containing all samples
 #   after performing transformations (an np.array)
-def merge_image_export(sample_info, theta, trans_img, max0, max1, highres_sf):
+def merge_image_export(sample_info, theta, trans_img, max0, max1):
+    highres_sf = HIGHRES_MAX_SIZE / max(max0, max1)
+
     #   Rescale relevant variables to reflect pixels in high resolution
     scaled_trans_img = (trans_img * highres_sf).astype(np.int32)
     max0 = round(max0 * highres_sf)
@@ -215,8 +220,8 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1, highres_sf):
     #   Initialize the combined tiff. Determine the boundaries by computing the
     #   maximal coordinates in each dimension of each rotated and translated
     #   image
-    combined_img = np.zeros((max0 + 1, max1 + 1, 3), dtype = np.float64)
-    weights = np.zeros((max0 + 1, max1 + 1, 1), dtype = np.float64)
+    combined_img = np.zeros((max0, max1, 3), dtype = np.float64)
+    weights = np.zeros((max0, max1, 1), dtype = np.float64)
 
     for i in range(sample_info.shape[0]):
         #   Read in full-res RGB image and scale to high res
@@ -227,7 +232,8 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1, highres_sf):
         #   Rotate about the top left corner of the image
         theta_deg = 180 * theta[i] / np.pi # '.rotate' uses degrees, not radians
         img = np.array(
-            img_pil.rotate(theta_deg, expand = True), dtype = np.uint8
+            img_pil.rotate(theta_deg, expand = True, fillcolor = BACKGROUND_COLOR),
+            dtype = np.uint8
         )
 
         #   "Place this image" on the combined image, considering translations.
@@ -243,6 +249,9 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1, highres_sf):
                 scaled_trans_img[i, 1]: scaled_trans_img[i, 1] + img.shape[1],
                 :
             ] += 1
+    
+    #   Fill in empty pixels with background color
+    combined_img[weights[:, :, 0] == 0, :] = BACKGROUND_COLOR
     
     #   Average the color across all images that overlap a given pixel
     weights[weights == 0] = 1
@@ -359,8 +368,7 @@ with tifffile.TiffWriter(img_out_browser_path, bigtiff = True) as tiff:
 #   Write the high-resolution combined PNG needed for the SpatialExperiment
 #   object
 combined_img = merge_image_export(
-    sample_info, theta, trans_img, max0, max1,
-    spaceranger_json['tissue_hires_scalef']
+    sample_info, theta, trans_img, max0, max1
 )
 Image.fromarray(combined_img).save(img_out_export_path)
 
