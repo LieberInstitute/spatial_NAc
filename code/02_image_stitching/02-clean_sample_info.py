@@ -84,6 +84,26 @@ sample_info.loc[sample_info['Tissue'] == 'dacc', 'Tissue'] = 'dACC'
 sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 
 ################################################################################
+#   Merge in info about where initial transforms are
+################################################################################
+
+xml_map = pd.read_csv(xml_map_path, index_col = 'Slide', skiprows = 1)
+xml_map.index.name = 'sample_id'
+xml_map['Slide #'] = [x.split('_')[0] for x in xml_map.index]
+xml_map = xml_map.loc[:, ['Brain', 'Slide #', 'XML file name']].copy()
+
+#   Merge sample_info and xml_map by index, keeping the union of their columns.
+#   There should be a more elegant way to do this...
+sample_info = pd.merge(
+    sample_info, xml_map, how = "outer", left_index = True, right_index = True
+)
+sample_info['Brain'] = sample_info['Brain_x'].combine_first(sample_info['Brain_y'])
+sample_info['Slide #'] = sample_info['Slide #_x'].combine_first(sample_info['Slide #_y'])
+sample_info.drop(
+    ['Brain_x', 'Slide #_x', 'Brain_y', 'Slide #_y'], axis = 1, inplace = True
+)
+
+################################################################################
 #   Determine the path to the full-resolution/raw images and spaceranger output
 #   directories
 ################################################################################
@@ -117,14 +137,8 @@ sample_info['raw_image_path'] = raw_image_paths
 #   Add the initial transformation estimates for image stitching from ImageJ
 ################################################################################
 
-xml_map = pd.read_csv(xml_map_path, index_col = 'Slide')
-xml_map.index.name = 'sample_id'
-xml_map['Slide #'] = [x.split('_')[0] for x in xml_map.index]
-
 transform_df_list = []
 for slide in xml_map['Slide #'].unique():
-    assert slide in sample_info['Slide #'].unique(), f"{slide} not found in 'sample_info'"
-
     #   Open the ImageJ XML output for this slide. Assumes every array in a slide
     #   is in the same XML file associated with each slide
     imagej_xml_path = Path(
