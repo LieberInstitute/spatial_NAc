@@ -65,7 +65,7 @@ SPOT_DIAMETER_M = 55e-6
 SPOT_DIAMETER_JSON_M = 65e-6
 
 HIGHRES_MAX_SIZE = 2000
-BACKGROUND_COLOR = (255, 255, 255)
+BACKGROUND_COLOR = (240, 240, 240)
 
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
@@ -252,7 +252,7 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1):
     
     #   Fill in empty pixels with background color
     combined_img[weights[:, :, 0] == 0, :] = BACKGROUND_COLOR
-    
+
     #   Average the color across all images that overlap a given pixel
     weights[weights == 0] = 1
     combined_img = (combined_img / weights).astype(np.uint8)
