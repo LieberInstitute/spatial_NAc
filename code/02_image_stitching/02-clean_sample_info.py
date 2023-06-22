@@ -87,10 +87,11 @@ sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 #   Merge in info about where initial transforms are
 ################################################################################
 
-xml_map = pd.read_csv(xml_map_path, index_col = 'Slide', skiprows = 1)
+xml_map = pd.read_csv(xml_map_path, index_col = 'Slide')
 xml_map.index.name = 'sample_id'
+xml_map = xml_map.loc[:, ['Brain', 'XML file name']].copy()
 xml_map['Slide #'] = [x.split('_')[0] for x in xml_map.index]
-xml_map = xml_map.loc[:, ['Brain', 'Slide #', 'XML file name']].copy()
+xml_map['Array #'] = [x.split('_')[1] for x in xml_map.index]
 
 #   Merge sample_info and xml_map by index, keeping the union of their columns.
 #   There should be a more elegant way to do this...
@@ -99,8 +100,10 @@ sample_info = pd.merge(
 )
 sample_info['Brain'] = sample_info['Brain_x'].combine_first(sample_info['Brain_y'])
 sample_info['Slide #'] = sample_info['Slide #_x'].combine_first(sample_info['Slide #_y'])
+sample_info['Array #'] = sample_info['Array #_x'].combine_first(sample_info['Array #_y'])
 sample_info.drop(
-    ['Brain_x', 'Slide #_x', 'Brain_y', 'Slide #_y'], axis = 1, inplace = True
+    ['Brain_x', 'Slide #_x', 'Brain_y', 'Slide #_y', 'Array #_x', 'Array #_y'],
+    axis = 1, inplace = True
 )
 
 ################################################################################
