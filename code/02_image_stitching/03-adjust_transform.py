@@ -207,9 +207,13 @@ with open(roi_json_path, 'r') as f:
 #   the associated label. x and y follow ImageJ coordinate system
 roi_df = pd.DataFrame(
     {
-        'x': pd.Series([x['coords'][0] for x in roi_json['rois']]) / roi_json['mPerPx'],
-        'y': -1 * pd.Series([x['coords'][1] for x in roi_json['rois']]) / roi_json['mPerPx'],
-        'label': [x['label'] for x in roi_json['rois']]
+        'x': pd.Series(
+            [x['geometry']['coordinates'][0] for x in roi_json['features']]
+        ) / roi_json['mPerPx'],
+        'y': -1 * pd.Series(
+            [x['geometry']['coordinates'][1] for x in roi_json['features']]
+        ) / roi_json['mPerPx'],
+        'label': [x['label'] for x in roi_json['features']]
     }
 )
 
