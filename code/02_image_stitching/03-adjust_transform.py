@@ -5,7 +5,6 @@ import session_info
 import numpy as np
 import pandas as pd
 import json
-import os
 import sys
 
 SPOT_DIAMETER_M = 55e-6
@@ -44,11 +43,15 @@ pairwise_path = Path(
 
 #   Capture areas we'll compare ROIs (in pairs) for in order to deduce
 #   adjustments to the translations + rotations. The convention here will be to
-#   rotate and translate the second element of the pair to match the first
+#   rotate and translate the second element of the pair to match the first. Note
+#   also that order matters: the second capture area in a pair will have all
+#   points adjusted, affecting any following pairwise adjustments
 array_pairs = {
     'V11U08-082': [('B1', 'C1'), ('A1', 'D1')],
     'V11U23-406': [('C1', 'D1')],
-    'V12D07-074': [('A1', 'B1'), ('A1', 'D1'), ('A1', 'C1')]
+    'V12D07-074': [('A1', 'B1'), ('A1', 'D1'), ('A1', 'C1')],
+    'V12D07-078': [('D1', 'A1'), ('D1', 'B1'), ('D1', 'C1')],
+    'V12D07-333': [('A1', 'B1'), ('A1', 'C1'), ('C1', 'D1')]
 }
 
 ################################################################################
@@ -139,21 +142,30 @@ def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
     #   Convert from full-resolution pixels to number of spot diameters
     return err * M_PER_PX / SPOT_DIAMETER_M
 
-#   Return a row-ordering of a that lines up with the rows of b. The algorithm
+#   Subset and order a and b, returning a tuple (a_copy, b_copy). The algorithm
 #   assumes the same ROI between a and b is closer than any other combination
-#   of ROIs between a and b. 'a' may also be subset; only ROIs in a that are
-#   paired with those in b are kept.
-def arrange_a(a, b):
-    indices = np.zeros(b.shape[0], dtype = np.uint16)
+#   of ROIs between a and b. Each row represents the same ROI between a and b,
+#   and only pairs closer than 'max_dist
+def arrange_a_b(a: np.array, b: np.array, max_dist: float = 5000) -> tuple:
+    a_indices = []
+    b_indices = []
 
-    #   For each ROI in b, find the index of the closest ROI in a
+    #   Loop through ROIs in b
     for i in range(b.shape[0]):
-        indices[i] = np.argmin(np.sum((a - b[i, :]) * (a - b[i, :]), axis = 1))
+        #   Distance from this ROI to every ROI in a
+        dist = np.sqrt(np.sum((a - b[i, :]) * (a - b[i, :]), axis = 1))
+
+        #   If distance to the closest ROI in b is sufficiently low, this is a
+        #   valid pair
+        if np.min(dist) < max_dist:
+            a_indices.append(np.argmin(dist))
+            b_indices.append(i)
     
-    #   There's a problem if an ROI in a is used twice
-    assert np.unique(indices).shape[0] == indices.shape[0]
+    #   There's a problem if an ROI in a or b is used twice
+    assert np.unique(a_indices).shape[0] == len(a_indices)
+    assert np.unique(b_indices).shape[0] == len(b_indices)
     
-    return a[indices, :].copy()
+    return (a[a_indices, :], b[b_indices, :])
 
 ################################################################################
 #   Process initial transformation estimates to be at full resolution
@@ -219,15 +231,14 @@ for col in other_columns:
 #   information, adding it to 'pairwise_df'
 for pair in array_pairs[this_slide]:
     #   Extract ROIs of each label into separate arrays. Every ROI is paired,
-    #   so a and b should be identical in dimension
+    #   so a and b should be identical in dimension (after arranging)
     label1 = pair[0] + '_artifact_centroid'
     label2 = pair[1] + '_artifact_centroid'
     a = np.array(roi_df.loc[roi_df['label'] == label1, ['x', 'y']])
     b = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
 
-    #   Ensure row i in a refers to the same ROI as row i in b for all i. Subset
-    #   the ROIs in a to those matching ROIs in b
-    a = arrange_a(a, b)
+    #   Match up a subset of a (by row) to a subset of b; line up pairs of ROIs
+    a, b = arrange_a_b(a, b)
     assert a.shape == b.shape
 
     #   Calculate initial error metrics
@@ -259,12 +270,22 @@ for pair in array_pairs[this_slide]:
         ]
     ).reshape((1, 2))
 
+    #   Get all points of 'label2', regardless of whether they pair with those
+    #    in 'label1'
+    b_all = np.array(roi_df.loc[roi_df['label'] == label2, ['x', 'y']])
+
     #   Rotate about the top-left corner of the capture area
     b = (rot @ (b - origin_to_corner).T).T + origin_to_corner
+    b_all = (rot @ (b_all - origin_to_corner).T).T + origin_to_corner
 
     #   Now translate 'b' to minimize error between ROIs of 'a' and 'b'
     trans = np.mean(a - b, axis = 0)
     b += trans
+    b_all += trans
+
+    #   Adjust all points of 'label2' in 'roi_df'. This ensures later capture
+    #   areas paired with [label2] are adjusted properly
+    roi_df.loc[roi_df['label'] == label2, ['x', 'y']] = b_all
 
     #   Add error metrics after applying transformation, and the transformation
     #   itself (translation and theta)
