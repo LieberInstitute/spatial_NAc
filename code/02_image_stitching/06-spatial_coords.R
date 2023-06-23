@@ -123,6 +123,34 @@ fit_to_array = function(coords, inter_spot_dist_px) {
     coords$pxl_col_rounded = MIN_COL + coords$array_col * INTERVAL_COL
 
     #-------------------------------------------------------------------------------
+    #   array (0, 0) does not exist on an ordinary Visium array. Move any such
+    #   values to the nearest alternatives
+    #-------------------------------------------------------------------------------
+
+    #   Nearest points to (0, 0) are (0, 2) and (1, 1):
+    array_02 = c(MIN_ROW, MIN_COL + 2 * INTERVAL_COL)
+    array_11 = c(MIN_ROW + INTERVAL_ROW, MIN_COL + INTERVAL_COL)
+
+    #   Determine the distances to those nearest points
+    dist_coords = coords |>
+        filter(array_row == 0, array_col == 0) |>
+        mutate(
+            dist_02 = (pxl_row_in_fullres - array_02[1]) ** 2 +
+                (pxl_col_in_fullres - array_02[2]) ** 2,
+            dist_11 = (pxl_row_in_fullres - array_11[1]) ** 2 +
+                (pxl_col_in_fullres - array_11[2]) ** 2,
+        )
+
+    #   Move any instances of (0, 0) to the nearest alternative
+    indices = (coords$array_row == 0) & (coords$array_col == 0)
+    coords[indices, 'array_row'] = ifelse(
+        dist_coords$dist_02 < dist_coords$dist_11, 0, 1
+    )
+    coords[indices, 'array_col'] = ifelse(
+        dist_coords$dist_02 < dist_coords$dist_11, 2, 1
+    )
+
+    #-------------------------------------------------------------------------------
     #   Verify the newly assigned array row and cols have reasonable values
     #-------------------------------------------------------------------------------
 
@@ -145,7 +173,9 @@ fit_to_array = function(coords, inter_spot_dist_px) {
     stopifnot(min(coords$array_col) == 0)
 
     #   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
-    if (any((coords$array_row == 0) & (coords$array_col == 0))) stop()
+    if (any((coords$array_row == 0) & (coords$array_col == 0))) {
+        stop("The invalid array coordinate (0, 0) exists after fitting")
+    }
 
     return(coords)
 }
