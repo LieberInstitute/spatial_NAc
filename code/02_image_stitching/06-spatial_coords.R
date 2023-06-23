@@ -287,6 +287,8 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
+# coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] + INTER_SPOT_DIST_PX / 4
+# coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] + INTER_SPOT_DIST_PX / 4
 coords = fit_to_array(coords, INTER_SPOT_DIST_PX)
 
 write.csv(
@@ -380,6 +382,40 @@ pdf(file.path(plot_dir, 'spot_duplication.pdf'))
 plot_grid(p1, p2, nrow = 2)
 dev.off()
 
+p = coords |>
+    #   Clean tibble into a nice format for ggplot
+    pivot_longer(
+        cols = c(
+            pxl_row_in_fullres, pxl_row_rounded, pxl_col_in_fullres,
+            pxl_col_rounded
+        ),
+        values_to = "pxl_coord",
+        names_pattern = "^(pxl_col|pxl_row)_(in_fullres|rounded)$",
+        names_to = c("axis", "position")
+    ) |>
+    pivot_wider(names_from = axis, values_from = pxl_coord) |>
+    mutate(
+        #   Use better names
+        position = case_when(
+            position == "in_fullres" ~ "original",
+            position == "rounded" ~ "aligned",
+            TRUE ~ position
+        )
+    ) |>
+    #   Plot the original spot coordiates on top of their alignments,
+    #   faceted by sample
+    ggplot() +
+        geom_point(
+            aes(x = pxl_col, y = max(pxl_row) - pxl_row, color = position),
+            size = 0.1
+        ) +
+        facet_wrap(~sample_id) +
+        coord_fixed()
+
+pdf(file.path(plot_dir, 'alignment_by_sample.pdf'), width = 14, height = 14)
+print(p)
+dev.off()
+
 ################################################################################
 #   Measure error in aligning (rounding) pixel coordinates to fit array
 ################################################################################
@@ -408,7 +444,7 @@ dup_df_orig = coords |>
     filter(num_members > 1) |>
     slice_head(n = 1) |>
     group_by(sample_id) |>
-    sample_n(size = 4, replace = FALSE) |>
+    sample_n(size = 4, replace = TRUE) |>
     select(!num_members)
 
 plot_list = list()
