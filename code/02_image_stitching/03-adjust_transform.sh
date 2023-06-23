@@ -5,7 +5,7 @@
 #$ -e /dev/null
 #$ -l mf=5G,h_vmem=5G
 
-slide="V12D07-074"
+slide="V12D07-333"
 arrays="A1_B1_C1_D1"
 
 log_path="../../processed-data/02_image_stitching/03-adjust_transform_${slide}_${arrays}.log"
