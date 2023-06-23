@@ -17,6 +17,12 @@ spec = matrix(
 )
 opt = getopt(spec)
 
+#   Column names for raw tissue_positions_list.csv files
+tissue_colnames = c(
+    "barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres",
+    "pxl_col_in_fullres"
+)
+
 tissue_path = here(
     'processed-data', '02_image_stitching',
     sprintf('tissue_positions_%s_%s.csv', opt$slide, opt$arrays)
@@ -85,18 +91,18 @@ refine_fit = function(x, y, INTERVAL_X, INTERVAL_Y) {
 #   'pxl_row_rounded' and 'pxl_col_rounded' columns representing the pixel
 #   coordinates rounded to the nearest exact array coordinates.
 fit_to_array = function(coords, inter_spot_dist_px) {
-    MIN_ROW = min(coords$pxl_row_in_fullres)
+    MIN_ROW = min(coords$pxl_col_in_fullres)
     INTERVAL_ROW = inter_spot_dist_px * cos(pi / 6)
         
-    MIN_COL = min(coords$pxl_col_in_fullres)
+    MIN_COL = min(coords$pxl_row_in_fullres)
     INTERVAL_COL = inter_spot_dist_px / 2
 
     #   Calculate what "ideal" array rows and cols should be (allowed to be any
     #   float). Don't round yet
-    array_row_temp = (coords$pxl_row_in_fullres - MIN_ROW) / 
+    array_row_temp = (coords$pxl_col_in_fullres - MIN_ROW) / 
         INTERVAL_ROW
 
-    array_col_temp = (coords$pxl_col_in_fullres - MIN_COL) /
+    array_col_temp = (coords$pxl_row_in_fullres - MIN_COL) /
         INTERVAL_COL
 
     #   For now, find the nearest row first, then round to the nearest possible
@@ -119,8 +125,8 @@ fit_to_array = function(coords, inter_spot_dist_px) {
 
     #   Now make new pixel columns based on just the array values (these columns
     #   give the coordinates for given array row/cols)
-    coords$pxl_row_rounded = MIN_ROW + coords$array_row * INTERVAL_ROW
-    coords$pxl_col_rounded = MIN_COL + coords$array_col * INTERVAL_COL
+    coords$pxl_col_rounded = MIN_ROW + coords$array_row * INTERVAL_ROW
+    coords$pxl_row_rounded = MIN_COL + coords$array_col * INTERVAL_COL
 
     #-------------------------------------------------------------------------------
     #   array (0, 0) does not exist on an ordinary Visium array. Move any such
@@ -135,10 +141,10 @@ fit_to_array = function(coords, inter_spot_dist_px) {
     dist_coords = coords |>
         filter(array_row == 0, array_col == 0) |>
         mutate(
-            dist_02 = (pxl_row_in_fullres - array_02[1]) ** 2 +
-                (pxl_col_in_fullres - array_02[2]) ** 2,
-            dist_11 = (pxl_row_in_fullres - array_11[1]) ** 2 +
-                (pxl_col_in_fullres - array_11[2]) ** 2,
+            dist_02 = (pxl_col_in_fullres - array_02[1]) ** 2 +
+                (pxl_row_in_fullres - array_02[2]) ** 2,
+            dist_11 = (pxl_col_in_fullres - array_11[1]) ** 2 +
+                (pxl_row_in_fullres - array_11[2]) ** 2,
         )
 
     #   Move any instances of (0, 0) to the nearest alternative
@@ -205,16 +211,39 @@ sample_info = read.csv(sample_info_path) |>
     ) |>
     filter(sample_id %in% sample_ids)
 
+#-------------------------------------------------------------------------------
+#   Read in the untransformed and unfiltered (by "in tissue") spot coordinates
+#   to verify the relationship between array and pixel coordinates
+#-------------------------------------------------------------------------------
+
+raw_tissue_paths = sample_info |>
+    pull(spaceranger_dir) |>
+    file.path('tissue_positions_list.csv')
+
+#   Read in coordinates, keeping track of sample ID as well
+raw_tissue_list = list()
+for (raw_tissue_path in raw_tissue_paths) {
+    raw_tissue_list[[tissue_path]] = read.csv(raw_tissue_path, col.names = tissue_colnames)
+    raw_tissue_list[[tissue_path]]$sample_id = tissue_path |>
+        str_extract('/[^/]*_[ABCD]1/') |>
+        str_replace_all('/', '')
+}
+raw_coords = do.call(rbind, raw_tissue_list) |> as_tibble()
+
 print("Correlation relationship between array (a) and pixel (p) row/col:")
-coords |>
-    group_by(sample_id) |>
+cor_raw_coords = raw_coords |>
     summarize(
         arow_v_prow = cor(array_row, pxl_row_in_fullres),
         arow_v_pcol = cor(array_row, pxl_col_in_fullres),
         acol_v_prow = cor(array_col, pxl_row_in_fullres),
         acol_v_pcol = cor(array_col, pxl_col_in_fullres)
-    ) |>
-    print()
+    )
+print(cor_raw_coords)
+
+#   We expect array_row to "line up with" pixel_col
+tol = 0.001
+stopifnot(all(abs(cor_raw_coords$arow_v_prow) < tol))
+stopifnot(all(1 - abs(cor_raw_coords$arow_v_pcol) < tol))
 
 #-------------------------------------------------------------------------------
 #   Select an appropriate number of array rows and columns for this slide such
