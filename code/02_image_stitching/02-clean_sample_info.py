@@ -2,7 +2,6 @@ from pyhere import here
 from pathlib import Path
 import session_info
 import os
-import glob
 import re
 import json
 
@@ -193,7 +192,7 @@ for slide in xml_map['Slide #'].unique():
 
     #   Compile transformation information for this slide in a DataFrame
     transform_df_list.append(
-            pd.DataFrame(
+        pd.DataFrame(
             {
                 'initial_transform_x': trans_mat[:, 0, 2],
                 'initial_transform_y': trans_mat[:, 1, 2],
