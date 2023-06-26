@@ -165,7 +165,7 @@ for slide in xml_map['Slide #'].unique():
     trans_mat = [re.sub(r'matrix\((.*)\).*', '\\1', x).split(',') for x in matrices]
     trans_mat = np.transpose(
         np.array(
-            [[int(float(y)) for y in x] for x in trans_mat], dtype = np.float64
+            [[float(y) for y in x] for x in trans_mat], dtype = np.float64
         )
             .reshape((-1, 3, 2)),
         axes = [0, 2, 1]
