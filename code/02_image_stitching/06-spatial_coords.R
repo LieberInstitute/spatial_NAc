@@ -61,6 +61,58 @@ set.seed(0)
 #   Functions
 ################################################################################
 
+build_array = function(max_row, max_col) {
+    new_pairs = c(
+        outer(
+            seq(0, 2 * (max_row %/% 2) + 2, 2),
+            seq(0, 2 * (max_col %/% 2) + 2, 2),
+            paste
+        ),
+        outer(
+            seq(1, 2 * (max_row %/% 2) + 1, 2),
+            seq(1, 2 * (max_col %/% 2) + 1, 2),
+            paste
+        )
+    )
+
+    new_array = tibble(
+            array_row = as.integer(ss(new_pairs, ' ', 1)),
+            array_col = as.integer(ss(new_pairs, ' ', 2))
+        ) |>
+        #   The only exception to the array pattern is that (0, 0) cannot exist
+        filter(!((array_row == 0) & (array_col == 0)))
+
+    return(new_array)
+}
+
+#   Stop if the tibble-like 'coords', expected to contain columns 'array_row'
+#   and 'array_col', represents an invalid Visium array
+validate_array = function(coords) {
+    #   Even array rows can only use even column indices
+    coords |>
+        filter(array_row %% 2 == 0) |>
+        summarize(a = all(array_col %% 2 == 0)) |>
+        pull(a) |>
+        stopifnot()
+
+    #   Odd array rows can only use odd column indices
+    coords |>
+        filter(array_row %% 2 == 1) |>
+        summarize(a = all(array_col %% 2 == 1)) |>
+        pull(a) |>
+        stopifnot()
+
+    #   Check lower bound of array row and col (note we're allowing arbitrary
+    #   maximum values rather than the convention of 78 rows and 128 columns)
+    stopifnot(min(coords$array_row) == 0)
+    stopifnot(min(coords$array_col) == 0)
+
+    #   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
+    if (any((coords$array_row == 0) & (coords$array_col == 0))) {
+        stop("The invalid array coordinate (0, 0) exists after fitting")
+    }
+}
+
 refine_fit = function(x, y, INTERVAL_X, INTERVAL_Y) {
     #   Round x to the nearest integer, and track the error from doing so in the
     #   variable 'dx'
@@ -156,32 +208,102 @@ fit_to_array = function(coords, inter_spot_dist_px) {
         dist_coords$dist_02 < dist_coords$dist_11, 2, 1
     )
 
-    #-------------------------------------------------------------------------------
     #   Verify the newly assigned array row and cols have reasonable values
+    validate_array(coords)
+
+    return(coords)
+}
+
+#   Given 'coords', a tibble whose rows represent samples of the same
+#   donor, and containing columns 'array_row', 'array_col',
+#   'pxl_row_in_fullres', and 'pxl_col_in_fullres', modify the 'array_row' and
+#   'array_col' columns to represent a larger Visium capture area containing
+#   all samples in a common coordinate system. 'inter_spot_dist_px' gives the
+#   distance between any 2 spots in the new coordinates, and so the number of
+#   array rows/cols generally changes from the Visium standards of 78 and 128
+#   (and even changes in ratio between num rows and num cols). Return the same
+#   tibble with modified 'array_row' + 'array_col' columns, as well as new
+#   'pxl_row_rounded' and 'pxl_col_rounded' columns representing the pixel
+#   coordinates rounded to the nearest exact array coordinates.
+fit_to_array2 = function(coords, inter_spot_dist_px) {
+    MIN_ROW = min(coords$pxl_col_in_fullres)
+    INTERVAL_ROW = inter_spot_dist_px * cos(pi / 6)
+        
+    MIN_COL = min(coords$pxl_row_in_fullres)
+    INTERVAL_COL = inter_spot_dist_px / 2
+
+    #   Calculate what "ideal" array rows and cols should be (allowed to be any
+    #   integer)
+    coords$array_row = clean_round(
+        (coords$pxl_col_in_fullres - MIN_ROW) / INTERVAL_ROW
+    )
+
+    coords$array_col = clean_round(
+        (coords$pxl_row_in_fullres - MIN_COL) / INTERVAL_COL
+    )
+
+    #   Form a "new Visium array" spanning coordinates of all samples
+    new_array = build_array(max(coords$array_row), max(coords$array_col))
+    new_array$pxl_col_rounded = MIN_ROW + new_array$array_row * INTERVAL_ROW
+    new_array$pxl_row_rounded = MIN_COL + new_array$array_col * INTERVAL_COL
+
+    for (i in 1:nrow(coords)) {
+        neighbors = new_array |>
+            #   Grab the neighbors and the spot itself
+            filter(
+                abs(array_row - coords$array_row[i]) <= 1,
+                abs(array_col - coords$array_col[i]) <= 2
+            ) |>
+            #   Compute the exact distance from the initial spot to its
+            #   potential neighbors (actually, squared distance, to save an
+            #   extra calculation)
+            mutate(
+                dist = (pxl_row_rounded - coords$pxl_row_in_fullres[i]) ** 2 +
+                    (pxl_col_rounded - coords$pxl_col_in_fullres[i]) ** 2
+            )
+        
+        #   Now overwrite the approximate array-coordinate estimate with the
+        #   precise one that uses Euclidean distance (in pixels)
+        coords[i, c('array_row', 'array_col')] = neighbors[
+            which.min(neighbors$dist), c('array_row', 'array_col')
+        ]
+    }
+
+    #   Now make new pixel columns based on just the array values (these columns
+    #   give the coordinates for given array row/cols)
+    coords$pxl_col_rounded = MIN_ROW + coords$array_row * INTERVAL_ROW
+    coords$pxl_row_rounded = MIN_COL + coords$array_col * INTERVAL_COL
+
+    #-------------------------------------------------------------------------------
+    #   array (0, 0) does not exist on an ordinary Visium array. Move any such
+    #   values to the nearest alternatives
     #-------------------------------------------------------------------------------
 
-    #   Even array rows can only use even column indices
-    coords |>
-        filter(array_row %% 2 == 0) |>
-        summarize(a = all(array_col %% 2 == 0)) |>
-        pull(a) |>
-        stopifnot()
+    #   Nearest points to (0, 0) are (0, 2) and (1, 1):
+    array_02 = c(MIN_ROW, MIN_COL + 2 * INTERVAL_COL)
+    array_11 = c(MIN_ROW + INTERVAL_ROW, MIN_COL + INTERVAL_COL)
 
-    #   Odd array rows can only use odd column indices
-    coords |>
-        filter(array_row %% 2 == 1) |>
-        summarize(a = all(array_col %% 2 == 1)) |>
-        pull(a) |>
-        stopifnot()
+    #   Determine the distances to those nearest points
+    dist_coords = coords |>
+        filter(array_row == 0, array_col == 0) |>
+        mutate(
+            dist_02 = (pxl_col_in_fullres - array_02[1]) ** 2 +
+                (pxl_row_in_fullres - array_02[2]) ** 2,
+            dist_11 = (pxl_col_in_fullres - array_11[1]) ** 2 +
+                (pxl_row_in_fullres - array_11[2]) ** 2,
+        )
 
-    #   Check range of array row and col
-    stopifnot(min(coords$array_row) == 0)
-    stopifnot(min(coords$array_col) == 0)
+    #   Move any instances of (0, 0) to the nearest alternative
+    indices = (coords$array_row == 0) & (coords$array_col == 0)
+    coords[indices, 'array_row'] = ifelse(
+        dist_coords$dist_02 < dist_coords$dist_11, 0, 1
+    )
+    coords[indices, 'array_col'] = ifelse(
+        dist_coords$dist_02 < dist_coords$dist_11, 2, 1
+    )
 
-    #   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
-    if (any((coords$array_row == 0) & (coords$array_col == 0))) {
-        stop("The invalid array coordinate (0, 0) exists after fitting")
-    }
+    #   Verify the newly assigned array row and cols have reasonable values
+    validate_array(coords)
 
     return(coords)
 }
@@ -287,9 +409,9 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
-# coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] + INTER_SPOT_DIST_PX / 4
+coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] + 11 * INTER_SPOT_DIST_PX / 2
 # coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] + INTER_SPOT_DIST_PX / 4
-coords = fit_to_array(coords, INTER_SPOT_DIST_PX)
+coords = fit_to_array2(coords, INTER_SPOT_DIST_PX)
 
 write.csv(
     coords |> select(!c(pxl_row_rounded, pxl_col_rounded)),
@@ -502,8 +624,19 @@ for (i in 1:nrow(dup_df_orig)) {
 plot_list[['legend']] = legend
 pdf(file.path(plot_dir, 'duplicated_sites.pdf'))
 grid.arrange(
-    grobs = plot_list, bottom = "pixel col", left = "pixel row", nrow = 4
+    grobs = plot_list, bottom = "pixel col", left = "pixel row", ncol = 4
 )
 dev.off()
+
+#   Check if spots actually mapped to the closest new spot
+a = dup_df |>
+    filter(coord_type == "duplicate") 
+
+b = dup_df |>
+    filter(coord_type == "nearby")
+
+#   These shouldn't be different, but are for first sample
+b[which.min(rowSums((b |> select(pxl_row_rounded, pxl_col_rounded) - as.matrix(a[2,] |> select(pxl_row_in_fullres, pxl_col_in_fullres))) ** 2)), c('array_row', 'array_col')]
+a[1, c('array_row', 'array_col')]
 
 session_info()
