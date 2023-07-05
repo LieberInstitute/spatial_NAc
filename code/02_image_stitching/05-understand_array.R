@@ -135,12 +135,14 @@ rotate = function(coords, theta) {
 }
 
 new_array = build_array(20, 40) |> mutate(coord_type = "new")
-old_array = build_array(20, 40) |> mutate(coord_type = "old")#, pxl_row = pxl_row * 1.02 - 1, pxl_col = pxl_col * 1.02 - 1)
-
-theta = 0 #2 * pi / 180
+old_array = build_array(20, 40) |>
+    mutate(
+        pxl_row = 0.99 * pxl_row + 0.49,
+        pxl_col = 0.995 * pxl_col,
+        coord_type = "old"
+    )
+theta = 0 # 2 * pi / 180
 old_array[, c('pxl_row', 'pxl_col')] = rotate(old_array[, c('pxl_row', 'pxl_col')], theta)
-old_array = old_array |>
-    mutate(pxl_row = 0.99 * pxl_row + 0.49, pxl_col = 0.995 * pxl_col)
 
 #   Verify we actually have valid-looking Visium arrays
 ggplot(rbind(new_array, old_array)) +
@@ -164,6 +166,8 @@ for (i in 1:nrow(old_array)) {
     ]
 }
 
+#   Artifacting does not seem to occur with any combination of slight scaling
+#   and rotating
 old_array |>
     #   Clean tibble into a nice format for ggplot
     pivot_longer(
@@ -191,36 +195,37 @@ old_array |>
         ) +
         coord_fixed()
 
-
-for i in range(len(array_nums)):
-    #   Grab high-res scale factor and scale translations accordingly
-    json_path = os.path.join(
-        this_sample_info['spaceranger_dir'].iloc[i],
-        'scalefactors_json.json'
-    )
-    with open(json_path, 'r') as f:
-        spaceranger_json = json.load(f)
-    
-    trans_mat[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
-
+#   Investigated the spaceranger JSONs. Spot diameters are not exactly the same
+#   number of pixels across samples, but they are within 1%
 json_paths = sample_info |>
     pull(spaceranger_dir) |>
     file.path('scalefactors_json.json')
 
-#   Read in coordinates, keeping track of sample ID as well
 json_list = list()
 for (json_path in json_paths) {
     json_list[[json_path]] = fromJSON(file = json_path)
 }
-session_info()
 
-
-
-
-
+#   This was the problematic sample (with artifacting)
 this_coords = coords |>
     filter(sample_id == "V12D07-333_A1")
 
+#   Given a vector of array_row and array_col, return a logical vector that is
+#   TRUE where those array coordinates are not present in 'this_coords'
+empty_fun = function(row_vec, col_vec) {
+    is_empty = c()
+    for (i in 1:length(row_vec)) {
+        num_matches = this_coords |>
+            filter(array_row == row_vec[i], array_col == col_vec[i]) |>
+            nrow()
+        is_empty = c(is_empty, num_matches == 0)
+    }
+
+    return(is_empty)
+}
+
+#   Using 'new_array' defined in 06-spatial_coords.R, form a tibble of array
+#   coordinates that have no spots mapping to them
 missed_array = new_array |>
     #   Just the array overlapping this_coords
     filter(
@@ -231,6 +236,8 @@ missed_array = new_array |>
         empty_fun(array_row, array_col)
     )
 
+#   No matter which row of 'missing_array' is used, the mapping appears to be
+#   correct (minimize distance)
 this_coords |>
     filter(
         abs(array_row - missed_array$array_row[101]) <= 1,
@@ -265,19 +272,7 @@ this_coords |>
         ) +
         coord_fixed()
     
-
-empty_fun = function(row_vec, col_vec) {
-    is_empty = c()
-    for (i in 1:length(row_vec)) {
-        num_matches = this_coords |>
-            filter(array_row == row_vec[i], array_col == col_vec[i]) |>
-            nrow()
-        is_empty = c(is_empty, num_matches == 0)
-    }
-
-    return(is_empty)
-}
-
+#   Verify we're grabbing the correct spots (those with no mappings to them)
 new_array |>
     #   Just the array overlapping this_coords
     filter(
@@ -299,20 +294,22 @@ new_array |>
         ) +
         coord_fixed()
 
-#   Sanity check
-ggplot(this_coords) + geom_point(aes(x=pxl_col_rounded, y=pxl_row_rounded)) + coord_fixed()
-
 a = raw_coords |>
     filter(sample_id == "V12D07-333_A1")
 
-aa = function(n, a) {
-    av = a |>
-        filter(array_row == n, array_col == n) |>
+#   Get the pixel distance between adjacent spots
+get_spot_distance = function(index, a) {
+    tibble_a = a |>
+        filter(array_row == index, array_col == index) |>
         select(pxl_row_in_fullres, pxl_col_in_fullres)
-    bv = a |>
-        filter(array_row == n+1, array_col == n+1) |>
+    tibble_b = a |>
+        filter(array_row == index+1, array_col == index+1) |>
         select(pxl_row_in_fullres, pxl_col_in_fullres)
-    sqrt(rowSums((bv - av) ** 2))
+
+    #   Euclidean distance in pixels
+    sqrt(rowSums((tibble_b - tibble_a) ** 2))
 }
 
-sapply(1:20, aa, a)
+#   Pixel distances do vary slightly! Must be because they must be integers by
+#   definition, but attempt to mark a continuous quantity
+sapply(1:20, get_spot_distance, a)
