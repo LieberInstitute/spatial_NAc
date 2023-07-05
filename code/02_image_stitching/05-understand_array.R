@@ -96,4 +96,223 @@ d = map2(rows_vec, cols_vec, get_dist, coords) |>
     )
 print(d)
 
+################################################################################
+#   Simulate data to verify if strange artifacting when aligning spots to a
+#   "new Visium grid" still occurs
+################################################################################
+
+build_array = function(max_row, max_col, spot_distance = 1) {
+    new_pairs = c(
+        outer(
+            seq(0, 2 * (max_row %/% 2) + 2, 2),
+            seq(0, 2 * (max_col %/% 2) + 2, 2),
+            paste
+        ),
+        outer(
+            seq(1, 2 * (max_row %/% 2) + 1, 2),
+            seq(1, 2 * (max_col %/% 2) + 1, 2),
+            paste
+        )
+    )
+
+    new_array = tibble(
+            array_row = as.integer(ss(new_pairs, ' ', 1)),
+            array_col = as.integer(ss(new_pairs, ' ', 2))
+        ) |>
+        #   The only exception to the array pattern is that (0, 0) cannot exist
+        filter(!((array_row == 0) & (array_col == 0))) |>
+        mutate(
+            pxl_row = array_col * spot_distance / 2,
+            pxl_col = array_row * spot_distance * cos(pi / 6)
+        )       
+
+    return(new_array)
+}
+
+rotate = function(coords, theta) {
+    rot = matrix(c(cos(theta), sin(theta), -1 * sin(theta), cos(theta)), nrow = 2)
+    return(t(rot %*% t(as.matrix(coords[, c('pxl_row', 'pxl_col')]))))
+}
+
+new_array = build_array(20, 40) |> mutate(coord_type = "new")
+old_array = build_array(20, 40) |> mutate(coord_type = "old")#, pxl_row = pxl_row * 1.02 - 1, pxl_col = pxl_col * 1.02 - 1)
+
+theta = 0 #2 * pi / 180
+old_array[, c('pxl_row', 'pxl_col')] = rotate(old_array[, c('pxl_row', 'pxl_col')], theta)
+old_array = old_array |>
+    mutate(pxl_row = 0.99 * pxl_row + 0.49, pxl_col = 0.995 * pxl_col)
+
+#   Verify we actually have valid-looking Visium arrays
+ggplot(rbind(new_array, old_array)) +
+    geom_point(
+        aes(x = pxl_col, y = max(pxl_row) - pxl_row, color = coord_type)
+    ) +
+    coord_fixed()
+
+old_array$pxl_row_rounded = NA
+old_array$pxl_col_rounded = NA
+for (i in 1:nrow(old_array)) {
+    dist_sq = new_array |>
+        mutate(
+            dist = 0.5 * (pxl_row - old_array$pxl_row[i]) ** 2 +
+                cos(pi / 6) * (pxl_col - old_array$pxl_col[i]) ** 2
+        ) |>
+        pull(dist)
+    
+    old_array[i, c('pxl_row_rounded', 'pxl_col_rounded')] = new_array[
+        which.min(dist_sq), c('pxl_row', 'pxl_col')
+    ]
+}
+
+old_array |>
+    #   Clean tibble into a nice format for ggplot
+    pivot_longer(
+        cols = c(
+            pxl_row, pxl_row_rounded, pxl_col, pxl_col_rounded
+        ),
+        values_to = "pxl_coord",
+        names_pattern = "^(pxl_col|pxl_row)(.*)",
+        names_to = c("axis", "position")
+    ) |>
+    pivot_wider(names_from = axis, values_from = pxl_coord) |>
+    mutate(
+        #   Use better names
+        position = case_when(
+            position == "" ~ "original",
+            position == "rounded" ~ "aligned",
+            TRUE ~ position
+        )
+    ) |>
+    filter(position == "_rounded") |>
+    #   Plot the original spot coordiates on top of their alignments
+    ggplot() +
+        geom_point(
+            aes(x = pxl_col, y = max(pxl_row) - pxl_row, color = position),
+        ) +
+        coord_fixed()
+
+
+for i in range(len(array_nums)):
+    #   Grab high-res scale factor and scale translations accordingly
+    json_path = os.path.join(
+        this_sample_info['spaceranger_dir'].iloc[i],
+        'scalefactors_json.json'
+    )
+    with open(json_path, 'r') as f:
+        spaceranger_json = json.load(f)
+    
+    trans_mat[i, :, 2] /= spaceranger_json['tissue_hires_scalef']
+
+json_paths = sample_info |>
+    pull(spaceranger_dir) |>
+    file.path('scalefactors_json.json')
+
+#   Read in coordinates, keeping track of sample ID as well
+json_list = list()
+for (json_path in json_paths) {
+    json_list[[json_path]] = fromJSON(file = json_path)
+}
 session_info()
+
+
+
+
+
+this_coords = coords |>
+    filter(sample_id == "V12D07-333_A1")
+
+missed_array = new_array |>
+    #   Just the array overlapping this_coords
+    filter(
+        array_row >= min(this_coords$array_row),
+        array_row <= max(this_coords$array_row),
+        array_col >= min(this_coords$array_col),
+        array_col <= max(this_coords$array_col),
+        empty_fun(array_row, array_col)
+    )
+
+this_coords |>
+    filter(
+        abs(array_row - missed_array$array_row[101]) <= 1,
+        abs(array_col - missed_array$array_col[101]) <= 2
+    ) |>
+    #   Clean tibble into a nice format for ggplot
+    pivot_longer(
+        cols = c(
+            pxl_row_in_fullres, pxl_row_rounded, pxl_col_in_fullres,
+            pxl_col_rounded
+        ),
+        values_to = "pxl_coord",
+        names_pattern = "^(pxl_col|pxl_row)_(in_fullres|rounded)$",
+        names_to = c("axis", "position")
+    ) |>
+    pivot_wider(names_from = axis, values_from = pxl_coord) |>
+    mutate(
+        #   Use better names
+        position = case_when(
+            position == "in_fullres" ~ "original",
+            position == "rounded" ~ "aligned",
+            TRUE ~ position
+        )
+    ) |>
+    ggplot() +
+        geom_point(
+            aes(
+                x = pxl_col,
+                y = max(pxl_row) - pxl_row,
+                color = position
+            )
+        ) +
+        coord_fixed()
+    
+
+empty_fun = function(row_vec, col_vec) {
+    is_empty = c()
+    for (i in 1:length(row_vec)) {
+        num_matches = this_coords |>
+            filter(array_row == row_vec[i], array_col == col_vec[i]) |>
+            nrow()
+        is_empty = c(is_empty, num_matches == 0)
+    }
+
+    return(is_empty)
+}
+
+new_array |>
+    #   Just the array overlapping this_coords
+    filter(
+        array_row >= min(this_coords$array_row),
+        array_row <= max(this_coords$array_row),
+        array_col >= min(this_coords$array_col),
+        array_col <= max(this_coords$array_col)
+    ) |>
+    mutate(
+        is_empty = empty_fun(array_row, array_col)
+    ) |>
+    ggplot() +
+        geom_point(
+            aes(
+                x = pxl_col_rounded,
+                y = max(pxl_row_rounded) - pxl_row_rounded,
+                color = is_empty
+            )
+        ) +
+        coord_fixed()
+
+#   Sanity check
+ggplot(this_coords) + geom_point(aes(x=pxl_col_rounded, y=pxl_row_rounded)) + coord_fixed()
+
+a = raw_coords |>
+    filter(sample_id == "V12D07-333_A1")
+
+aa = function(n, a) {
+    av = a |>
+        filter(array_row == n, array_col == n) |>
+        select(pxl_row_in_fullres, pxl_col_in_fullres)
+    bv = a |>
+        filter(array_row == n+1, array_col == n+1) |>
+        select(pxl_row_in_fullres, pxl_col_in_fullres)
+    sqrt(rowSums((bv - av) ** 2))
+}
+
+sapply(1:20, aa, a)
