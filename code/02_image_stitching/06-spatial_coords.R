@@ -62,6 +62,9 @@ set.seed(0)
 ################################################################################
 
 build_array = function(max_row, max_col) {
+    max_row = ceiling(max_row)
+    max_col = ceiling(max_col)
+
     new_pairs = c(
         outer(
             seq(0, 2 * (max_row %/% 2) + 2, 2),
@@ -232,15 +235,9 @@ fit_to_array2 = function(coords, inter_spot_dist_px) {
     MIN_COL = min(coords$pxl_row_in_fullres)
     INTERVAL_COL = inter_spot_dist_px / 2
 
-    #   Calculate what "ideal" array rows and cols should be (allowed to be any
-    #   integer)
-    coords$array_row = clean_round(
-        (coords$pxl_col_in_fullres - MIN_ROW) / INTERVAL_ROW
-    )
-
-    coords$array_col = clean_round(
-        (coords$pxl_row_in_fullres - MIN_COL) / INTERVAL_COL
-    )
+    #   Calculate what "ideal" array rows and cols should be
+    coords$array_row = (coords$pxl_col_in_fullres - MIN_ROW) / INTERVAL_ROW
+    coords$array_col = (coords$pxl_row_in_fullres - MIN_COL) / INTERVAL_COL
 
     #   Form a "new Visium array" spanning coordinates of all samples
     new_array = build_array(max(coords$array_row), max(coords$array_col))
@@ -251,7 +248,7 @@ fit_to_array2 = function(coords, inter_spot_dist_px) {
         neighbors = new_array |>
             #   Grab the neighbors and the spot itself
             filter(
-                abs(array_row - coords$array_row[i]) <= 1,
+                abs(array_row - coords$array_row[i]) <= 2,
                 abs(array_col - coords$array_col[i]) <= 2
             ) |>
             #   Compute the exact distance from the initial spot to its
@@ -345,8 +342,8 @@ raw_tissue_paths = sample_info |>
 #   Read in coordinates, keeping track of sample ID as well
 raw_tissue_list = list()
 for (raw_tissue_path in raw_tissue_paths) {
-    raw_tissue_list[[tissue_path]] = read.csv(raw_tissue_path, col.names = tissue_colnames)
-    raw_tissue_list[[tissue_path]]$sample_id = tissue_path |>
+    raw_tissue_list[[raw_tissue_path]] = read.csv(raw_tissue_path, col.names = tissue_colnames)
+    raw_tissue_list[[raw_tissue_path]]$sample_id = raw_tissue_path |>
         str_extract('/[^/]*_[ABCD]1/') |>
         str_replace_all('/', '')
 }
@@ -354,6 +351,7 @@ raw_coords = do.call(rbind, raw_tissue_list) |> as_tibble()
 
 print("Correlation relationship between array (a) and pixel (p) row/col:")
 cor_raw_coords = raw_coords |>
+    group_by(sample_id) |>
     summarize(
         arow_v_prow = cor(array_row, pxl_row_in_fullres),
         arow_v_pcol = cor(array_row, pxl_col_in_fullres),
@@ -409,8 +407,8 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
-coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] + 11 * INTER_SPOT_DIST_PX / 2
-# coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] + INTER_SPOT_DIST_PX / 4
+coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_row_in_fullres[coords$sample_id == "V12D07-333_A1"] + 20.03 * INTER_SPOT_DIST_PX / 2
+# coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] = coords$pxl_col_in_fullres[coords$sample_id == "V12D07-333_A1"] + INTER_SPOT_DIST_PX * cos(pi / 6) / 2
 coords = fit_to_array2(coords, INTER_SPOT_DIST_PX)
 
 write.csv(
