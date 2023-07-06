@@ -1,10 +1,10 @@
 **** Job starts ****
-Fri Jun 23 12:07:46 EDT 2023
+Thu Jul  6 10:04:21 EDT 2023
 **** JHPCE info ****
 User: neagles
-Job id: 3584610
+Job id: 3611491
 Job name: spatial_coords
-Hostname: compute-124.cm.cluster
+Hostname: compute-127.cm.cluster
 Loading conda_R/4.3
 here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
@@ -36,10 +36,10 @@ The following object is masked from ‘package:dplyr’:
 # A tibble: 4 × 5
   sample_id     arow_v_prow arow_v_pcol acol_v_prow acol_v_pcol
   <chr>               <dbl>       <dbl>       <dbl>       <dbl>
-1 V12D07-333_A1   -0.000299       1.00       -1.00     0.000301
-2 V12D07-333_B1    0.129          1.00       -1.00    -0.107   
-3 V12D07-333_C1   -0.0153         1.00       -1.00    -0.00398 
-4 V12D07-333_D1   -0.0285         0.999      -0.999    0.118   
+1 V12D07-333_A1    0.000290        1.00       -1.00   -0.000288
+2 V12D07-333_B1    0.000333        1.00       -1.00   -0.000249
+3 V12D07-333_C1   -0.000193        1.00       -1.00   -0.000716
+4 V12D07-333_D1   -0.000231        1.00       -1.00   -0.000751
 null device 
           1 
 null device 
@@ -50,13 +50,15 @@ using the `.groups` argument.
 `.groups` argument.
 null device 
           1 
+null device 
+          1 
 [1] "Mean alignment error in spot diameters:"
-[1] 0.57
+[1] 0.6
 null device 
           1 
 ─ Session info ───────────────────────────────────────────────────────────────
  setting  value
- version  R version 4.3.1 Patched (2023-06-20 r84598)
+ version  R version 4.3.1 Patched (2023-07-04 r84643)
  os       CentOS Linux 7 (Core)
  system   x86_64, linux-gnu
  ui       X11
@@ -64,7 +66,7 @@ null device
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2023-06-23
+ date     2023-07-06
  pandoc   3.1.1 @ /jhpce/shared/jhpce/core/conda/miniconda3-4.11.0/envs/svnR-4.3/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -76,7 +78,7 @@ null device
  colorspace             2.1-0     2023-01-23 [2] CRAN (R 4.3.0)
  cowplot              * 1.1.1     2020-12-30 [2] CRAN (R 4.3.0)
  crayon                 1.5.2     2022-09-29 [2] CRAN (R 4.3.0)
- DelayedArray           0.26.3    2023-05-22 [2] Bioconductor
+ DelayedArray           0.26.6    2023-07-02 [2] Bioconductor
  dplyr                * 1.1.2     2023-04-20 [2] CRAN (R 4.3.0)
  fansi                  1.0.4     2023-01-22 [2] CRAN (R 4.3.0)
  farver                 2.1.1     2022-07-06 [2] CRAN (R 4.3.0)
@@ -95,7 +97,7 @@ null device
  gtable                 0.3.3     2023-03-21 [2] CRAN (R 4.3.0)
  here                 * 1.0.1     2020-12-13 [2] CRAN (R 4.3.0)
  hms                    1.1.3     2023-03-21 [2] CRAN (R 4.3.0)
- IRanges                2.34.0    2023-04-25 [2] Bioconductor
+ IRanges                2.34.1    2023-06-22 [2] Bioconductor
  jaffelab             * 0.99.32   2023-06-13 [1] Github (LieberInstitute/jaffelab@21e6574)
  labeling               0.4.2     2020-10-20 [2] CRAN (R 4.3.0)
  lattice                0.21-8    2023-04-05 [3] CRAN (R 4.3.1)
@@ -146,4 +148,4 @@ null device
 
 ──────────────────────────────────────────────────────────────────────────────
 **** Job ends ****
-Fri Jun 23 12:08:15 EDT 2023
+Thu Jul  6 10:04:40 EDT 2023
