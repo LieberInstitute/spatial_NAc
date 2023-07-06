@@ -50,7 +50,7 @@ array_pairs = {
     'V11U08-082': [('B1', 'C1'), ('A1', 'D1')],
     'V11U23-406': [('C1', 'D1')],
     'V12D07-074': [('A1', 'B1'), ('A1', 'D1'), ('A1', 'C1')],
-    'V12D07-078': [('D1', 'A1'), ('D1', 'B1'), ('D1', 'C1')],
+    'V12D07-078': [('B1', 'D1'), ('D1', 'C1'), ('C1', 'A1')],
     'V12D07-333': [('A1', 'B1'), ('A1', 'C1'), ('C1', 'D1')]
 }
 
@@ -146,7 +146,7 @@ def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
 #   assumes the same ROI between a and b is closer than any other combination
 #   of ROIs between a and b. Each row represents the same ROI between a and b,
 #   and only pairs closer than 'max_dist
-def arrange_a_b(a: np.array, b: np.array, max_dist: float = 5000) -> tuple:
+def arrange_a_b(a: np.array, b: np.array, max_dist: float = 500) -> tuple:
     a_indices = []
     b_indices = []
 
