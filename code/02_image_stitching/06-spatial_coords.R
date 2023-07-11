@@ -23,18 +23,18 @@ tissue_colnames = c(
     "pxl_col_in_fullres"
 )
 
-tissue_path = here(
+tissue_path_in = here(
     'processed-data', '02_image_stitching',
     sprintf('tissue_positions_%s_%s.csv', opt$slide, opt$arrays)
 )
 
-sample_info_path = here(
-    'processed-data', '02_image_stitching', 'sample_info_clean.csv'
+tissue_path_out = here(
+    'processed-data', '04_visium_stitcher', '{donor}',
+    'tissue_positions_list.csv'
 )
 
-coords_path_out = here(
-    'processed-data', '02_image_stitching',
-    sprintf('spatial_coords_%s_%s.csv', opt$slide, opt$arrays)
+sample_info_path = here(
+    'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 
 plot_dir = here(
@@ -203,7 +203,7 @@ clean_round = function(x) {
 #   Read in sample info and spot coordinate info
 ################################################################################
 
-coords = read.csv(tissue_path) |>
+coords = read.csv(tissue_path_in) |>
     as_tibble() |>
     mutate(sample_id = paste(ss(key, '_', 2), ss(key, '_', 3), sep = '_'))
 
@@ -216,6 +216,14 @@ sample_info = read.csv(sample_info_path) |>
         slide_num = 'Slide..' 
     ) |>
     filter(sample_id %in% sample_ids)
+
+if (length(unique(sample_info$Brain)) == 1) {
+    stop("Expected only one donor")
+}
+
+tissue_path_out = str_replace(
+    tissue_path_out, '\\{donor\\}', unique(sample_info$Brain)
+)
 
 #-------------------------------------------------------------------------------
 #   Read in the untransformed and unfiltered (by "in tissue") spot coordinates
@@ -295,8 +303,20 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
 coords = fit_to_array(coords, INTER_SPOT_DIST_PX)
 
+coords |>
+    #   Make barcode compatible with ImageJ outputs
+    mutate(key = paste0(sample_id, ss(key, '_'))) |>
+    rename(barcode = key) |>
+    #   Drop columns not in spaceranger output
+    select(!c(pxl_row_rounded, pxl_col_rounded, sample_id)) |>
+    #   Fix data type of some columns
+    mutate_at(
+        c("array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres"),
+        ~ as.integer(round(.))
+    )
+
 write.csv(
-    coords |> select(!c(pxl_row_rounded, pxl_col_rounded)),
+    coords |> ),
     coords_path_out,
     row.names = FALSE, quote = FALSE
 )
