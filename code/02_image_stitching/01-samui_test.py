@@ -54,6 +54,11 @@ tissue_out_path = Path(
         f'tissue_positions_{this_slide}_{arrays}.csv'
     )
 )
+json_out_path = here(
+    #   Later '{}' is replaced with brain num
+    'processed-data', '04_visium_stitcher', '{}',
+    'scalefactors_json.json'
+)
 
 #   55-micrometer diameter for Visium spot but 65-micrometer spot diameter used
 #   in 'spot_diameter_fullres' calculation for spaceranger JSON. The
@@ -70,6 +75,10 @@ BACKGROUND_COLOR = (240, 240, 240)
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 sample_info = sample_info.loc[sample_ids, :]
+
+num_donors = len(sample_info['Brain'].unique())
+assert num_donors == 1, f"Expected exactly one donor but got {num_donors}"
+json_out_path = Path(str(json_out_path).format(sample_info['Brain'][0]))
 
 ################################################################################
 #   Functions
@@ -205,10 +214,12 @@ def merge_image_browser(sample_info, theta, trans_img, max0, max1):
 #   trans_img: np.array (shape (N, 2)) giving translations of every sample
 #       (after any rotations)
 #   max0, max1: integers giving shape of full-res merged image
-#   highres_sf: high-resolution scale factor from spaceranger for any sample
 #
-#   Return the combined high-resolution RGB image containing all samples
-#   after performing transformations (an np.array)
+#   Return a tuple: (np.array, float):
+#       - The np.array is the combined high-resolution RGB image containing all
+#         samples after performing transformations
+#       - The float gives the high-res scale factor appropriate for export to
+#         a spaceranger JSON for the combined samples 
 def merge_image_export(sample_info, theta, trans_img, max0, max1):
     highres_sf = HIGHRES_MAX_SIZE / max(max0, max1)
 
@@ -259,7 +270,7 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1):
     
     #   We left a 1-pixel buffer in both dimensions to allow for slight errors
     #   from repeating rounding and scaling sizes
-    return combined_img[:max0, :max1, :]
+    return (combined_img[:max0, :max1, :], highres_sf)
 
 ################################################################################
 #   Define the transformation matrix
@@ -368,12 +379,19 @@ with tifffile.TiffWriter(img_out_browser_path, bigtiff = True) as tiff:
     tiff.write(combined_img)
 
 #   Write the high-resolution combined PNG needed for the SpatialExperiment
-#   object
+#   object, as well as a combined spaceranger-compatible JSON
 if file_suffix == 'adjusted':
-    combined_img = merge_image_export(
+    combined_img, highres_sf = merge_image_export(
         sample_info, theta, trans_img, max0, max1
     )
     Image.fromarray(combined_img).save(img_out_export_path)
+
+    #   Overwrite the hires scale factor and delete the lowres one (which isn't
+    #   defined for our case). Then write
+    spaceranger_json['tissue_hires_scalef'] = highres_sf
+    spaceranger_json.pop('tissue_lowres_scalef')
+    with open('data.json', 'w') as f:
+        json.dump(spaceranger_json, f)
 
 #   Handle the spot coordinates
 for i in range(sample_info.shape[0]):
