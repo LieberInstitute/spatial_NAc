@@ -42,17 +42,16 @@ img_out_browser_path = Path(
         f'combined_{this_slide}_{arrays}_{file_suffix}.tif'
     )
 )
-img_out_export_path = Path(
-    here(
-        'processed-data', '02_image_stitching',
-        f'highres_combined_{this_slide}_{arrays}.png'
-    )
-)
 tissue_out_path = Path(
     here(
         'processed-data', '02_image_stitching',
         f'tissue_positions_{this_slide}_{arrays}.csv'
     )
+)
+img_out_export_path = here(
+    #   Later '{}' is replaced with brain num
+    'processed-data', '04_visium_stitcher', '{}',
+    'tissue_highres_image.png'
 )
 json_out_path = here(
     #   Later '{}' is replaced with brain num
@@ -76,9 +75,15 @@ BACKGROUND_COLOR = (240, 240, 240)
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 sample_info = sample_info.loc[sample_ids, :]
 
+#   Assert there's only one donor to be combined (an assumption made when
+#   creating the SpatialExperiment object downstream), and adjust relevant
+#   paths based on this donor
 num_donors = len(sample_info['Brain'].unique())
+this_donor = sample_info['Brain'][0]
 assert num_donors == 1, f"Expected exactly one donor but got {num_donors}"
-json_out_path = Path(str(json_out_path).format(sample_info['Brain'][0]))
+
+json_out_path = Path(str(json_out_path).format(this_donor))
+img_out_export_path = Path(str(img_out_export_path).format(this_donor))
 
 ################################################################################
 #   Functions
