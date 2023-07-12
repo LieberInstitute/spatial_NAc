@@ -236,9 +236,10 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1):
 
     #   Initialize the combined tiff. Determine the boundaries by computing the
     #   maximal coordinates in each dimension of each rotated and translated
-    #   image
-    combined_img = np.zeros((max0 + 1, max1 + 1, 3), dtype = np.float64)
-    weights = np.zeros((max0 + 1, max1 + 1, 1), dtype = np.float64)
+    #   image, but leave a 2-pixel buffer to allow for errors from repeated
+    #   rounding + scaling
+    combined_img = np.zeros((max0 + 2, max1 + 2, 3), dtype = np.float64)
+    weights = np.zeros((max0 + 2, max1 + 2, 1), dtype = np.float64)
 
     for i in range(sample_info.shape[0]):
         #   Read in full-res RGB image and scale to high res
@@ -274,7 +275,7 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1):
     weights[weights == 0] = 1
     combined_img = (combined_img / weights).astype(np.uint8)
     
-    #   We left a 1-pixel buffer in both dimensions to allow for slight errors
+    #   We left a 2-pixel buffer in both dimensions to allow for slight errors
     #   from repeating rounding and scaling sizes
     return (combined_img[:max0, :max1, :], highres_sf)
 
