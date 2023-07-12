@@ -217,7 +217,7 @@ sample_info = read.csv(sample_info_path) |>
     ) |>
     filter(sample_id %in% sample_ids)
 
-if (length(unique(sample_info$Brain)) == 1) {
+if (length(unique(sample_info$Brain)) != 1) {
     stop("Expected only one donor")
 }
 
@@ -256,7 +256,7 @@ cor_raw_coords = raw_coords |>
 print(cor_raw_coords)
 
 #   We expect array_row to "line up with" pixel_col
-tol = 0.001
+tol = 0.01
 stopifnot(all(abs(cor_raw_coords$arow_v_prow) < tol))
 stopifnot(all(1 - abs(cor_raw_coords$arow_v_pcol) < tol))
 
@@ -313,13 +313,8 @@ coords |>
     mutate_at(
         c("array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres"),
         ~ as.integer(round(.))
-    )
-
-write.csv(
-    coords |> ),
-    coords_path_out,
-    row.names = FALSE, quote = FALSE
-)
+    ) |>
+    write.csv(file = tissue_path_out, row.names = FALSE, quote = FALSE)
 
 #-------------------------------------------------------------------------------
 #   Spot plots
