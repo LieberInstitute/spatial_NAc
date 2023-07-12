@@ -50,12 +50,12 @@ tissue_out_path = Path(
 )
 img_out_export_path = here(
     #   Later '{}' is replaced with brain num
-    'processed-data', '04_visium_stitcher', '{}',
+    'processed-data', '04_VisiumStitcher', '{}',
     'tissue_highres_image.png'
 )
 json_out_path = here(
     #   Later '{}' is replaced with brain num
-    'processed-data', '04_visium_stitcher', '{}',
+    'processed-data', '04_VisiumStitcher', '{}',
     'scalefactors_json.json'
 )
 
@@ -84,6 +84,7 @@ assert num_donors == 1, f"Expected exactly one donor but got {num_donors}"
 
 json_out_path = Path(str(json_out_path).format(this_donor))
 img_out_export_path = Path(str(img_out_export_path).format(this_donor))
+json_out_path.parent.mkdir(parents = True, exist_ok = True)
 
 ################################################################################
 #   Functions
@@ -395,7 +396,7 @@ if file_suffix == 'adjusted':
     #   defined for our case). Then write
     spaceranger_json['tissue_hires_scalef'] = highres_sf
     spaceranger_json.pop('tissue_lowres_scalef')
-    with open('data.json', 'w') as f:
+    with open(json_out_path, 'w') as f:
         json.dump(spaceranger_json, f)
 
 #   Handle the spot coordinates

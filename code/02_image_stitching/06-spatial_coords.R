@@ -29,7 +29,7 @@ tissue_path_in = here(
 )
 
 tissue_path_out = here(
-    'processed-data', '04_visium_stitcher', '{donor}',
+    'processed-data', '04_VisiumStitcher', '{donor}',
     'tissue_positions_list.csv'
 )
 
