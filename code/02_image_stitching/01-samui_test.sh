@@ -5,8 +5,8 @@
 #$ -e /dev/null
 #$ -l mf=80G,h_vmem=80G,h_fsize=50G
 
-slide="V12D07-078"
-arrays="A1_B1_C1_D1"
+slide="V11U23-406"
+arrays="C1_D1"
 mode="adjusted"
 
 log_path="../../processed-data/02_image_stitching/01-samui_test_${slide}_${arrays}_${mode}.log"
