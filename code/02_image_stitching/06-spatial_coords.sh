@@ -5,8 +5,8 @@
 #$ -e /dev/null
 #$ -l mf=5G,h_vmem=5G,h_fsize=50G
 
-slide="V11U23-406"
-arrays="C1_D1"
+slide="V12D07-074"
+arrays="A1_B1_C1_D1"
 
 log_path="../../processed-data/02_image_stitching/06-spatial_coords_${slide}_${arrays}.log"
 
