@@ -51,7 +51,7 @@ tissue_out_path = Path(
 img_out_export_path = here(
     #   Later '{}' is replaced with brain num
     'processed-data', '04_VisiumStitcher', '{}',
-    'tissue_highres_image.png'
+    'tissue_hires_image.png'
 )
 json_out_path = here(
     #   Later '{}' is replaced with brain num
