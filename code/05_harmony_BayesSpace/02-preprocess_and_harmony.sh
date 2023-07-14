@@ -1,11 +1,10 @@
 #!/bin/bash
 #$ -cwd
-#$ -l mem_free=32G,h_vmem=32G,h_fsize=100G
-#$ -N BayesSpace_k_search
-#$ -o ../../processed-data/04_VisiumStitcher/logs/02-BayesSpace_k_search.log
-#$ -e ../../processed-data/04_VisiumStitcher/logs/02-BayesSpace_k_search.log
-#$ -t 2-28
-#$ -tc 20
+#$ -l mem_free=6G,h_vmem=6G,h_fsize=100G
+#$ -pe local 4
+#$ -N preprocess_and_harmony
+#$ -o ../../processed-data/05_harmony_BayesSpace/logs/02-preprocess_and_harmony.log
+#$ -e ../../processed-data/05_harmony_BayesSpace/logs/02-preprocess_and_harmony.log
 
 echo "**** Job starts ****"
 date
@@ -20,7 +19,7 @@ echo "Hostname: ${HOSTNAME}"
 module load conda_R/4.3
 module list
 
-Rscript 02-BayesSpace_k_search.R
+Rscript 02-preprocess_and_harmony.R
 
 echo "**** Job ends ****"
 date
