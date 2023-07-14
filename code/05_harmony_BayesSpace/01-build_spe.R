@@ -87,18 +87,53 @@ colData(spe) = colData(spe) |>
     left_join(coords, by = "key") |>
     left_join(sample_info, by = 'sample_id') |>
     DataFrame()
+rownames(colData(spe)) = rownames(spatialCoords(spe)) # tibbles lose rownames
 
 if (any(is.na(spe$array_row_transformed))) {
     stop("Some NA transformed spot coords: number of transformed spot coords likely doesn't match ncol(spe)")
 }
 
 ################################################################################
-#   Add merged images (one image per donor)
+#   Change from [slide]_[array] to donor as sample ID
+################################################################################
+
+#   Ideally, we'd include images for individual capture areas as well as by
+#   donor (from the stitching process). Due to SpatialExperiment validity checks
+#   that throw errors with basic manipulations of an object, this isn't possible
+#   (see https://github.com/drighelli/SpatialExperiment/blob/d1934540f5f33a0aa1ae4f886f3e0ef390c210c9/R/Validity.R#L36-L40).
+#   Thus, we have to pick one sample ID variable, so we'll use donor
+
+message("Using donor as sample ID instead of [slide]_[array]")
+
+#   Swap out sample ID variable
+spe$sample_id_original = spe$sample_id
+spe$sample_id = spe$donor
+
+#   Swap out original spot pixel coordinates for transformed ones
+spe$pxl_col_in_fullres = unname(spatialCoords(spe)[, 'pxl_col_in_fullres'])
+spe$pxl_row_in_fullres = unname(spatialCoords(spe)[, 'pxl_row_in_fullres'])
+
+spatial_coords = as.matrix(
+    colData(spe)[,c('pxl_col_in_fullres_transformed', 'pxl_row_in_fullres_transformed')]
+)
+colnames(spatial_coords) = c('pxl_col_in_fullres', 'pxl_row_in_fullres')
+rownames(spatial_coords) = rownames(spatialCoords(spe))
+spatialCoords(spe) = spatial_coords
+
+#   Swap out original spot array coordinates for transformed ones
+spe$array_row_original = spe$array_row
+spe$array_col_original = spe$array_col
+spe$array_row = spe$array_row_transformed
+spe$array_col = spe$array_col_transformed
+
+################################################################################
+#   Use merged images (one image per donor) instead of single-capture-area
+#   images
 ################################################################################
 
 message("Adding merged images (one per donor) to imgData(spe)")
 
-merged_images = readImgData(
+imgData(spe) = readImgData(
     path = file.path(transformed_dir, unique(sample_info$donor)),
     sample_id = unique(sample_info$donor),
     imageSources = file.path(
@@ -109,8 +144,6 @@ merged_images = readImgData(
     ),
     load = TRUE
 )
-
-imgData(spe) = rbind(imgData(spe), merged_images)
 
 message("Saving spe")
 saveRDS(spe, out_path)
