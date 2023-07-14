@@ -94,20 +94,10 @@ if (any(is.na(spe$array_row_transformed))) {
 }
 
 ################################################################################
-#   Change from [slide]_[array] to donor as sample ID
+#   Use transformed spatial coordinates by default
 ################################################################################
 
-#   Ideally, we'd include images for individual capture areas as well as by
-#   donor (from the stitching process). Due to SpatialExperiment validity checks
-#   that throw errors with basic manipulations of an object, this isn't possible
-#   (see https://github.com/drighelli/SpatialExperiment/blob/d1934540f5f33a0aa1ae4f886f3e0ef390c210c9/R/Validity.R#L36-L40).
-#   Thus, we have to pick one sample ID variable, so we'll use donor
-
-message("Using donor as sample ID instead of [slide]_[array]")
-
-#   Swap out sample ID variable
-spe$sample_id_original = spe$sample_id
-spe$sample_id = spe$donor
+message("Using transformed spatialCoords by default")
 
 #   Swap out original spot pixel coordinates for transformed ones
 spe$pxl_col_in_fullres = unname(spatialCoords(spe)[, 'pxl_col_in_fullres'])
@@ -131,9 +121,9 @@ spe$array_col = spe$array_col_transformed
 #   images
 ################################################################################
 
-message("Adding merged images (one per donor) to imgData(spe)")
+message("Overwriting imgData(spe) with merged images (one per donor)")
 
-imgData(spe) = readImgData(
+img_data = readImgData(
     path = file.path(transformed_dir, unique(sample_info$donor)),
     sample_id = unique(sample_info$donor),
     imageSources = file.path(
@@ -143,6 +133,41 @@ imgData(spe) = readImgData(
         transformed_dir, unique(sample_info$donor), "scalefactors_json.json"
     ),
     load = TRUE
+)
+
+################################################################################
+#   Change from [slide]_[array] to donor as sample ID
+################################################################################
+
+message("Using donor as sample ID instead of [slide]_[array]")
+
+#   Ideally, we'd include images for individual capture areas as well as by
+#   donor (from the stitching process). Due to SpatialExperiment validity checks
+#   that throw errors with basic manipulations of an object, this isn't possible
+#   (see https://github.com/drighelli/SpatialExperiment/blob/d1934540f5f33a0aa1ae4f886f3e0ef390c210c9/R/Validity.R#L36-L40).
+#   Thus, we have to pick one sample ID variable, so we'll use donor
+
+#   There are also very robust and strict checks preventing direct modification
+#   of spe$sample_id, and breaking things if imgData sample IDs don't properly
+#   match sample IDs in colData. It turns out so difficult that it appears
+#   necessary to construct an entirely new SpatialExperiment (simultaneously
+#   defining spe$sample_id and imgData sample IDs in a compatible manner),
+#   to functionally modify these parts of the object.
+#  
+#   See https://github.com/drighelli/SpatialExperiment/blob/d1934540f5f33a0aa1ae4f886f3e0ef390c210c9/R/SpatialExperiment-colData.R#L76-L81
+#   for the colData checks
+colData_fixed = colData(spe)
+colData_fixed$sample_id_original = colData_fixed$sample_id
+colData_fixed$sample_id = colData_fixed$donor
+
+spe = SpatialExperiment(
+    assays = assays(spe),
+    reducedDims = reducedDims(spe),
+    rowData = rowData(spe),
+    colData = colData_fixed,
+    spatialCoords = spatialCoords(spe),
+    scaleFactors = scaleFactors(spe),
+    imgData = img_data
 )
 
 message("Saving spe")
