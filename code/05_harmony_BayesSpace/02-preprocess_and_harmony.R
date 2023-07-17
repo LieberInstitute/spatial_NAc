@@ -1,14 +1,3 @@
-# sgejobs::job_loop(
-#     loops = list(spetype = c(
-#         "wholegenome", "targeted"
-#     )),
-#     name = "preprocess_and_harmony",
-#     create_shell = TRUE,
-#     queue = "bluejay",
-#     memory = "30G",
-#     cores = 4L
-# )
-
 ## Required libraries
 library("here")
 library("SpatialExperiment")
@@ -28,10 +17,10 @@ tsne_perplex_vals = c("05", "20", "50", "80")
 ## Create output directories
 dir_plots <- here("plots", "05_harmony_BayesSpace")
 dir_rdata <- here("processed-data", "05_harmony_BayesSpace")
-spe_in <- here("processed-data", "04_VisiumStitcher", "spe.rds")
+spe_in <- file.path(dir_rdata, "spe.rds")
 
-dir.create(dir_plots, showWarnings = FALSE, recursive = TRUE)
-dir.create(dir_rdata, showWarnings = FALSE, recursive = TRUE)
+dir.create(dir_plots, showWarnings = FALSE)
+dir.create(dir_rdata, showWarnings = FALSE)
 dir.create(file.path(dir_rdata, "clusters_graphbased"), showWarnings = FALSE)
 dir.create(file.path(dir_rdata, "clusters_graphbased_cut_at"), showWarnings = FALSE)
 
@@ -39,6 +28,12 @@ set.seed(20230712)
 
 ## Load the data
 spe <- readRDS(spe_in)
+
+#   For testing
+# spe = spe[sample(1:nrow(spe), 2000), sample(1:ncol(spe), 5000)]
+# spe <- spe[
+#     rowSums(assays(spe)$counts) > 0, colSums(assays(spe)$counts) > 0
+# ]
 
 message("Running quickCluster()")
 
@@ -113,7 +108,6 @@ save(top.hvgs,
 
 
 message("Running runPCA()")
-set.seed(20220201)
 Sys.time()
 spe <- runPCA(spe, subset_row = top.hvgs, ncomponents = 50)
 Sys.time()
@@ -134,7 +128,6 @@ dev.off()
 ## Perform harmony batch correction
 message("Running RunHarmony()")
 Sys.time()
-set.seed(20220208)
 spe <- RunHarmony(spe, "sample_id", verbose = FALSE)
 Sys.time()
 
@@ -146,7 +139,7 @@ for (dimred_var in c("PCA", "HARMONY")) {
         message(
             sprintf(
                 "Running runTSNE() perplexity %s on %s dimensions",
-                perplex_string, dimred_var
+                perplex, dimred_var
             )
         )
         Sys.time()
@@ -154,29 +147,24 @@ for (dimred_var in c("PCA", "HARMONY")) {
             runTSNE(
                 spe,
                 dimred = dimred_var,
-                name = sprintf("TSNE_perplexity%s.%s", perplex_string, dimred_var),
+                name = sprintf("TSNE_perplexity%s.%s", perplex, dimred_var),
                 perplexity = as.integer(perplex)
             )
         Sys.time()
     }
 
     #   Explore TSNE results via plots
-    colnames(
-            reducedDim(
-                spe, sprintf("TSNE_perplexity%s.%s", perplexity, dimred_var)
-            )
-        ) <- c("TSNE1", "TSNE2")
     pdf(
         file = file.path(
             dir_plots,
-            sprintf("tSNE_perplexity%s_%s_sample_id.pdf", perplexity, dimred_var)
+            sprintf("tSNE_perplexity%s_%s_sample_id.pdf", perplex, dimred_var)
         ),
         width = 9
     )
     p <- ggplot(
             data.frame(
                 reducedDim(
-                    spe, sprintf("TSNE_perplexity%s.%s", perplexity, dimred_var)
+                    spe, sprintf("TSNE_perplexity%s.%s", perplex, dimred_var)
                 )
             ),
             aes(x = TSNE1, y = TSNE2, color = factor(spe$sample_id))
@@ -190,20 +178,19 @@ for (dimred_var in c("PCA", "HARMONY")) {
     #   Also run UMAP
     message(sprintf("Running runUMAP() on %s dimensions", dimred_var))
     Sys.time()
-    spe <- runUMAP(spe, dimred = dimred_var)
-    colnames(reducedDim(spe, sprintf("UMAP.%s", dimred_var))) <- c("UMAP1", "UMAP2")
+    spe <- runUMAP(spe, dimred = dimred_var, name = sprintf("UMAP.%s", dimred_var))
     Sys.time()
 
     #   Explore UMAP results, coloring by both donor and sample ID
-    for (color_var in c("sample_id", "Brain")) {
+    for (color_var in c("sample_id", "donor")) {
         pdf(
             file = file.path(
                 dir_plots, sprintf("UMAP_%s_%s.pdf", color_var, dimred_var)
             )
         )
         ggplot(
-            data.frame(reducedDim(spe, sprintf("UMAP.%s", dimred_var)),
-            aes(x = UMAP1, y = UMAP2, color = factor(spe[color_var]))
+            data.frame(reducedDim(spe, sprintf("UMAP.%s", dimred_var))),
+            aes(x = UMAP1, y = UMAP2, color = factor(spe[[color_var]]))
         ) +
             geom_point() +
             labs(color = color_var) +
@@ -228,10 +215,12 @@ save(g_walk_k10, file = file.path(dir_rdata, "g_walk_k10_harmony.Rdata"))
 clust_k10 <- sort_clusters(g_walk_k10$membership)
 spe$SNN_k10 <- clust_k10 ## Add this one to the SPE too
 ## Export for later use
+#   TODO: find a way to cluster_export using [slide]_[array] as key
+#   without being able to modify spe$sample_id 
 cluster_export(
     spe,
     "SNN_k10",
-    cluster_dir = file.path(dir_rdata, "clusters_graphbased")
+    cluster_dir = file.path(dir_rdata, "clusters_graphbased"),
 )
 
 message("Running cut_at() from k = 4 to 28")
