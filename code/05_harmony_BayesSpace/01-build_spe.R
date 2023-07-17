@@ -170,8 +170,11 @@ spe = SpatialExperiment(
     imgData = img_data
 )
 
-#   Drop spots with 0 counts for all genes
-spe <- spe[, colSums(assays(spe)$counts) > 0]
+#   Drop spots with 0 counts for all genes, and drop genes with 0 counts in
+#   every spot
+spe <- spe[
+    rowSums(assays(spe)$counts) > 0, colSums(assays(spe)$counts) > 0
+]
 
 message("Saving spe")
 saveRDS(spe, out_path)
