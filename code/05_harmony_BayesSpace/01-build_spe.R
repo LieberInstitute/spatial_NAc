@@ -127,7 +127,7 @@ img_data = readImgData(
     path = file.path(transformed_dir, unique(sample_info$donor)),
     sample_id = unique(sample_info$donor),
     imageSources = file.path(
-        transformed_dir, unique(sample_info$donor), "tissue_hires_image.png"
+        transformed_dir, unique(sample_info$donor), "tissue_lowres_image.png"
     ),
     scaleFactors = file.path(
         transformed_dir, unique(sample_info$donor), "scalefactors_json.json"

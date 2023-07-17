@@ -51,7 +51,7 @@ tissue_out_path = Path(
 img_out_export_path = here(
     #   Later '{}' is replaced with brain num
     'processed-data', '04_VisiumStitcher', '{}',
-    'tissue_hires_image.png'
+    'tissue_lowres_image.png'
 )
 json_out_path = here(
     #   Later '{}' is replaced with brain num
@@ -68,7 +68,7 @@ json_out_path = here(
 SPOT_DIAMETER_M = 55e-6
 SPOT_DIAMETER_JSON_M = 65e-6
 
-HIGHRES_MAX_SIZE = 2000
+LOWRES_MAX_SIZE = 1200
 BACKGROUND_COLOR = (240, 240, 240)
 
 #   Read in sample info and subset to samples of interest
@@ -222,17 +222,17 @@ def merge_image_browser(sample_info, theta, trans_img, max0, max1):
 #   max0, max1: integers giving shape of full-res merged image
 #
 #   Return a tuple: (np.array, float):
-#       - The np.array is the combined high-resolution RGB image containing all
+#       - The np.array is the combined low-resolution RGB image containing all
 #         samples after performing transformations
-#       - The float gives the high-res scale factor appropriate for export to
+#       - The float gives the low-res scale factor appropriate for export to
 #         a spaceranger JSON for the combined samples 
 def merge_image_export(sample_info, theta, trans_img, max0, max1):
-    highres_sf = HIGHRES_MAX_SIZE / max(max0, max1)
+    lowres_sf = LOWRES_MAX_SIZE / max(max0, max1)
 
-    #   Rescale relevant variables to reflect pixels in high resolution
-    scaled_trans_img = (trans_img * highres_sf).astype(np.int32)
-    max0 = round(max0 * highres_sf)
-    max1 = round(max1 * highres_sf)
+    #   Rescale relevant variables to reflect pixels in low resolution
+    scaled_trans_img = (trans_img * lowres_sf).astype(np.int32)
+    max0 = round(max0 * lowres_sf)
+    max1 = round(max1 * lowres_sf)
 
     #   Initialize the combined tiff. Determine the boundaries by computing the
     #   maximal coordinates in each dimension of each rotated and translated
@@ -242,9 +242,9 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1):
     weights = np.zeros((max0 + 2, max1 + 2, 1), dtype = np.float64)
 
     for i in range(sample_info.shape[0]):
-        #   Read in full-res RGB image and scale to high res
+        #   Read in full-res RGB image and scale to low res
         img_pil = Image.open(sample_info['raw_image_path'].iloc[i])
-        scaled_size = tuple([round(x * highres_sf) for x in img_pil.size])
+        scaled_size = tuple([round(x * lowres_sf) for x in img_pil.size])
         img_pil = img_pil.resize(scaled_size)
 
         #   Rotate about the top left corner of the image
@@ -277,7 +277,7 @@ def merge_image_export(sample_info, theta, trans_img, max0, max1):
     
     #   We left a 2-pixel buffer in both dimensions to allow for slight errors
     #   from repeating rounding and scaling sizes
-    return (combined_img[:max0, :max1, :], highres_sf)
+    return (combined_img[:max0, :max1, :], lowres_sf)
 
 ################################################################################
 #   Define the transformation matrix
@@ -385,18 +385,18 @@ combined_img = merge_image_browser(sample_info, theta, trans_img, max0, max1)
 with tifffile.TiffWriter(img_out_browser_path, bigtiff = True) as tiff:
     tiff.write(combined_img)
 
-#   Write the high-resolution combined PNG needed for the SpatialExperiment
+#   Write the low-resolution combined PNG needed for the SpatialExperiment
 #   object, as well as a combined spaceranger-compatible JSON
 if file_suffix == 'adjusted':
-    combined_img, highres_sf = merge_image_export(
+    combined_img, lowres_sf = merge_image_export(
         sample_info, theta, trans_img, max0, max1
     )
     Image.fromarray(combined_img).save(img_out_export_path)
 
-    #   Overwrite the hires scale factor and delete the lowres one (which isn't
-    #   defined for our case). Then write
-    spaceranger_json['tissue_hires_scalef'] = highres_sf
-    spaceranger_json.pop('tissue_lowres_scalef')
+    #   Overwrite the lowres scale factor and delete the highres one (which
+    #   isn't defined for our case). Then write
+    spaceranger_json['tissue_lowres_scalef'] = lowres_sf
+    spaceranger_json.pop('tissue_hires_scalef')
     with open(json_out_path, 'w') as f:
         json.dump(spaceranger_json, f)
 
