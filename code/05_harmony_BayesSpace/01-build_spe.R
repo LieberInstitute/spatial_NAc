@@ -100,8 +100,8 @@ if (any(is.na(spe$array_row_transformed))) {
 message("Using transformed spatialCoords by default")
 
 #   Swap out original spot pixel coordinates for transformed ones
-spe$pxl_col_in_fullres = unname(spatialCoords(spe)[, 'pxl_col_in_fullres'])
-spe$pxl_row_in_fullres = unname(spatialCoords(spe)[, 'pxl_row_in_fullres'])
+spe$pxl_col_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_col_in_fullres'])
+spe$pxl_row_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_row_in_fullres'])
 
 spatial_coords = as.matrix(
     colData(spe)[,c('pxl_col_in_fullres_transformed', 'pxl_row_in_fullres_transformed')]
@@ -169,6 +169,9 @@ spe = SpatialExperiment(
     scaleFactors = scaleFactors(spe),
     imgData = img_data
 )
+
+#   Make spot IDs unique
+colnames(spe) = spe$key
 
 #   Drop spots with 0 counts for all genes, and drop genes with 0 counts in
 #   every spot
