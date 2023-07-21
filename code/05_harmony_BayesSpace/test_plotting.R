@@ -6,9 +6,11 @@ library(jaffelab)
 library(sessioninfo)
 
 spe_path = here('processed-data', '05_harmony_BayesSpace', 'spe.rds')
+plot_dir = here('plots', '05_harmony_BayesSpace')
+
 sample_id = "Br2720"
-cluster_var = "X10x_kmeans_7_clusters"
-plot_path = here('plots', '05_harmony_BayesSpace', 'test.pdf')
+discrete_var = "X10x_kmeans_7_clusters"
+cont_var = "sum_gene"
 
 spe = readRDS(spe_path)
 
@@ -17,7 +19,7 @@ spe = readRDS(spe_path)
 # spe$pxl_col_in_fullres_original <- spe$pxl_col_in_fullres
 # spe$pxl_row_in_fullres <- spe$pxl_col_in_fullres <- NULL
 
-vis_clus_merged = function(spe, sampleid, clustervar) {
+vis_merged = function(spe, sampleid, coldatavar) {
     #   Subset to specific sample ID
     spe_small = spe[, spe$sample_id == sampleid]
     
@@ -44,16 +46,49 @@ vis_clus_merged = function(spe, sampleid, clustervar) {
         spe_small$array_row * INTERVAL_ROW
     spatialCoords(spe_small)[, 'pxl_row_in_fullres'] = MAX_COL -
         spe_small$array_col * INTERVAL_COL
-
-    #   Return a plot from 'vis_clus' that uses the rounded spatialCoords
-    p = vis_clus(
-        spe_small, sampleid = sampleid, clustervar = clustervar,
-        auto_crop = FALSE, point_size = 1
-    )
-    return(p)
+    
+    if (is.factor(spe_small[[coldatavar]])) {
+        #   Return a plot from 'vis_clus' that uses the rounded spatialCoords
+        p = vis_clus(
+            spe_small, sampleid = sampleid, clustervar = coldatavar,
+            auto_crop = FALSE, point_size = 1
+        )
+        return(p)
+    } else {
+        #   For continuous variables, we'll average the values for overlapping
+        #   spots
+        a = colData(spe_small) |>
+            as_tibble() |>
+            group_by(array_num, array_row, array_col) |>
+            mutate(
+                !!coldatavar := mean(!!sym(coldatavar)),
+                is_first_spot = cur_group_id(),
+            ) |>
+            #   This "extra" mutate is needed due to https://github.com/tidyverse/dplyr/issues/6889
+            mutate(is_first_spot = !(duplicated(is_first_spot)))
+        
+        #   Keep only one spot in cases of multiple spots mapping to the same
+        #   array coordinates. Update the colData to use the average over
+        #   duplicated spots
+        spe_small = spe_small[, a$is_first_spot]
+        colData(spe_small)[[coldatavar]] = a |>
+            filter(is_first_spot) |>
+            pull({{ coldatavar }})
+        
+        p = vis_gene(
+            spe_small, sampleid = sampleid, geneid = coldatavar,
+            auto_crop = FALSE, point_size = 1
+        )
+        return(p)
+    } 
 }
 
-p = vis_clus_merged(spe, sampleid = sample_id, clustervar = cluster_var)
-pdf(plot_path)
+p = vis_merged(spe, sampleid = sample_id, coldatavar = discrete_var)
+pdf(file.path(plot_dir, 'vis_merged_discrete.pdf'))
+print(p)
+dev.off()
+
+p = vis_merged(spe, sampleid = sample_id, coldatavar = cont_var)
+pdf(file.path(plot_dir, 'vis_merged_continuous.pdf'))
 print(p)
 dev.off()
