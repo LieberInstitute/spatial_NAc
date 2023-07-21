@@ -13,6 +13,7 @@ library("Polychrome")
 library("harmony")
 
 tsne_perplex_vals = c("05", "20", "50", "80")
+num_cores = 4
 
 ## Create output directories
 dir_plots <- here("plots", "05_harmony_BayesSpace")
@@ -40,9 +41,9 @@ message("Running quickCluster()")
 Sys.time()
 spe$scran_quick_cluster <- quickCluster(
     spe,
-    BPPARAM = MulticoreParam(4),
+    BPPARAM = MulticoreParam(num_cores),
     block = spe$sample_id,
-    block.BPPARAM = MulticoreParam(4)
+    block.BPPARAM = MulticoreParam(num_cores)
 )
 Sys.time()
 
@@ -53,7 +54,7 @@ Sys.time()
 spe <-
     computeSumFactors(spe,
         clusters = spe$scran_quick_cluster,
-        BPPARAM = MulticoreParam(4)
+        BPPARAM = MulticoreParam(num_cores)
     )
 Sys.time()
 
@@ -70,7 +71,7 @@ message("Running modelGeneVar()")
 ## http://bioconductor.org/packages/release/bioc/vignettes/scran/inst/doc/scran.html#4_variance_modelling
 dec <- modelGeneVar(spe,
     block = spe$sample_id,
-    BPPARAM = MulticoreParam(4)
+    BPPARAM = MulticoreParam(num_cores)
 )
 
 pdf(file.path(dir_plots, "scran_modelGeneVar.pdf"), useDingbats = FALSE)
@@ -178,7 +179,7 @@ for (dimred_var in c("PCA", "HARMONY")) {
     Sys.time()
     spe <- runUMAP(
         spe, dimred = dimred_var, name = sprintf("UMAP.%s", dimred_var),
-        BPPARAM = MulticoreParam(4)
+        BPPARAM = MulticoreParam(num_cores)
     )
     Sys.time()
 
