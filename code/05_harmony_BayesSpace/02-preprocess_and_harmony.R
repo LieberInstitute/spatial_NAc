@@ -65,7 +65,6 @@ summary(sizeFactors(spe))
 message("Running logNormCounts()")
 spe <- logNormCounts(spe)
 
-
 message("Running modelGeneVar()")
 ## From
 ## http://bioconductor.org/packages/release/bioc/vignettes/scran/inst/doc/scran.html#4_variance_modelling
@@ -161,7 +160,7 @@ for (dimred_var in c("PCA", "HARMONY")) {
         ),
         width = 9
     )
-    p <- ggplot(
+    ggplot(
             data.frame(
                 reducedDim(
                     spe, sprintf("TSNE_perplexity%s.%s", perplex, dimred_var)
@@ -172,13 +171,15 @@ for (dimred_var in c("PCA", "HARMONY")) {
         geom_point() +
         labs(color = "sample_id") +
         theme_bw()
-    print(p)
     dev.off()
 
     #   Also run UMAP
     message(sprintf("Running runUMAP() on %s dimensions", dimred_var))
     Sys.time()
-    spe <- runUMAP(spe, dimred = dimred_var, name = sprintf("UMAP.%s", dimred_var))
+    spe <- runUMAP(
+        spe, dimred = dimred_var, name = sprintf("UMAP.%s", dimred_var),
+        BPPARAM = MulticoreParam(4)
+    )
     Sys.time()
 
     #   Explore UMAP results, coloring by both donor and sample ID
@@ -215,8 +216,6 @@ save(g_walk_k10, file = file.path(dir_rdata, "g_walk_k10_harmony.Rdata"))
 clust_k10 <- sort_clusters(g_walk_k10$membership)
 spe$SNN_k10 <- clust_k10 ## Add this one to the SPE too
 ## Export for later use
-#   TODO: find a way to cluster_export using [slide]_[array] as key
-#   without being able to modify spe$sample_id 
 cluster_export(
     spe,
     "SNN_k10",
@@ -258,6 +257,8 @@ for (i in seq_along(sample_ids)) {
             clustervar = names(clust_k5_list)[j],
             sampleid = sample_ids[i],
             colors = cols,
+            auto_crop = FALSE,
+            assayname = 'counts',
             ... = paste0(" ", names(clust_k5_list)[j])
         )
         print(my_plot)
@@ -266,8 +267,10 @@ for (i in seq_along(sample_ids)) {
 dev.off()
 
 
-## do offset so we can run BayesSpace
-auto_offset_row <- as.numeric(factor(unique(spe$sample_id))) * 100
+#   Do offset so we can run BayesSpace. Not here that 'array_row' is not
+#   constrained to have max value 77; we instead find the largest 'array_row'
+#   value of any sample, and use it to ensure samples are at least 5 rows apart
+auto_offset_row <- as.numeric(factor(unique(spe$sample_id))) * (max(spe$array_row) + 5)
 names(auto_offset_row) <- unique(spe$sample_id)
 spe$row <- spe$array_row + auto_offset_row[spe$sample_id]
 spe$col <- spe$array_col
