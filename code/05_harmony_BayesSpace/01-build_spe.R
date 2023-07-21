@@ -160,6 +160,18 @@ colData_fixed = colData(spe)
 colData_fixed$sample_id_original = colData_fixed$sample_id
 colData_fixed$sample_id = colData_fixed$donor
 
+#   Fix data types in colData: ensure categorical data are factors
+categorical_cols = c(
+    'sample_id', 'donor', 'slide_num', 'array_num', 'Sex', 'Diagnosis',
+    'sample_id_original',
+    colnames(colData_fixed)[grep('^X10x_', colnames(colData_fixed))]
+)
+for (categorical_col in categorical_cols) {
+    colData_fixed[, categorical_col] = as.factor(
+        colData_fixed[, categorical_col]
+    )
+}
+
 spe = SpatialExperiment(
     assays = assays(spe),
     reducedDims = reducedDims(spe),
@@ -178,6 +190,8 @@ colnames(spe) = spe$key
 spe <- spe[
     rowSums(assays(spe)$counts) > 0, colSums(assays(spe)$counts) > 0
 ]
+
+
 
 message("Saving spe")
 saveRDS(spe, out_path)
