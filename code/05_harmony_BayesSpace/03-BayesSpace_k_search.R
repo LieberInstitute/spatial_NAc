@@ -1,5 +1,3 @@
-
-
 ## Required libraries
 library("here")
 library("sessioninfo")
@@ -7,12 +5,14 @@ library("SpatialExperiment")
 library("spatialLIBD")
 library("BayesSpace")
 library("Polychrome")
+library("tidyverse")
+source(here('code', '05_harmony_BayesSpace', 'plotting_functions.R'))
 
 set.seed(20230712)
 
 ## Create output directories
-dir_plots <- here::here("plots", "08_harmony_BayesSpace", opt$spetype)
-dir_rdata <- here::here("processed-data", "08_harmony_BayesSpace", opt$spetype)
+dir_plots <- here("plots", "05_harmony_BayesSpace")
+dir_rdata <- here("processed-data", "05_harmony_BayesSpace")
 spe_in = file.path(dir_rdata, "spe_harmony.rds")
 
 dir.create(dir_plots, showWarnings = FALSE, recursive = TRUE)
@@ -32,10 +32,10 @@ metadata(spe)$BayesSpace.data <- list(platform = "Visium", is.enhanced = FALSE)
 
 message("Running spatialCluster()")
 Sys.time()
-spe <- spatialCluster(spe, use.dimred = "HARMONY", q = k)
+spe <- spatialCluster(spe, use.dimred = "HARMONY", q = k, nrep = 10000)
 Sys.time()
 
-spe$bayesSpace_temp <- spe$spatial.cluster
+spe$bayesSpace_temp <- as.factor(spe$spatial.cluster)
 bayesSpace_name <- paste0("BayesSpace_harmony_k", k_nice)
 colnames(colData(spe))[ncol(colData(spe))] <- bayesSpace_name
 
@@ -48,17 +48,33 @@ cluster_export(
 ## Visualize BayesSpace results
 sample_ids <- unique(spe$sample_id)
 cols <- Polychrome::palette36.colors(k)
-names(cols) <- sort(unique(spe$spatial.cluster))
+names(cols) <- sort(unique(spe[[bayesSpace_name]]))
 
-vis_grid_clus(
+#   Use 'vis_grid_clus' to preserve all spots (including overlaps)
+p_list = vis_grid_clus(
     spe = spe,
-    clustervar = paste0("BayesSpace_harmony_k", k_nice),
-    pdf_file = file.path(dir_plots, paste0("BayesSpace_harmony_k", k_nice, ".pdf")),
+    clustervar = bayesSpace_name,
     sort_clust = FALSE,
     colors = cols,
     spatial = FALSE,
-    point_size = 2
+    point_size = 1,
+    auto_crop = FALSE,
+    return_plots = TRUE
 )
+pdf(file.path(dir_plots, paste0(bayesSpace_name, "_raw.pdf")))
+print(p_list)
+dev.off()
+
+#   Use 'vis_merged', which takes one spot in case of overlaps
+p_list = list()
+for (sample_id in sample_ids) {
+    p_list[[sample_id]] = vis_merged(
+        spe, sampleid = sample_id, coldatavar = bayesSpace_name, colors = cols
+    )
+}
+pdf(file.path(dir_plots, paste0(bayesSpace_name, "_fit.pdf")))
+print(p_list)
+dev.off()
 
 ## Reproducibility information
 print("Reproducibility information:")

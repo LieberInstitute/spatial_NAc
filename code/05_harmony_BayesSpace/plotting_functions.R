@@ -1,3 +1,6 @@
+library(SpatialExperiment)
+library(tidyverse)
+
 #   Wrapper around spatialLIBD::vis_clus and spatialLIBD::vis_gene, suitable
 #   for merged samples (each sample in the SpatialExperiment 'spe' is a donor
 #   consisting of multiple capture areas whose spatial coordinates may
@@ -18,7 +21,7 @@
 #       If discrete, one spot is arbitrarily chosen;
 #       If continuous, the plotted variable is averaged over duplicate-mapped
 #           spots and colored accordingly
-vis_merged = function(spe, sampleid, coldatavar) {
+vis_merged = function(spe, sampleid, coldatavar, colors = NULL) {
     #   Subset to specific sample ID
     spe_small = spe[, spe$sample_id == sampleid]
     
@@ -50,7 +53,7 @@ vis_merged = function(spe, sampleid, coldatavar) {
         #   Return a plot from 'vis_clus' that uses the rounded spatialCoords
         p = vis_clus(
             spe_small, sampleid = sampleid, clustervar = coldatavar,
-            auto_crop = FALSE, point_size = 1
+            auto_crop = FALSE, point_size = 1, colors = colors
         )
         return(p)
     } else {
@@ -76,7 +79,7 @@ vis_merged = function(spe, sampleid, coldatavar) {
         
         p = vis_gene(
             spe_small, sampleid = sampleid, geneid = coldatavar,
-            auto_crop = FALSE, point_size = 1
+            auto_crop = FALSE, point_size = 1, cont_colors = colors
         )
         return(p)
     } 
