@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -cwd
-#$ -l mem_free=6G,h_vmem=6G,h_fsize=100G
+#$ -l mem_free=10G,h_vmem=10G,h_fsize=100G
 #$ -pe local 4
 #$ -N preprocess_and_harmony
 #$ -o ../../processed-data/05_harmony_BayesSpace/logs/02-preprocess_and_harmony.log
