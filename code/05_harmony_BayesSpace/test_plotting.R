@@ -59,7 +59,7 @@ vis_merged = function(spe, sampleid, coldatavar) {
         #   spots
         a = colData(spe_small) |>
             as_tibble() |>
-            group_by(array_num, array_row, array_col) |>
+            group_by(array_row, array_col) |>
             mutate(
                 !!coldatavar := mean(!!sym(coldatavar)),
                 is_first_spot = cur_group_id(),
