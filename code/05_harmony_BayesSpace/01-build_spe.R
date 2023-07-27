@@ -10,7 +10,10 @@ sample_info_path2 = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 transformed_dir = here('processed-data', '04_VisiumStitcher')
-out_path = here('processed-data', '05_harmony_BayesSpace', 'spe.rds')
+raw_out_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
+filtered_out_path = here(
+    'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
+)
 
 #   Read in the two sources of sample info and merge
 message("Gathering sample info")
@@ -42,7 +45,7 @@ spe = read10xVisiumWrapper(
     samples = sample_info$spaceranger_dir,
     sample_id = sample_info$sample_id,
     type = "sparse",
-    data = "filtered",
+    data = "raw",
     images = c("lowres", "hires", "detected", "aligned"),
     load = TRUE,
     verbose = TRUE
@@ -185,15 +188,18 @@ spe = SpatialExperiment(
 #   Make spot IDs unique
 colnames(spe) = spe$key
 
-#   Drop spots with 0 counts for all genes, and drop genes with 0 counts in
-#   every spot
+#   Save the full object (all spots)
+message("Saving raw spe")
+saveRDS(spe, raw_out_path)
+
+#   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
+#   genes, and drop genes with 0 counts in every spot
 spe <- spe[
-    rowSums(assays(spe)$counts) > 0, colSums(assays(spe)$counts) > 0
+    rowSums(assays(spe)$counts) > 0,
+    spe$in_tissue & (colSums(assays(spe)$counts) > 0)
 ]
 
-
-
-message("Saving spe")
-saveRDS(spe, out_path)
+message("Saving filtered spe")
+saveRDS(spe, filtered_out_path)
 
 session_info()
