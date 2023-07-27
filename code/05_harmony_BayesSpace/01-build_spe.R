@@ -14,6 +14,7 @@ raw_out_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
 filtered_out_path = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
 )
+num_cores = 4
 
 #   Read in the two sources of sample info and merge
 message("Gathering sample info")
@@ -192,12 +193,44 @@ colnames(spe) = spe$key
 message("Saving raw spe")
 saveRDS(spe, raw_out_path)
 
+################################################################################
+#   Compute log-normalized counts
+################################################################################
+
 #   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
 #   genes, and drop genes with 0 counts in every spot
 spe <- spe[
     rowSums(assays(spe)$counts) > 0,
     spe$in_tissue & (colSums(assays(spe)$counts) > 0)
 ]
+
+message("Running quickCluster()")
+
+Sys.time()
+spe$scran_quick_cluster <- quickCluster(
+    spe,
+    BPPARAM = MulticoreParam(num_cores),
+    block = spe$sample_id_original,
+    block.BPPARAM = MulticoreParam(num_cores)
+)
+Sys.time()
+
+message("Running computeSumFactors()")
+Sys.time()
+spe <- computeSumFactors(
+    spe,
+    clusters = spe$scran_quick_cluster,
+    BPPARAM = MulticoreParam(num_cores)
+)
+Sys.time()
+
+table(spe$scran_quick_cluster)
+
+message("Running checking sizeFactors()")
+summary(sizeFactors(spe))
+
+message("Running logNormCounts()")
+spe <- logNormCounts(spe)
 
 message("Saving filtered spe")
 saveRDS(spe, filtered_out_path)

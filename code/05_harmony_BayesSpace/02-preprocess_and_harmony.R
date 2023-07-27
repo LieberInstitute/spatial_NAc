@@ -40,36 +40,6 @@ spe$pxl_row_in_fullres_original <- spe$pxl_row_in_fullres
 spe$pxl_col_in_fullres_original <- spe$pxl_col_in_fullres
 spe$pxl_row_in_fullres <- spe$pxl_col_in_fullres <- NULL
 
-message("Running quickCluster()")
-
-Sys.time()
-spe$scran_quick_cluster <- quickCluster(
-    spe,
-    BPPARAM = MulticoreParam(num_cores),
-    block = spe$sample_id,
-    block.BPPARAM = MulticoreParam(num_cores)
-)
-Sys.time()
-
-message("Running computeSumFactors()")
-Sys.time()
-## Might be needed:
-# options(error = recover)
-spe <-
-    computeSumFactors(spe,
-        clusters = spe$scran_quick_cluster,
-        BPPARAM = MulticoreParam(num_cores)
-    )
-Sys.time()
-
-table(spe$scran_quick_cluster)
-
-message("Running checking sizeFactors()")
-summary(sizeFactors(spe))
-
-message("Running logNormCounts()")
-spe <- logNormCounts(spe)
-
 message("Running modelGeneVar()")
 ## From
 ## http://bioconductor.org/packages/release/bioc/vignettes/scran/inst/doc/scran.html#4_variance_modelling
