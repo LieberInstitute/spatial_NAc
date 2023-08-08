@@ -62,30 +62,42 @@ message("Adding transformed spot coordinates and sample info to colData")
 coords_list = list()
 for (donor in unique(sample_info$donor)) {
     #   Read in and clean up transformed spot coordinates
-    coords_list[[donor]] = file.path(
+    spot_coords = file.path(
             transformed_dir, donor, 'tissue_positions_list.csv'
         ) |>
         read.csv() |>
         as_tibble() |>
-        mutate(
-            #   Reformat to be [barcode]_[sample_id] (matching spe$key)
-            key = paste(
-                ss(barcode, '_[ABCD]1', 2),
-                barcode |> str_replace('(.*_[ABCD]1).*', '\\1'),
-                sep = '_'
-            )
-        ) |>
         rename(
+            key = barcode,
             array_row_transformed = array_row,
             array_col_transformed = array_col,
             pxl_row_in_fullres_transformed = pxl_row_in_fullres,
             pxl_col_in_fullres_transformed = pxl_col_in_fullres
         ) |>
         select(-c(in_tissue, barcode))
+    
+    #   Read in and clean Visium Stitcher info about spot overlaps
+    coords_list[[donor]] = file.path(
+            transformed_dir, donor, 'vs_stitcher.csv'
+        ) |>
+        read.csv() |>
+        as_tibble() |>
+        rename(key = X) |>
+        select(c(key, overlap_slide, exclude_overlapping)) |>
+        left_join(spot_coords, by = "key") |>
+        mutate(
+            #   Reformat to be [barcode]_[sample_id] (matching spe$key)
+            key = paste(
+                ss(key, '_[ABCD]1', 2),
+                key |> str_replace('(.*_[ABCD]1).*', '\\1'),
+                sep = '_'
+            )
+        )
 }
 coords = do.call(rbind, coords_list)
 
-#   Add transformed spot coordinates to colData. Also add sample_info
+#   Add transformed spot coordinates, spot-overlap info, and sample_info to
+#   colData
 colData(spe) = colData(spe) |>
     as_tibble() |>
     left_join(coords, by = "key") |>
