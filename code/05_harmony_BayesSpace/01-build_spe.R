@@ -4,6 +4,7 @@ library(here)
 library(tidyverse)
 library(jaffelab)
 library(sessioninfo)
+library(scran)
 
 sample_info_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 sample_info_path2 = here(
@@ -74,7 +75,7 @@ for (donor in unique(sample_info$donor)) {
             pxl_row_in_fullres_transformed = pxl_row_in_fullres,
             pxl_col_in_fullres_transformed = pxl_col_in_fullres
         ) |>
-        select(-c(in_tissue, barcode))
+        select(-in_tissue)
     
     #   Read in and clean Visium Stitcher info about spot overlaps
     coords_list[[donor]] = file.path(
@@ -104,10 +105,6 @@ colData(spe) = colData(spe) |>
     left_join(sample_info, by = 'sample_id') |>
     DataFrame()
 rownames(colData(spe)) = rownames(spatialCoords(spe)) # tibbles lose rownames
-
-if (any(is.na(spe$array_row_transformed))) {
-    stop("Some NA transformed spot coords: number of transformed spot coords likely doesn't match ncol(spe)")
-}
 
 ################################################################################
 #   Use transformed spatial coordinates by default
