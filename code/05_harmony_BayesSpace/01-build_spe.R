@@ -5,6 +5,7 @@ library(tidyverse)
 library(jaffelab)
 library(sessioninfo)
 library(scran)
+library(BiocParallel)
 
 sample_info_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 sample_info_path2 = here(
