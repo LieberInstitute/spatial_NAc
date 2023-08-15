@@ -140,13 +140,8 @@ sample_info['raw_image_path'] = raw_image_paths
 ################################################################################
 
 transform_df_list = []
-for slide in xml_map['Slide #'].unique():
-    #   Open the ImageJ XML output for this slide. Assumes every array in a slide
-    #   is in the same XML file associated with each slide
-    imagej_xml_path = Path(
-        here() /
-        xml_map.loc[xml_map['Slide #'] == slide, 'XML file name'].iloc[0]
-    )
+for imagej_xml_path in sample_info['XML file name'].dropna().unique():
+    #   Open the ImageJ XML output
     with open(imagej_xml_path) as f:
         imagej_xml = f.read()
     
@@ -156,8 +151,9 @@ for slide in xml_map['Slide #'].unique():
 
     array_nums = [
         re.sub('[_/]', '', x)
-        for x in re.findall(rf'_[ABCD]1/', imagej_xml)
+        for x in re.findall(r'_[ABCD]1/', imagej_xml)
     ]
+    slide_nums = [re.findall(r'V[0-9]{2}[A-Z][0-9]{2}-[0-9]{3}', imagej_xml)]
     
     #   Grab the transformation matrices and import as numpy array with the
     #   structure used in 01-samui_test.py
@@ -175,7 +171,7 @@ for slide in xml_map['Slide #'].unique():
     #   Grab sample info for this slide, ordered how the array numbers
     #   appear in the ImageJ output
     this_sample_info = sample_info.loc[
-        [slide + '_' + array_nums[i] for i in range(len(array_nums))]
+        [slide_nums[i] + '_' + array_nums[i] for i in range(len(array_nums))]
     ]
 
     #   Adjust translations to represent pixels in full resolution
@@ -198,12 +194,12 @@ for slide in xml_map['Slide #'].unique():
                 'initial_transform_y': trans_mat[:, 1, 2],
                 'initial_transform_theta': theta_from_mat(trans_mat),
                 'Array #': array_nums,
-                'Slide #': slide
+                'Slide #': slide_nums
             }
         )
     )
 
-#   Combine across slides, then merge into sample_info
+#   Combine across donors, then merge into sample_info
 transform_df = pd.concat(transform_df_list)
 index = sample_info.index
 sample_info = pd.merge(

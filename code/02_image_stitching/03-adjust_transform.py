@@ -9,14 +9,13 @@ import sys
 
 SPOT_DIAMETER_M = 55e-6
 
-this_slide, arrays = sys.argv[1:]
-sample_ids = [f'{this_slide}_{x}' for x in arrays.split('_')]
+this_donor = sys.argv[1:]
 
 #   Inputs
 roi_json_path = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'rois_combined_{this_slide}_{arrays}.json'
+        f'rois_combined_{this_donor}.json'
     )
 )
 
@@ -30,14 +29,14 @@ sample_info_path = Path(
 estimate_path = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'transformation_estimates_{this_slide}_{arrays}.csv'
+        f'transformation_estimates_{this_donor}.csv'
     )
 )
 
 pairwise_path = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'pairwise_errors_{this_slide}_{arrays}.csv'
+        f'pairwise_errors_{this_donor}.csv'
     )
 )
 
@@ -173,7 +172,7 @@ def arrange_a_b(a: np.array, b: np.array, max_dist: float = 500) -> tuple:
 
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
-sample_info = sample_info.loc[sample_ids, :]
+sample_info = sample_info.loc[sample_info['Brain'] == this_donor, :]
 
 #   Initial estimates of (by row): x translation, y translation, theta in
 #   radians (counterclockwise relative to canvas)

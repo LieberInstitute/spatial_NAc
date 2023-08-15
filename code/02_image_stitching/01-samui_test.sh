@@ -5,11 +5,10 @@
 #$ -e /dev/null
 #$ -l mf=80G,h_vmem=80G,h_fsize=50G
 
-slide="V11U23-406"
-arrays="C1_D1"
+donor=
 mode="adjusted"
 
-log_path="../../processed-data/02_image_stitching/01-samui_test_${slide}_${arrays}_${mode}.log"
+log_path="../../processed-data/02_image_stitching/01-samui_test_${donor}_${mode}.log"
 
 {
 echo "**** Job starts ****"
@@ -21,7 +20,7 @@ echo "Job name: ${JOB_NAME}"
 echo "Hostname: ${HOSTNAME}"
 
 module load loopy/1.0.0-next.24
-python 01-samui_test.py $slide $arrays $mode
+python 01-samui_test.py $donor $mode
 
 echo "**** Job ends ****"
 date

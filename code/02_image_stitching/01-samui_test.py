@@ -16,9 +16,8 @@ Image.MAX_IMAGE_PIXELS = None
 #   Parse command-line arguments, ultimately determining:
 #       1. whether to produce the combined image of the initial or adjusted
 #          estimates
-#       2. the sample IDs (slide + arrays) to include in the combined image
-this_slide, arrays, file_suffix = sys.argv[1:]
-sample_ids = [f'{this_slide}_{x}' for x in arrays.split('_')]
+#       2. the donor to include in the combined image
+this_donor, file_suffix = sys.argv[1:]
 assert file_suffix in ('initial', 'adjusted')
 
 sample_info_path = here(
@@ -27,37 +26,41 @@ sample_info_path = here(
 estimate_path = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'transformation_estimates_{this_slide}_{arrays}.csv'
+        f'transformation_estimates_{this_donor}.csv'
     )
 )
 out_dir = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'combined_{this_slide}_{arrays}_{file_suffix}'
+        f'combined_{this_donor}_{file_suffix}'
     )
 )
 img_out_browser_path = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'combined_{this_slide}_{arrays}_{file_suffix}.tif'
+        f'combined_{this_donor}_{file_suffix}.tif'
     )
 )
 tissue_out_path = Path(
     here(
         'processed-data', '02_image_stitching',
-        f'tissue_positions_{this_slide}_{arrays}.csv'
+        f'tissue_positions_{this_donor}.csv'
     )
 )
-img_out_export_path = here(
-    #   Later '{}' is replaced with brain num
-    'processed-data', '04_VisiumStitcher', '{}',
-    'tissue_lowres_image.png'
+img_out_export_path = Path(
+    here(
+        'processed-data', '04_VisiumStitcher', this_donor,
+        'tissue_lowres_image.png'
+    )
 )
-json_out_path = here(
-    #   Later '{}' is replaced with brain num
-    'processed-data', '04_VisiumStitcher', '{}',
-    'scalefactors_json.json'
+json_out_path = Path(
+    here(
+        'processed-data', '04_VisiumStitcher', this_donor,
+        'scalefactors_json.json'
+    )
 )
+
+json_out_path.parent.mkdir(parents = True, exist_ok = True)
 
 #   55-micrometer diameter for Visium spot but 65-micrometer spot diameter used
 #   in 'spot_diameter_fullres' calculation for spaceranger JSON. The
@@ -73,18 +76,7 @@ BACKGROUND_COLOR = (240, 240, 240)
 
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
-sample_info = sample_info.loc[sample_ids, :]
-
-#   Assert there's only one donor to be combined (an assumption made when
-#   creating the SpatialExperiment object downstream), and adjust relevant
-#   paths based on this donor
-num_donors = len(sample_info['Brain'].unique())
-this_donor = sample_info['Brain'][0]
-assert num_donors == 1, f"Expected exactly one donor but got {num_donors}"
-
-json_out_path = Path(str(json_out_path).format(this_donor))
-img_out_export_path = Path(str(img_out_export_path).format(this_donor))
-json_out_path.parent.mkdir(parents = True, exist_ok = True)
+sample_info = sample_info.loc[sample_info['Brain'] == this_donor, :]
 
 ################################################################################
 #   Functions
