@@ -9,10 +9,7 @@ library(getopt)
 library(sessioninfo)
 
 spec = matrix(
-    c(
-        "slide", "s", 1, "character", "Slide number",
-        "arrays", "a", 1, "character", "Array number"
-    ),
+    c("donor", "d", 1, "character", "Donor"),
     byrow = TRUE, ncol = 5
 )
 opt = getopt(spec)
@@ -25,11 +22,11 @@ tissue_colnames = c(
 
 tissue_path_in = here(
     'processed-data', '02_image_stitching',
-    sprintf('tissue_positions_%s_%s.csv', opt$slide, opt$arrays)
+    sprintf('tissue_positions_%s.csv', opt$donor)
 )
 
 tissue_path_out = here(
-    'processed-data', '04_VisiumStitcher', '{donor}',
+    'processed-data', '04_VisiumStitcher', opt$donor,
     'tissue_positions_list.csv'
 )
 
@@ -37,9 +34,7 @@ sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 
-plot_dir = here(
-    'plots', '02_image_stitching', paste(opt$slide, opt$arrays, sep = '_')
-)
+plot_dir = here('plots', '02_image_stitching', opt$donor, sep = '_')
 
 dir.create(plot_dir, showWarnings = FALSE)
 
@@ -207,7 +202,6 @@ coords = read.csv(tissue_path_in) |>
     as_tibble() |>
     mutate(sample_id = paste(ss(key, '_', 2), ss(key, '_', 3), sep = '_'))
 
-sample_ids = paste(opt$slide, strsplit(opt$arrays, '_')[[1]], sep = '_')
 sample_info = read.csv(sample_info_path) |>
     as_tibble() |>
     rename(
@@ -215,15 +209,7 @@ sample_info = read.csv(sample_info_path) |>
         array_num = 'Array..',
         slide_num = 'Slide..' 
     ) |>
-    filter(sample_id %in% sample_ids)
-
-if (length(unique(sample_info$Brain)) != 1) {
-    stop("Expected only one donor")
-}
-
-tissue_path_out = str_replace(
-    tissue_path_out, '\\{donor\\}', unique(sample_info$Brain)
-)
+    filter(Brain == opt$donor)
 
 #-------------------------------------------------------------------------------
 #   Read in the untransformed and unfiltered (by "in tissue") spot coordinates

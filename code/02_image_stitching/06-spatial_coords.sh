@@ -5,10 +5,9 @@
 #$ -e /dev/null
 #$ -l mf=5G,h_vmem=5G,h_fsize=50G
 
-slide="V11U23-406"
-arrays="C1_D1"
+donor=
 
-log_path="../../processed-data/02_image_stitching/06-spatial_coords_${slide}_${arrays}.log"
+log_path="../../processed-data/02_image_stitching/06-spatial_coords_${donor}.log"
 
 {
 echo "**** Job starts ****"
@@ -20,7 +19,7 @@ echo "Job name: ${JOB_NAME}"
 echo "Hostname: ${HOSTNAME}"
 
 module load conda_R/4.3
-Rscript 06-spatial_coords.R -s $slide -a $arrays
+Rscript 06-spatial_coords.R -d $donor
 
 echo "**** Job ends ****"
 date

@@ -46,11 +46,19 @@ pairwise_path = Path(
 #   also that order matters: the second capture area in a pair will have all
 #   points adjusted, affecting any following pairwise adjustments
 array_pairs = {
-    'V11U08-082': [('B1', 'C1'), ('A1', 'D1')],
-    'V11U23-406': [('C1', 'D1')],
-    'V12D07-074': [('A1', 'B1'), ('A1', 'D1'), ('A1', 'C1')],
-    'V12D07-078': [('A1', 'C1'), ('C1', 'D1'), ('D1', 'B1')],
-    'V12D07-333': [('A1', 'B1'), ('A1', 'C1'), ('C1', 'D1')]
+    'Br8667': [('V11U23-406_C1', 'V11U23-406_D1')],
+    'Br2720': [
+        ('V12D07-074_A1', 'V12D07-074_B1'), ('V12D07-074_A1', 'V12D07-074_D1'),
+        ('V12D07-074_A1', 'V12D07-074_C1')
+    ],
+    'Br8492': [
+        ('V12D07-078_A1', 'V12D07-078_C1'), ('V12D07-078_C1', 'V12D07-078_D1'),
+        ('V12D07-078_D1', 'V12D07-078_B1')
+    ],
+    'Br6522': [
+        ('V12D07-333_A1', 'V12D07-333_B1'), ('V12D07-333_A1', 'V12D07-333_C1'),
+        ('V12D07-333_C1', 'V12D07-333_D1')
+    ]
 }
 
 ################################################################################
@@ -216,12 +224,12 @@ roi_df = pd.DataFrame(
     }
 )
 
-#   Initialize a DataFrame of pairwise relationships between capture areas,
+#   Initialize a DataFrame of pairwise relationships between sample IDs,
 #   involving translations and rotations required for the second member of the
 #   pair to best line up with the first, and associated error metrics for the
 #   resulting alignment (before and after).
 pairwise_df = pd.DataFrame(
-    array_pairs[this_slide], columns = ['capture_area1', 'capture_area2']
+    array_pairs[this_donor], columns = ['sample_id1', 'sample_id2']
 )
 other_columns = (
     'x', 'y', 'theta', 'before_err_rmse', 'before_err_avg', 'after_err_rmse',
@@ -232,7 +240,7 @@ for col in other_columns:
 
 #   Loop through pairs of capture areas to compute transformations and error
 #   information, adding it to 'pairwise_df'
-for pair in array_pairs[this_slide]:
+for pair in array_pairs[this_donor]:
     #   Extract ROIs of each label into separate arrays. Every ROI is paired,
     #   so a and b should be identical in dimension (after arranging)
     label1 = pair[0] + '_artifact_centroid'
@@ -248,8 +256,8 @@ for pair in array_pairs[this_slide]:
     init_err_avg = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
     init_err_rmse = get_rmse(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
     pairwise_df.loc[
-            (pairwise_df['capture_area1'] == pair[0]) &
-            (pairwise_df['capture_area2'] == pair[1]),
+            (pairwise_df['sample_id1'] == pair[0]) &
+            (pairwise_df['sample_id2'] == pair[1]),
             ['before_err_avg', 'before_err_rmse']
         ] = [init_err_avg, init_err_rmse]
 
@@ -267,8 +275,7 @@ for pair in array_pairs[this_slide]:
     #   The translation from the origin to the top left of the capture area
     origin_to_corner = np.array(
         estimate_df.loc[
-            (estimate_df['sample_id'] == f"{this_slide}_{pair[1]}") &
-            ~estimate_df['adjusted'],
+            (estimate_df['sample_id'] == pair[1]) & ~estimate_df['adjusted'],
             ['x', 'y']
         ]
     ).reshape((1, 2))
@@ -295,8 +302,8 @@ for pair in array_pairs[this_slide]:
     err_avg = get_avg_distance(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
     err_rmse = get_rmse(a, b, roi_json['mPerPx'], SPOT_DIAMETER_M)
     pairwise_df.loc[
-            (pairwise_df['capture_area1'] == pair[0]) &
-            (pairwise_df['capture_area2'] == pair[1]),
+            (pairwise_df['sample_id1'] == pair[0]) &
+            (pairwise_df['sample_id2'] == pair[1]),
             ['after_err_avg', 'after_err_rmse', 'x', 'y', 'theta']
         ] = [err_avg, err_rmse, trans[0], trans[1], theta]
 
@@ -306,7 +313,7 @@ for pair in array_pairs[this_slide]:
 #   in Samui
 for i in range(pairwise_df.shape[0]):
     estimate_df.loc[
-        (estimate_df['sample_id'] == f"{this_slide}_{pairwise_df['capture_area2'].iloc[i]}") &
+        (estimate_df['sample_id'] == pairwise_df['sample_id2'].iloc[i]) &
         estimate_df['adjusted'],
         ['x', 'y', 'theta']
     ] += pairwise_df.loc[:, ['x', 'y', 'theta']].iloc[i]
