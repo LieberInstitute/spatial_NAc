@@ -14,7 +14,7 @@ sample_info_path = Path(
     here('raw-data', 'sample_info', 'visium-mastersheet.xlsx')
 )
 
-xml_map_path = here('raw-data', 'sample_key_spatial_NAc.csv')
+xml_map_path = here('raw-data', 'sample_key_spatial_NAc_temp.csv')
 
 ################################################################################
 #   Functions
@@ -131,18 +131,31 @@ sample_info['raw_image_path'] = raw_image_paths
 transform_df_list = []
 for imagej_xml_path in sample_info['XML file name'].dropna().unique():
     #   Open the ImageJ XML output
-    with open(imagej_xml_path) as f:
+    with open(here(imagej_xml_path)) as f:
         imagej_xml = f.read()
-    
+
     #   Clean the file; make sure new lines only separate XML elements
     imagej_xml = re.sub('\n', '', imagej_xml)
-    imagej_xml = re.sub('>', '>\n', imagej_xml)
+    imagej_xml = re.sub('\>', '>\n', imagej_xml)
 
     array_nums = [
         re.sub('[_/]', '', x)
         for x in re.findall(r'_[ABCD]1/', imagej_xml)
     ]
-    slide_nums = [re.findall(r'V[0-9]{2}[A-Z][0-9]{2}-[0-9]{3}', imagej_xml)]
+    slide_nums = re.findall(r'V[0-9]{2}[A-Z][0-9]{2}-[0-9]{3}', imagej_xml)
+
+    #   Some older samples use donor + array instead of slide + array as sample IDs.
+    #   It so happens that those samples are always on one slide, so this ugly
+    #   workaround grabs the correct slide for each such sample while also correctly
+    #   handling new samples that use slide + array. It takes advantage of the fact
+    #   that for old samples, the slide number is always in the title of the XML
+    #   project, which the below regexs look for
+    if len(slide_nums) == len(re.findall(r'title="V[0-9]{2}[A-Z][0-9]{2}', imagej_xml)):
+        #   Just use the slide in the title
+        slide_nums = slide_nums * len(array_nums)
+    elif len(re.findall(r'title="V[0-9]{2}[A-Z][0-9]{2}', imagej_xml)) == 1:
+        #   Otherwise use the slides in the image paths, not the title
+        slide_nums = slide_nums[1:]
     
     #   Grab the transformation matrices and import as numpy array with the
     #   structure used in 01-samui_test.py
