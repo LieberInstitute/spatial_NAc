@@ -12,9 +12,7 @@
 #SBATCH -o ../../processed-data/02_image_stitching/05-understand_array.log
 #SBATCH -e ../../processed-data/02_image_stitching/05-understand_array.log
 
-USE_SLURM=1
-
-if [[ $USE_SLURM -eq 1 ]]; then
+if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
     job_name=$SLURM_JOB_NAME
     node_name=$SLURMD_NODENAME

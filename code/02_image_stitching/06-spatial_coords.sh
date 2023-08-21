@@ -14,9 +14,7 @@
 
 donor=
 
-USE_SLURM=1
-
-if [[ $USE_SLURM -eq 1 ]]; then
+if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
     job_name=$SLURM_JOB_NAME
     node_name=$SLURMD_NODENAME
