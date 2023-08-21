@@ -10,12 +10,9 @@ import numpy as np
 
 out_path = here('processed-data', '02_image_stitching', 'sample_info_clean.csv')
 
-sample_info_paths = [
-    here('raw-data', 'sample_info', 'Visium-samples-for-seq-1v_svb-16v_svb.xlsx'),
-    here('raw-data', 'sample_info', 'Visium_NAc_Round3_072822_SVB-complete_info.xlsx'),
-    here('raw-data', 'sample_info', 'Visium_NAc_Round4_081022_SVB-complete_info_final.xlsx'),
-    here('raw-data', 'sample_info', 'SPage_20230225.xlsx')
-]
+sample_info_path = Path(
+    here('raw-data', 'sample_info', 'visium-mastersheet.xlsx')
+)
 
 xml_map_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 
@@ -49,36 +46,28 @@ def theta_from_mat(mat):
     return theta_cos * (2 * (mat[:, 1, 0] > 0) - 1)
 
 ################################################################################
-#   Gather sample info
+#   Clean sample info
 ################################################################################
 
-#   Read in the individual sample sheets and concatenate
-sample_info_list = [
-        (
-            pd.read_excel(x)
-                .loc[:, ['Tissue', 'Brain', 'Slide #', 'Array #']]
-                .dropna()
-        )
-            for x in sample_info_paths
-    ]
-sample_info = pd.concat(sample_info_list)
+#   Read in the sample sheet
+sample_info = (
+    pd.read_excel(sample_info_path).loc[:, ['Brain', 'Slide #', 'Array #']]
+)
 
 #   Make brain number consistent
 sample_info['Brain'] = (
     sample_info['Brain']
         .astype(str)
-        #   Add 'Br' if it's missing
-        .replace(to_replace = r'^([0-9])', value = r'Br\1', regex = True)
-        #   Remove prefix of "Hs_" if it's present
-        .replace('^Hs_', '', regex = True)
-        #   Remove decimals
-        .replace(to_replace = '\.0$', value = '', regex = True)
+        #   Remove additional pieces like '-left' from brain number
+        .replace(to_replace = r'^(Br[0-9]{4}).*', value = r'\1', regex = True)
 )
 
-#   Make tissue (brain region) consistent
-sample_info['Tissue'] = sample_info['Tissue'].str.lower()
-sample_info.loc[sample_info['Tissue'] == 'nac', 'Tissue'] = 'NAc'
-sample_info.loc[sample_info['Tissue'] == 'dacc', 'Tissue'] = 'dACC'
+#   Make slide number consistent
+sample_info['Slide #'] = (
+    sample_info['Slide #']
+        #   One slide has a mistaken '-' that must be removed
+        .replace(r'V([0-9]{2})-([A-Z][0-9]{2})', r'V\1\2', regex = True)
+)
 
 sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 
