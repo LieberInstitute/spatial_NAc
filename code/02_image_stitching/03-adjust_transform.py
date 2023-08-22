@@ -180,7 +180,10 @@ def arrange_a_b(a: np.array, b: np.array, max_dist: float = 500) -> tuple:
 
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
-sample_info = sample_info.loc[sample_info['Brain'] == this_donor, :]
+sample_info = sample_info.loc[
+    (sample_info['Brain'] == this_donor) & ~sample_info['XML file name'].isna(),
+    :
+]
 
 #   Initial estimates of (by row): x translation, y translation, theta in
 #   radians (counterclockwise relative to canvas)
