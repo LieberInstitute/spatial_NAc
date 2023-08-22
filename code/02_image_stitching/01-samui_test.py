@@ -403,16 +403,26 @@ for i in range(sample_info.shape[0]):
     pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
     this_dir = sample_info['spaceranger_dir'].iloc[i]
     tissue_path = [
-            os.path.join(this_dir, x) for x in os.listdir(this_dir)
+            Path(os.path.join(this_dir, x)) for x in os.listdir(this_dir)
             if pattern.match(x)
         ][0]
-    tissue_positions = pd.read_csv(
-            tissue_path,
-            header = None,
-            # Note the switch of x and y
-            names = ["in_tissue", "row", "col", "y", "x"],
-            index_col = 0
-        ).query('in_tissue == 1')
+    if '_list' in tissue_path.name: 
+        tissue_positions = pd.read_csv(
+                tissue_path,
+                header = None,
+                # Note the switch of x and y
+                names = ["in_tissue", "row", "col", "y", "x"],
+                index_col = 0
+            ).query('in_tissue == 1')
+    else:
+        tissue_positions = pd.read_csv(
+                tissue_path,
+                skiprows = 1,
+                # Note the switch of x and y
+                names = ["in_tissue", "row", "col", "y", "x"],
+                index_col = 0
+            ).query('in_tissue == 1')
+    
     tissue_positions.index = tissue_positions.index + '_' + sample_info.index[i]
 
     #   Apply affine transform of coordinates
