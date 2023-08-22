@@ -10,6 +10,7 @@ import sys
 from loopy.sample import Sample
 import tifffile
 from PIL import Image
+import re
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -399,9 +400,12 @@ if file_suffix == 'adjusted':
 for i in range(sample_info.shape[0]):
     #   Read in the tissue positions file to get spatial coordinates. Index by
     #   barcode + sample ID, and subset to only spots within tissue
-    tissue_path = os.path.join(
-        sample_info['spaceranger_dir'].iloc[i], 'tissue_positions_list.csv'
-    )
+    pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
+    this_dir = sample_info['spaceranger_dir'].iloc[i]
+    tissue_path = [
+            os.path.join(this_dir, x) for x in os.listdir(this_dir)
+            if pattern.match(x)
+        ][0]
     tissue_positions = pd.read_csv(
             tissue_path,
             header = None,

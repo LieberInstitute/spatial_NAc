@@ -218,7 +218,7 @@ sample_info = read.csv(sample_info_path) |>
 
 raw_tissue_paths = sample_info |>
     pull(spaceranger_dir) |>
-    file.path('tissue_positions_list.csv')
+    list.files(pattern = '^tissue_positions(_list|)\\.csv$')[1]
 
 #   Read in coordinates, keeping track of sample ID as well
 raw_tissue_list = list()
