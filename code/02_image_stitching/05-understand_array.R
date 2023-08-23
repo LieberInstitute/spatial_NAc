@@ -35,7 +35,7 @@ tissue_paths = sample_info |>
         array_num == 'A1'
     ) |>
     pull(spaceranger_dir) |>
-    list.files(pattern = '^tissue_positions(_list|)\\.csv$')[1]
+    list.files(pattern = '^tissue_positions(_list|)\\.csv$', full.names = TRUE)
 
 #   Read in coordinates, keeping track of sample ID as well
 tissue_list = list()

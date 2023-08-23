@@ -209,7 +209,7 @@ sample_info = read.csv(sample_info_path) |>
         array_num = 'Array..',
         slide_num = 'Slide..' 
     ) |>
-    filter(Brain == opt$donor, !is.na(`XML file name`))
+    filter(Brain == opt$donor, XML.file.name != "")
 
 #-------------------------------------------------------------------------------
 #   Read in the untransformed and unfiltered (by "in tissue") spot coordinates
@@ -218,7 +218,7 @@ sample_info = read.csv(sample_info_path) |>
 
 raw_tissue_paths = sample_info |>
     pull(spaceranger_dir) |>
-    list.files(pattern = '^tissue_positions(_list|)\\.csv$')[1]
+    list.files(pattern = '^tissue_positions(_list|)\\.csv$', full.names = TRUE)
 
 #   Read in coordinates, keeping track of sample ID as well
 raw_tissue_list = list()
