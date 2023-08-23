@@ -75,8 +75,8 @@ validate_array = function(coords) {
 
     #   Check lower bound of array row and col (note we're allowing arbitrary
     #   maximum values rather than the convention of 78 rows and 128 columns)
-    stopifnot(min(coords$array_row) == 0)
-    stopifnot(min(coords$array_col) == 0)
+    stopifnot(min(coords$array_row) %in% c(0, 1))
+    stopifnot(min(coords$array_col) %in% c(0, 1))
 
     #   Check an eccentric detail of Visium arrays: (0, 0) cannot exist
     if (any((coords$array_row == 0) & (coords$array_col == 0))) {
