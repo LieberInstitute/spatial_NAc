@@ -167,10 +167,19 @@ def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
 
 #   Subset and order a and b, returning a tuple (a_copy, b_copy). The algorithm
 #   assumes the same ROI between a and b is closer than any other combination
-#   of ROIs between a and b. Each row represents the same ROI between a and b,
-#   and only pairs closer than 'max_dist
+#   of ROIs between a and b. Each row represents the same ROI between a and b.
+#
+#   Many of the rows in a and b won't pair together in general, so a few
+#   measures are taken to confidently ensure only the intended pairs are
+#   returned:
+#
+#   - The distance between a point in a and b must be below [max_dist] pixels
+#   - Each point in a or b can only be used at most once
+#   - The number of total pairs at the end must be at least [min_matches]
+#   - The distance between any pair must not be an "outlier": it must not differ
+#     from the mean distance by more than 3 standard deviations
 def arrange_a_b(
-        a: np.array, b: np.array, max_dist: float = 900, min_matches: int = 4
+        a: np.array, b: np.array, max_dist: float = 2000, min_matches: int = 4
     ) -> tuple:
     a_indices = []
     b_indices = []
@@ -189,11 +198,24 @@ def arrange_a_b(
     #   There's a problem if an ROI in a or b is used twice
     assert np.unique(a_indices).shape[0] == len(a_indices)
     assert np.unique(b_indices).shape[0] == len(b_indices)
+    
+    #   Subset and order the ROIs in a and b so that only pairs closer than
+    #   [max_dist] are kept
+    a = a[a_indices, :]
+    b = b[b_indices, :]
+
+    #   Since the max distance tends to be fairly large, do another check.
+    #   Filter out pairs whose distance is an outlier (>3 stddevs different
+    #   from the mean distance)
+    dist = np.sqrt(np.sum((a - b) ** 2, axis = 1))
+    looks_normal = np.abs(dist - np.mean(dist)) < 3 * np.std(dist)
+    a = a[looks_normal, :]
+    b = b[looks_normal, :]
 
     assert len(a_indices) >= min_matches, \
         f'Expected at least {min_matches} but got only {len(a_indices)}.'
-    
-    return (a[a_indices, :], b[b_indices, :])
+
+    return (a, b)
 
 ################################################################################
 #   Process initial transformation estimates to be at full resolution
