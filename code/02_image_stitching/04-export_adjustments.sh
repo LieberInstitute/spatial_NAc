@@ -16,10 +16,12 @@ if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
     job_name=$SLURM_JOB_NAME
     node_name=$SLURMD_NODENAME
+    module_name=samui
 else
     job_id=$JOB_ID
     job_name=$JOB_NAME
     node_name=$HOSTNAME
+    module_name=loopy
 fi
 
 echo "**** Job starts ****"
@@ -30,7 +32,7 @@ echo "Job id: ${job_id}"
 echo "Job name: ${job_name}"
 echo "Node name: ${node_name}"
 
-module load loopy/1.0.0-next.24
+module load ${module_name}/1.0.0-next.24
 python 04-export_adjustments.py
 
 echo "**** Job ends ****"
