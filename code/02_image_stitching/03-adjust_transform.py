@@ -6,10 +6,11 @@ import numpy as np
 import pandas as pd
 import json
 import sys
+import re
 
 SPOT_DIAMETER_M = 55e-6
 
-this_donor = sys.argv[1:]
+this_donor = sys.argv[1]
 
 #   Inputs
 roi_json_path = Path(
@@ -58,6 +59,9 @@ array_pairs = {
     'Br6522': [
         ('V12D07-333_A1', 'V12D07-333_B1'), ('V12D07-333_A1', 'V12D07-333_C1'),
         ('V12D07-333_C1', 'V12D07-333_D1')
+    ],
+    'Br6423': [
+        ('V13F06-313_A1', 'V13F06-313_D1'), ('V13F06-313_A1', 'V13F06-313_B1')
     ]
 }
 
@@ -223,9 +227,15 @@ roi_df = pd.DataFrame(
         'y': -1 * pd.Series(
             [x['geometry']['coordinates'][1] for x in roi_json['features']]
         ) / roi_json['mPerPx'],
-        'label': [x['label'] for x in roi_json['features']]
+        #   Note 'x' is used instead of '-' in slide names, as Samui doesn't
+        #   handle hyphens in ROI feature names
+        'label': [x['label'].replace('x', '-') for x in roi_json['features']]
     }
 )
+
+#   Check if labels are named correctly: "[slide]_[array]_artifact_centroid"
+pattern = re.compile(r'^V[0-9]{2}[A-Z][0-9]{2}-[0-9]{3}_[ABCD]1_artifact_centroid$')
+assert len([0 for x in roi_df['label'] if re.match(pattern, x)]) == roi_df.shape[0]
 
 #   Initialize a DataFrame of pairwise relationships between sample IDs,
 #   involving translations and rotations required for the second member of the
