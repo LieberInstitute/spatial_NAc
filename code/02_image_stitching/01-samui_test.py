@@ -460,7 +460,7 @@ this_sample.add_coords(
 
 this_sample.add_image(
     tiff = img_out_browser_path,
-    channels = [x.split('_')[-1] for x in sample_info.index],
+    channels = sample_info.index,
     scale = m_per_px
 )
 
