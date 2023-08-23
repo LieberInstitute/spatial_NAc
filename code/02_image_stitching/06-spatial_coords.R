@@ -34,7 +34,7 @@ sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
 
-plot_dir = here('plots', '02_image_stitching', opt$donor, sep = '_')
+plot_dir = here('plots', '02_image_stitching', opt$donor)
 
 dir.create(plot_dir, showWarnings = FALSE)
 
