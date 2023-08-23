@@ -66,6 +66,10 @@ array_pairs = {
     'Br2743': [
         ('V13M06-378_A1', 'V13M06-378_D1'), ('V13M06-378_A1', 'V13M06-378_C1'),
         ('V13M06-378_C1', 'V13M06-378_B1')
+    ],
+    'Br6471': [
+        ('V13M06-377_B1', 'V13M06-377_A1'), ('V13M06-377_B1', 'V13M06-377_C1'),
+        ('V13M06-377_C1', 'V13M06-377_D1')
     ]
 }
 
@@ -161,7 +165,9 @@ def get_avg_distance(a, b, M_PER_PX, SPOT_DIAMETER_M):
 #   assumes the same ROI between a and b is closer than any other combination
 #   of ROIs between a and b. Each row represents the same ROI between a and b,
 #   and only pairs closer than 'max_dist
-def arrange_a_b(a: np.array, b: np.array, max_dist: float = 500) -> tuple:
+def arrange_a_b(
+        a: np.array, b: np.array, max_dist: float = 500, min_matches: int = 4
+    ) -> tuple:
     a_indices = []
     b_indices = []
 
@@ -179,6 +185,9 @@ def arrange_a_b(a: np.array, b: np.array, max_dist: float = 500) -> tuple:
     #   There's a problem if an ROI in a or b is used twice
     assert np.unique(a_indices).shape[0] == len(a_indices)
     assert np.unique(b_indices).shape[0] == len(b_indices)
+
+    assert len(a_indices) >= min_matches, \
+        f'Expected at least {min_matches} but got only {len(a_indices)}.'
     
     return (a[a_indices, :], b[b_indices, :])
 
