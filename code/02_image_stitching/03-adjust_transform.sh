@@ -11,7 +11,7 @@
 #SBATCH -o /dev/null
 #SBATCH -e /dev/null
 
-donor=Br2743
+donor=Br8325
 
 if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID

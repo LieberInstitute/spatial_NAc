@@ -12,7 +12,7 @@
 #SBATCH -o /dev/null
 #SBATCH -e /dev/null
 
-donor="Br2743"
+donor="Br8325"
 mode="adjusted"
 
 if [[ ! -z $SLURMD_NODENAME ]]; then
