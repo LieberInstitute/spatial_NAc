@@ -29,7 +29,7 @@ sample_info = read.csv(sample_info_path2) |>
     as_tibble() |>
     rename(sample_id = X) |>
     right_join(sample_info, by = "sample_id") |>
-    filter(Refined.transforms == "Yes") |>
+    filter(In.analysis == "Yes") |>
     mutate(spaceranger_dir = dirname(normalizePath(spaceranger_dir))) |>
     rename(slide_num = Slide.., array_num = Array.., donor = Brain) |>
     select(
