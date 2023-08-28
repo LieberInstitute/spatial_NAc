@@ -23,7 +23,7 @@ message("Gathering sample info")
 sample_info = read.csv(sample_info_path) |>
     as_tibble() |>
     rename(sample_id = Slide) |>
-    select(c(sample_id, Age, Sex, Diagnosis, Refined.transforms))
+    select(c(sample_id, Age, Sex, Diagnosis, In.analysis))
 
 sample_info = read.csv(sample_info_path2) |>
     as_tibble() |>
@@ -174,11 +174,15 @@ colData_fixed = colData(spe)
 colData_fixed$sample_id_original = colData_fixed$sample_id
 colData_fixed$sample_id = colData_fixed$donor
 
+#   Remove the 'X' added to colnames that start with an integer when converting
+#   to a tibble at various points in the script
+colnames(colData_fixed) = sub('^X([0-9])', '\\1', colnames(colData_fixed))
+
 #   Fix data types in colData: ensure categorical data are factors
 categorical_cols = c(
     'sample_id', 'donor', 'slide_num', 'array_num', 'Sex', 'Diagnosis',
     'sample_id_original',
-    colnames(colData_fixed)[grep('^X10x_', colnames(colData_fixed))]
+    colnames(colData_fixed)[grep('^10x_', colnames(colData_fixed))]
 )
 for (categorical_col in categorical_cols) {
     colData_fixed[, categorical_col] = as.factor(
