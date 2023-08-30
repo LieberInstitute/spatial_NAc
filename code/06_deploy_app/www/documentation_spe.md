@@ -146,4 +146,4 @@ spatialLIBD::run_app()
 ## at http://research.libd.org/spatialLIBD/.
 ```
 
-This will require about [TODO]GB of RAM to run on the server side, though potentially more, specially when using the `clusters (interactive)` tab.
+This will require about 1.8GB of RAM to run on the server side, though potentially more, specially when using the `clusters (interactive)` tab.
