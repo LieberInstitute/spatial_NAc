@@ -1,6 +1,7 @@
 library("spatialLIBD")
 library("markdown")
 library("here")
+library("lobstr")
 
 spe_path = here('processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds')
 
@@ -14,9 +15,17 @@ options(repos = BiocManager::repositories())
 spe = readRDS(spe_path)
 vars = colnames(colData(spe))
 
+#   Drop counts assay and check size in memory
+assays(spe)$counts = NULL
+size_string = paste0(round(obj_size(spe) / 1e9, 1), 'GB')
+paste('Object size:', size_string)
+
 ## Deploy the website
 spatialLIBD::run_app(
     spe,
+    sce_layer = NULL,
+    modeling_results = NULL,
+    sig_genes = NULL,
     title = "Spatial NAc",
     spe_discrete_vars = c(
         vars[grep("^scran_", vars)],
@@ -28,6 +37,5 @@ spatialLIBD::run_app(
         "expr_chrM",
         "expr_chrM_ratio"
     ),
-    default_cluster = "path_groups",
-    docs_path = "www"
+    default_cluster = "10x_kmeans_7_clusters"
 )
