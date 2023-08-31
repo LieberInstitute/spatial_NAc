@@ -13,7 +13,7 @@
 #SBATCH --job-name=BayesSpace_k_search
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/03-BayesSpace_k_search.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/03-BayesSpace_k_search.log
-#SBATCH --array=2-28%15
+#SBATCH --array=2-3%15
 
 if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
