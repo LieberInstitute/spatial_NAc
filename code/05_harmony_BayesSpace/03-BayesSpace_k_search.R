@@ -10,8 +10,16 @@ source(here('code', '05_harmony_BayesSpace', 'plotting_functions.R'))
 
 set.seed(20230712)
 
+## Choose k
+k <- as.numeric(
+    #   Only one of these environment variables will be defined, so grab the
+    #   defined one (handle SGE or SLURM)
+    paste0(Sys.getenv("SLURM_ARRAY_TASK_ID"), Sys.getenv("SGE_TASK_ID"))
+)
+k_nice <- sprintf("%02d", k)
+
 ## Create output directories
-dir_plots <- here("plots", "05_harmony_BayesSpace")
+dir_plots <- here("plots", "05_harmony_BayesSpace", k)
 dir_rdata <- here("processed-data", "05_harmony_BayesSpace")
 spe_in = file.path(dir_rdata, "spe_harmony.rds")
 
@@ -21,10 +29,6 @@ dir.create(file.path(dir_rdata, "clusters_BayesSpace"), showWarnings = FALSE)
 
 ## Load the data
 spe <- readRDS(spe_in)
-
-## Choose k
-k <- as.numeric(Sys.getenv("SGE_TASK_ID"))
-k_nice <- sprintf("%02d", k)
 
 ## Set the BayesSpace metadata using code from
 ## https://github.com/edward130603/BayesSpace/blob/master/R/spatialPreprocess.R#L43-L46
