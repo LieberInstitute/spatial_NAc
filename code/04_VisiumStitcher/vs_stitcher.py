@@ -131,8 +131,10 @@ for brain in sample_key.Brain.unique():
         print("We need to specify an option to merge these capture areas")       
     brain_ad.var = adatas[0].var
     sc.pl.spatial(brain_ad, color="sample", show = False)
+    plt.tight_layout()
     plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/all_spots.pdf")
     sc.pl.spatial(brain_ad[~brain_ad.obs["overlap"]], color="sample", show = False)
+    plt.tight_layout()
     plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/non-overlapping_spots.pdf")
     # Write the data
     saveDir = "/data/abattle4/prashanthi/spatial_NAc/processed-data/04_VisiumStitcher/" + brain + "/"
