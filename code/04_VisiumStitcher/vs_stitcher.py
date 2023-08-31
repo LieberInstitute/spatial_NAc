@@ -40,6 +40,7 @@ for brain in sample_key.Brain.unique():
             M[1,1] = np.cos(transforms_all.theta[transforms_all.sample_id == sample_key_brain.Slide[i]])
             adata.uns['transform'] = M
         adatas.append(adata)
+    print("Completed reading the annData")
     # Get pairwise overlap for all possible regions
     for i in range(sample_key_brain.shape[0]):
         for j in range(sample_key_brain.shape[0]):
