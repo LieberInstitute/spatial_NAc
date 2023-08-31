@@ -7,6 +7,9 @@ import scipy.sparse as sparse
 import scipy.io as sio
 import scipy.stats as stats
 
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
+
 # Read in the .csv with sample key
 homeDir = "/data/abattle4/prashanthi/spatial_NAc/"
 sample_key = pd.read_csv(homeDir + "raw-data/sample_key_spatial_NAc.csv")
