@@ -27,7 +27,7 @@ tissue_path_in = here(
 
 tissue_path_out = here(
     'processed-data', '04_VisiumStitcher', opt$donor,
-    'tissue_positions_list.csv'
+    'tissue_positions.csv'
 )
 
 sample_info_path = here(
