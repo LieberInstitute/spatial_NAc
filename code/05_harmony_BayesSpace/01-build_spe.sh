@@ -14,14 +14,14 @@
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/01-build_spe.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/01-build_spe.log
 
-USE_SLURM=1
-
-if [[ $USE_SLURM -eq 1 ]]; then
+if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
     job_name=$SLURM_JOB_NAME
+    node_name=$SLURMD_NODENAME
 else
     job_id=$JOB_ID
     job_name=$JOB_NAME
+    node_name=$HOSTNAME
 fi
 
 echo "**** Job starts ****"
@@ -30,7 +30,7 @@ echo "**** JHPCE info ****"
 echo "User: ${USER}"
 echo "Job id: ${job_id}"
 echo "Job name: ${job_name}"
-echo "Hostname: ${HOSTNAME}"
+echo "Node name: ${node_name}"
 
 module load conda_R/4.3
 Rscript 01-build_spe.R
