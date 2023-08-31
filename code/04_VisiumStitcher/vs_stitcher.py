@@ -132,10 +132,10 @@ for brain in sample_key.Brain.unique():
     brain_ad.var = adatas[0].var
     sc.pl.spatial(brain_ad, color="sample", show = False)
     plt.tight_layout()
-    plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/all_spots.pdf")
+    plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/all_spots.pdf", dpi = 200)
     sc.pl.spatial(brain_ad[~brain_ad.obs["overlap"]], color="sample", show = False)
     plt.tight_layout()
-    plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/non-overlapping_spots.pdf")
+    plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/non-overlapping_spots.pdf", dpi = 200)
     # Write the data
     saveDir = "/data/abattle4/prashanthi/spatial_NAc/processed-data/04_VisiumStitcher/" + brain + "/"
     brain_ad.obs.rename(columns={'Overlap': 'overlap_slide', 'overlap': 'exclude_overlapping'}, inplace=True)
