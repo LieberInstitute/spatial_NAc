@@ -42,7 +42,13 @@ unrefined_donors = sample_info |>
     pull(donor) |>
     unique()
 
-#   Ensure each such donor consists of just one sample
+#   Similarly for those that do have refined transforms
+refined_donors = sample_info |>
+    filter(In.analysis == "Yes", Refined.transforms == "Yes") |>
+    pull(donor) |>
+    unique()
+
+#   Ensure each unrefined donor consists of just one sample
 n_unrefined_samples = sample_info |>
     filter(donor %in% unrefined_donors) |>
     nrow()
@@ -77,12 +83,6 @@ spe = read10xVisiumWrapper(
 ################################################################################
 
 message("Adding transformed spot coordinates and sample info to colData")
-
-#   Transformed coordinates only exist for some donors
-refined_donors = sample_info |>
-    filter(!(donor %in% unrefined_donors)) |>
-    pull(donor) |>
-    unique()
 
 #   Merge all transformed spot coordinates into a single tibble
 coords_list = list()
@@ -179,17 +179,29 @@ spe$array_col = ifelse(
 
 message("Overwriting imgData(spe) with merged images (one per donor)")
 
+#   Read in the merged images for donors where they exist
 img_data = readImgData(
-    path = file.path(transformed_dir, unique(sample_info$donor)),
-    sample_id = unique(sample_info$donor),
+    path = file.path(transformed_dir, refined_donors),
+    sample_id = refined_donors,
     imageSources = file.path(
-        transformed_dir, unique(sample_info$donor), "tissue_lowres_image.png"
+        transformed_dir, refined_donors, "tissue_lowres_image.png"
     ),
     scaleFactors = file.path(
-        transformed_dir, unique(sample_info$donor), "scalefactors_json.json"
+        transformed_dir, refined_donors, "scalefactors_json.json"
     ),
     load = TRUE
 )
+
+#   For donors with one sample, use the images already read in from spaceranger
+unrefined_ids = sample_info[[
+    match(unrefined_donors, sample_info$donor), 'sample_id'
+]]
+img_data_unrefined = imgData(spe)[imgData(spe)$sample_id %in% unrefined_ids,]
+img_data_unrefined$sample_id = sample_info$donor[
+    match(img_data_unrefined$sample_id, sample_info$sample_id)
+]
+
+img_data = rbind(img_data, img_data_unrefined)
 
 ################################################################################
 #   Change from [slide]_[array] to donor as sample ID
@@ -223,7 +235,7 @@ colnames(colData_fixed) = sub('^X([0-9])', '\\1', colnames(colData_fixed))
 #   Fix data types in colData: ensure categorical data are factors
 categorical_cols = c(
     'sample_id', 'donor', 'slide_num', 'array_num', 'Sex', 'Diagnosis',
-    'sample_id_original',
+    'sample_id_original', 'overlap_slide',
     colnames(colData_fixed)[grep('^10x_', colnames(colData_fixed))]
 )
 for (categorical_col in categorical_cols) {
