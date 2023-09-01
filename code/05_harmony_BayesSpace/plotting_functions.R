@@ -57,6 +57,8 @@ vis_merged = function(spe, sampleid, coldatavar, colors = NULL) {
         )
         return(p)
     } else {
+        if (is.null(colors)) colors = viridisLite::viridis(21))
+        
         #   For continuous variables, we'll average the values for overlapping
         #   spots
         a = colData(spe_small) |>
