@@ -18,12 +18,15 @@ filtered_out_path = here(
 )
 num_cores = 4
 
+################################################################################
 #   Read in the two sources of sample info and merge
+################################################################################
+
 message("Gathering sample info")
 sample_info = read.csv(sample_info_path) |>
     as_tibble() |>
     rename(sample_id = Slide) |>
-    select(c(sample_id, Age, Sex, Diagnosis, In.analysis))
+    select(c(sample_id, Age, Sex, Diagnosis, In.analysis, Refined.transforms))
 
 sample_info = read.csv(sample_info_path2) |>
     as_tibble() |>
@@ -31,7 +34,22 @@ sample_info = read.csv(sample_info_path2) |>
     right_join(sample_info, by = "sample_id") |>
     filter(In.analysis == "Yes") |>
     mutate(spaceranger_dir = dirname(normalizePath(spaceranger_dir))) |>
-    rename(slide_num = Slide.., array_num = Array.., donor = Brain) |>
+    rename(slide_num = Slide.., array_num = Array.., donor = Brain)
+
+#   Grab donors that are in analysis but don't have refined transforms
+unrefined_donors = sample_info |>
+    filter(In.analysis == "Yes", Refined.transforms == "No") |>
+    pull(donor) |>
+    unique()
+
+#   Ensure each such donor consists of just one sample
+n_unrefined_samples = sample_info |>
+    filter(donor %in% unrefined_donors) |>
+    nrow()
+stopifnot(n_unrefined_samples == length(unrefined_donors))
+
+#   We only need certain columns in the colData
+sample_info = sample_info |>
     select(
         c(
             sample_id, donor, slide_num, array_num, spaceranger_dir,
@@ -60,9 +78,15 @@ spe = read10xVisiumWrapper(
 
 message("Adding transformed spot coordinates and sample info to colData")
 
+#   Transformed coordinates only exist for some donors
+refined_donors = sample_info |>
+    filter(!(donor %in% unrefined_donors)) |>
+    pull(donor) |>
+    unique()
+
 #   Merge all transformed spot coordinates into a single tibble
 coords_list = list()
-for (donor in unique(sample_info$donor)) {
+for (donor in refined_donors) {
     #   Read in and clean up transformed spot coordinates
     spot_coords = file.path(
             transformed_dir, donor, 'tissue_positions_list.csv'
@@ -113,22 +137,40 @@ rownames(colData(spe)) = rownames(spatialCoords(spe)) # tibbles lose rownames
 
 message("Using transformed spatialCoords by default")
 
-#   Swap out original spot pixel coordinates for transformed ones
+#   Swap out original spot pixel coordinates for transformed ones, where they
+#   exist
 spe$pxl_col_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_col_in_fullres'])
 spe$pxl_row_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_row_in_fullres'])
 
-spatial_coords = as.matrix(
-    colData(spe)[,c('pxl_col_in_fullres_transformed', 'pxl_row_in_fullres_transformed')]
+coords_col = ifelse(
+    is.na(spe$pxl_col_in_fullres_transformed),
+    spe$pxl_col_in_fullres_original, spe$pxl_col_in_fullres_transformed
 )
-colnames(spatial_coords) = c('pxl_col_in_fullres', 'pxl_row_in_fullres')
-rownames(spatial_coords) = rownames(spatialCoords(spe))
-spatialCoords(spe) = spatial_coords
+coords_row = ifelse(
+    is.na(spe$pxl_row_in_fullres_transformed),
+    spe$pxl_row_in_fullres_original, spe$pxl_row_in_fullres_transformed
+)
+spatialCoords(spe) = matrix(
+    c(coords_col, coords_row),
+    ncol = 2,
+    dimnames = list(
+        rownames(spatialCoords(spe)),
+        c('pxl_col_in_fullres', 'pxl_row_in_fullres')
+    )
+)
 
-#   Swap out original spot array coordinates for transformed ones
+#   Swap out original spot array coordinates for transformed ones, where they
+#   exist
 spe$array_row_original = spe$array_row
 spe$array_col_original = spe$array_col
-spe$array_row = spe$array_row_transformed
-spe$array_col = spe$array_col_transformed
+spe$array_row = ifelse(
+    is.na(spe$array_row_transformed),
+    spe$array_row_original, spe$array_row_transformed
+)
+spe$array_col = ifelse(
+    is.na(spe$array_col_transformed),
+    spe$array_col_original, spe$array_col_transformed
+)
 
 ################################################################################
 #   Use merged images (one image per donor) instead of single-capture-area
