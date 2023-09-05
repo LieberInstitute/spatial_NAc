@@ -8,8 +8,8 @@ options("golem.app.prod" = TRUE)
 options(repos = BiocManager::repositories())
 
 ## Load the data
-spe = readRDS('spe_shiny.rds')
-vars = colnames(colData(spe))
+spe <- readRDS("spe_shiny.rds")
+vars <- colnames(colData(spe))
 
 ## Deploy the website
 spatialLIBD::run_app(
