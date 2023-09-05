@@ -29,5 +29,6 @@ spatialLIBD::run_app(
         "expr_chrM_ratio"
     ),
     default_cluster = "10x_kmeans_7_clusters",
-    docs_path = here("code", "06_deploy_app", "www")
+    auto_crop_default = FALSE,
+    docs_path = "www"
 )
