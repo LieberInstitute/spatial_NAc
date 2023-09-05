@@ -1,9 +1,5 @@
 library("spatialLIBD")
 library("markdown")
-library("here")
-library("lobstr")
-
-spe_path = here('processed-data', '06_deploy_app', 'spe_shiny.rds')
 
 ## spatialLIBD uses golem
 options("golem.app.prod" = TRUE)
@@ -12,7 +8,7 @@ options("golem.app.prod" = TRUE)
 options(repos = BiocManager::repositories())
 
 ## Load the data
-spe = readRDS(spe_path)
+spe = readRDS('spe_shiny.rds')
 vars = colnames(colData(spe))
 
 ## Deploy the website
