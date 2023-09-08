@@ -10,6 +10,7 @@ options(repos = BiocManager::repositories())
 ## Load the data
 spe <- readRDS("spe_shiny.rds")
 vars <- colnames(colData(spe))
+spe$exclude_overlapping <- as.factor(spe$exclude_overlapping)
 
 ## Deploy the website
 spatialLIBD::run_app(
@@ -20,7 +21,9 @@ spatialLIBD::run_app(
     title = "Spatial NAc",
     spe_discrete_vars = c(
         vars[grep("^scran_", vars)],
-        vars[grep("^10x_", vars)]
+        vars[grep("^10x_", vars)],
+        "exclude_overlapping",
+        "ManualAnnotation"
     ),
     spe_continuous_vars = c(
         "sum_umi",
@@ -28,7 +31,7 @@ spatialLIBD::run_app(
         "expr_chrM",
         "expr_chrM_ratio"
     ),
-    default_cluster = "10x_kmeans_7_clusters",
+    default_cluster = "10x_graphclust",
     auto_crop_default = FALSE,
     docs_path = "www"
 )
