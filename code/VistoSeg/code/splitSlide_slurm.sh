@@ -2,7 +2,7 @@
 #SBATCH --mem=80G
 #SBATCH -o logs/slurm-o_splitSlide.txt 
 #SBATCH -e logs/slurm-e_splitSlide.txt
-#SBATCH --array=1-4
+#SBATCH --array=1-2
 
 echo "**** Job starts ****"
 date
@@ -20,7 +20,7 @@ module load matlab/R2023a
 
 ## Load toolbox for VistoSeg
 toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code'
-samplelist="splitSlide_230804.txt"
+samplelist="splitSlide_230912.txt"
 
 ## Read inputs from splitSlide_list.txt file
 fname=$(awk 'BEGIN {FS="\t"} {print $1}' ${samplelist} | awk "NR==${SLURM_ARRAY_TASK_ID}")
