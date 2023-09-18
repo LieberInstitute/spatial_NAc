@@ -2,15 +2,15 @@
 
 #$ -cwd
 #$ -N "c2l_prepare_anndata"
-#$ -o ../../processed-data/21_spot_deconvo/logs/03_c2l_prepare_anndata.log
-#$ -e ../../processed-data/21_spot_deconvo/logs/03_c2l_prepare_anndata.log
-#$ -l caracol,mf=40G,h_vmem=40G,h_fsize=50G
+#$ -o ../../processed-data/07_spot_deconvo/logs/03_c2l_prepare_anndata.log
+#$ -e ../../processed-data/07_spot_deconvo/logs/03_c2l_prepare_anndata.log
+#$ -l mf=40G,h_vmem=40G,h_fsize=50G
 
 #SBATCH -q shared
 #SBATCH --mem=40G
 #SBATCH --job-name=c2l_prepare_anndata
-#SBATCH -o ../../processed-data/21_spot_deconvo/logs/03_c2l_prepare_anndata.log
-#SBATCH -e ../../processed-data/21_spot_deconvo/logs/03_c2l_prepare_anndata.log
+#SBATCH -o ../../processed-data/07_spot_deconvo/logs/03_c2l_prepare_anndata.log
+#SBATCH -e ../../processed-data/07_spot_deconvo/logs/03_c2l_prepare_anndata.log
 
 if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
@@ -31,7 +31,7 @@ echo "Job name: ${job_name}"
 echo "Node name: ${node_name}"
 
 module load cell2location/0.1.3
-python 03_c2l_prepare_anndata.py
+python 03-c2l_prepare_anndata.py
 
 echo "**** Job ends ****"
 date

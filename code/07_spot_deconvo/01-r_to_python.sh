@@ -1,19 +1,16 @@
 #!/bin/bash
 
 #$ -cwd
-#$ -N "read_data"
-#$ -o ../../processed-data/21_spot_deconvo/logs/01_read_data.log
-#$ -e ../../processed-data/21_spot_deconvo/logs/01_read_data.log
-# $ -pe local 4
-#$ -l caracol,mf=20G,h_vmem=20G,h_fsize=50G
+#$ -N "r_to_python"
+#$ -o ../../processed-data/07_spot_deconvo/logs/01-r_to_python.log
+#$ -e ../../processed-data/07_spot_deconvo/logs/01-r_to_python.log
+#$ -l mf=70G,h_vmem=70G,h_fsize=50G
 
 #SBATCH -q shared
-#SBATCH --mem=20G
-# SBATCH -c 4
-#SBATCH --job-name=read_data
-#SBATCH -o ../../processed-data/21_spot_deconvo/logs/01_read_data.log
-#SBATCH -e ../../processed-data/21_spot_deconvo/logs/01_read_data.log
-#SBATCH --open-mode=append
+#SBATCH --mem=70G
+#SBATCH --job-name=r_to_python
+#SBATCH -o ../../processed-data/07_spot_deconvo/logs/01-r_to_python.log
+#SBATCH -e ../../processed-data/07_spot_deconvo/logs/01-r_to_python.log
 
 if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
@@ -32,7 +29,7 @@ echo "Job name: ${job_name}"
 echo "Hostname: ${HOSTNAME}"
 
 module load conda_R/4.3
-Rscript 01_read_data.R
+Rscript 01-r_to_python.R
 
 echo "**** Job ends ****"
 date

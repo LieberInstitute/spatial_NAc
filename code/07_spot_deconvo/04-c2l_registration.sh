@@ -2,8 +2,8 @@
 
 #$ -cwd
 #$ -N "c2l_registration"
-#$ -o ../../processed-data/21_spot_deconvo/logs/04_c2l_registration.log
-#$ -e ../../processed-data/21_spot_deconvo/logs/04_c2l_registration.log
+#$ -o ../../processed-data/07_spot_deconvo/logs/04_c2l_registration.log
+#$ -e ../../processed-data/07_spot_deconvo/logs/04_c2l_registration.log
 #$ -l caracol,mf=64G,h_vmem=64G,h_fsize=50G
 
 echo "**** Job starts ****"
@@ -43,7 +43,7 @@ echo "Chose GPU(s): $CUDA_VISIBLE_DEVICES"
 ###############################################################################
 
 module load cell2location/0.1.3
-python 04_c2l_registration.py
+python 04-c2l_registration.py
 
 echo "**** Job ends ****"
 date
