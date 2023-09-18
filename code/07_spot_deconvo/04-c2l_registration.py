@@ -22,14 +22,14 @@ scvi.settings.seed = 0
 #   Variable definitions
 ################################################################################
 
-processed_dir = Path(here('processed-data', '21_spot_deconvo'))
-plot_dir = Path(here('plots', '21_spot_deconvo'))
+processed_dir = Path(here('processed-data', '07_spot_deconvo'))
+plot_dir = Path(here('plots', '07_spot_deconvo'))
 
 #   Naming conventions used for different columns in the single-cell AnnData
-batch_key = 'individualID'
-cell_type_var = 'broad.cell.type'
+batch_key = 'TODO' # supposed to be donor
+cell_type_var = 'TODO'
 
-cell_count_var = 'NDAPI'
+cell_count_var = 'TODO' # NDAPI?
 
 plot_file_type = 'pdf'
 
@@ -85,8 +85,8 @@ def post_training(mod, adata, adata_name, max_epochs, sample_kwargs, plot_name):
 
 #  Load AnnDatas
 print('Loading AnnDatas...')
-adata_vis = sc.read_h5ad(processed_dir / 'adata_spatial_orig.h5ad')
-adata_ref = sc.read_h5ad(processed_dir / 'adata_mathys_orig.h5ad')
+adata_vis = sc.read_h5ad(processed_dir / 'adata_sp_orig.h5ad')
+adata_ref = sc.read_h5ad(processed_dir / 'adata_sc_orig.h5ad')
 
 ################################################################################
 #   Estimate reference cell-type signatures
