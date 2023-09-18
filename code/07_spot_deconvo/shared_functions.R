@@ -4,9 +4,9 @@
 
 #   Wrapper around spatialLIBD::vis_clus and spatialLIBD::vis_gene, suitable
 #   for merged samples (each sample in the SpatialExperiment 'spe' is a donor
-#   consisting of multiple capture areas whose spatial coordinates may
-#   haphazardly overlap (arbitrary rotations and translations). Designed to
-#   address the overplotting and visually awkward spot positions in this case.
+#   consisting of multiple capture areas, with colData column
+#   'exclude_overlapping' indicating overlapping spots to drop (to prevent
+#   overplotting).
 #
 #   Spot sizes are *almost* consistent among donors, regardless of full-
 #   resolution image dimensions, when title is NULL, include_legend is FALSE,
@@ -16,16 +16,6 @@
 #
 #   Return a spot plot of sample 'sampleid', assumed to be a donor. 'coldatavar'
 #   (character(1)) must be a valid colname in colData(spe).
-#
-#   Spatial coordinates are fit to a new Visium-like hexagonal grid with the
-#   same inter-spot distance (100um in valid Visium data); this prevents
-#   overplotting in regions of overlapping capture areas, and ensures all points
-#   are equidistant. Where this results in duplicate spot mappings (a pair of
-#   spots from two different capture areas round to the same array coordinates),
-#   coloring depends on whether the plotted variable is discrete:
-#       If [is_discrete], one spot is arbitrarily chosen;
-#       If not [is_discrete], the plotted variable is averaged over
-#           duplicate-mapped spots and colored accordingly
 #
 #   spe:            passed to 'spe' in either 'vis_gene' or 'vis_clus'
 #   sample_id:      passed to 'sampleid'
