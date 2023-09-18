@@ -10,25 +10,23 @@ import session_info
 #   Variable definitions
 ################################################################################
 
-processed_dir = Path(here('processed-data', '21_spot_deconvo'))
-plot_dir = Path(here('plots', '21_spot_deconvo'))
+processed_dir = Path(here('processed-data', '07_spot_deconvo'))
+plot_dir = Path(here('plots', '07_spot_deconvo'))
 
 plot_dir.mkdir(parents = True, exist_ok = True)
 processed_dir.mkdir(parents = True, exist_ok = True)
 
-#   Directory containing hires image and a JSON containing scale factors and
+#   Directory containing lowres image and a JSON containing scale factors and
 #   spot size for a given sample. Here '{}' will be replaced by a single
-#   sample name
-spaceranger_dir = here(
-    'processed-data', 'spaceranger', '{}', 'outs', 'spatial'
-)
+#   sample name (donor)
+spaceranger_dir = here('processed-data', '04_VisiumStitcher', '{}')
 
 #   Naming conventions used for different columns in the AnnDatas
 sample_id_var = 'sample_id'          # in spatial object only
-ensembl_id_var = 'gene_id'           # in both spatial and single-cell objects
-gene_symbol_var = 'gene_name'        # in both spatial and single-cell objects
+ensembl_id_var = 'TODO'           # in both spatial and single-cell objects
+gene_symbol_var = 'TODO'        # in both spatial and single-cell objects
 
-cell_type_var = "broad.cell.type"
+cell_type_var = "TODO"
 
 spatial_coords_names = ['pxl_col_in_fullres', 'pxl_row_in_fullres']
 
@@ -38,8 +36,8 @@ spatial_coords_names = ['pxl_col_in_fullres', 'pxl_row_in_fullres']
 
 #  Load AnnDatas
 print('Loading AnnDatas...')
-adata_vis = sc.read_h5ad(processed_dir / 'adata_spatial.h5ad')
-adata_ref = sc.read_h5ad(processed_dir / 'adata_mathys.h5ad')
+adata_vis = sc.read_h5ad(processed_dir / 'spe.h5ad')
+adata_ref = sc.read_h5ad(processed_dir / 'sce.h5ad')
 
 adata_vis.obs['sample'] = adata_vis.obs[sample_id_var]
 
@@ -80,11 +78,11 @@ for sample_id in adata_vis.obs['sample'].cat.categories:
     with open(json_path) as f: 
         json_data = json.load(f)
 
-    #   Read in high-res image as numpy array with values in [0, 1] rather than
+    #   Read in low-res image as numpy array with values in [0, 1] rather than
     #   [0, 255], then attach to AnnData object
     img_path = str(
         here(
-            str(spaceranger_dir).format(sample_id), 'tissue_hires_image.png'
+            str(spaceranger_dir).format(sample_id), 'tissue_lowres_image.png'
         )
     )
     img_arr = np.array(Image.open(img_path), dtype = np.float32) / 256
@@ -92,7 +90,7 @@ for sample_id in adata_vis.obs['sample'].cat.categories:
     #   Store image and scalefactors in AnnData as squidpy expects
     adata_vis.uns['spatial'][sample_id] = {
         'scalefactors': json_data,
-        'images' : { 'hires' : img_arr }
+        'images' : { 'lowres' : img_arr }
     }
 
 #-------------------------------------------------------------------------------
@@ -110,7 +108,7 @@ adata_vis.obsm['spatial'] = np.array(
 #   Save AnnDatas
 #-------------------------------------------------------------------------------
 
-adata_vis.write_h5ad(processed_dir / 'adata_spatial_orig.h5ad')
-adata_ref.write_h5ad(processed_dir / 'adata_mathys_orig.h5ad')
+adata_vis.write_h5ad(processed_dir / 'adata_sp_orig.h5ad')
+adata_ref.write_h5ad(processed_dir / 'adata_sc_orig.h5ad')
 
 session_info.show(html=False)
