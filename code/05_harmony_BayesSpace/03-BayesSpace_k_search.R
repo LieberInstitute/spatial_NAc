@@ -6,7 +6,7 @@ library("spatialLIBD")
 library("BayesSpace")
 library("Polychrome")
 library("tidyverse")
-source(here('code', '05_harmony_BayesSpace', 'plotting_functions.R'))
+source(here('code', '07_spot_deconvo', 'shared_functions.R'))
 
 set.seed(20230712)
 
@@ -69,11 +69,11 @@ pdf(file.path(dir_plots, paste0(bayesSpace_name, "_raw.pdf")))
 print(p_list)
 dev.off()
 
-#   Use 'vis_merged', which takes one spot in case of overlaps
+#   Use 'spot_plot', which takes one spot in case of overlaps
 p_list = list()
 for (sample_id in sample_ids) {
-    p_list[[sample_id]] = vis_merged(
-        spe, sampleid = sample_id, coldatavar = bayesSpace_name, colors = cols
+    p_list[[sample_id]] = spot_plot(
+        spe, sample_id = sample_id, var_name = bayesSpace_name, colors = cols
     )
 }
 pdf(file.path(dir_plots, paste0(bayesSpace_name, "_fit.pdf")))

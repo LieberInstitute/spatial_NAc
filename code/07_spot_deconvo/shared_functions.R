@@ -8,6 +8,12 @@
 #   haphazardly overlap (arbitrary rotations and translations). Designed to
 #   address the overplotting and visually awkward spot positions in this case.
 #
+#   Spot sizes are *almost* consistent among donors, regardless of full-
+#   resolution image dimensions, when title is NULL, include_legend is FALSE,
+#   and the plot is saved to a square output (e.g. PDF with 7in width and
+#   height). However, ggplot does not seem to scale plots of different aspect
+#   ratios exactly consistently when writing to PDF (untested for other formats)
+#
 #   Return a spot plot of sample 'sampleid', assumed to be a donor. 'coldatavar'
 #   (character(1)) must be a valid colname in colData(spe).
 #
@@ -36,8 +42,9 @@
 #   Returns a ggplot object
 spot_plot <- function(
         spe, sample_id, title, var_name, include_legend, is_discrete,
-        colors = NULL, assayname = "logcounts", minCount = 0.5) {
-    POINT_SIZE <- 1.3
+        colors = NULL, assayname = "logcounts", minCount = 0.5
+    ) {
+    IDEAL_POINT_SIZE <- 200
 
     #   Subset to specific sample ID
     spe_small = spe[, spe$sample_id == sample_id]
@@ -65,6 +72,14 @@ spot_plot <- function(
         spe_small$array_row * INTERVAL_ROW
     spatialCoords(spe_small)[, 'pxl_row_in_fullres'] = MAX_COL -
         spe_small$array_col * INTERVAL_COL
+    
+    #   Find the appropriate spot size for this donor. This can vary because
+    #   ggplot downscales a plot the fit desired output dimensions (in this
+    #   case presumably a square region on a PDF), and stitched images can vary
+    #   in aspect ratio. Also, lowres images always have a larger image
+    #   dimension of 1200, no matter how many spots fit in either dimension.
+    spot_size = IDEAL_POINT_SIZE * INTER_SPOT_DIST_PX *
+       scaleFactors(spe_small) / max(dim(imgData(spe_small)$data[[1]]))
 
     #   If the quantity to plot is discrete, use 'vis_clus'. Otherwise use
     #   'vis_gene'.
@@ -74,14 +89,14 @@ spot_plot <- function(
             p <- vis_clus(
                 spe_small,
                 sampleid = sample_id, clustervar = var_name, auto_crop = FALSE,
-                return_plots = TRUE, spatial = FALSE, point_size = POINT_SIZE
+                return_plots = TRUE, spatial = FALSE, point_size = spot_size
             )
         } else {
             p <- vis_clus(
                 spe_small,
                 sampleid = sample_id, clustervar = var_name, auto_crop = FALSE,
                 return_plots = TRUE, spatial = FALSE, colors = colors,
-                point_size = POINT_SIZE
+                point_size = spot_size
             )
         }
     } else {
@@ -108,7 +123,7 @@ spot_plot <- function(
         p <- vis_gene(
             spe_small,
             sampleid = sample_id, geneid = var_name, return_plots = TRUE,
-            spatial = FALSE, point_size = POINT_SIZE, assayname = assayname,
+            spatial = FALSE, point_size = spot_size, assayname = assayname,
             cont_colors = viridisLite::plasma(21), alpha = 1, auto_crop = FALSE,
             minCount = minCount
         )

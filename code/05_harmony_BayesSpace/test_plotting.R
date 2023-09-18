@@ -4,12 +4,13 @@ library(here)
 library(tidyverse)
 library(jaffelab)
 library(sessioninfo)
-source(here('code', '05_harmony_BayesSpace', 'plotting_functions.R'))
+
+source(here('code', '07_spot_deconvo', 'shared_functions.R'))
 
 spe_path = here('processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds')
 plot_dir = here('plots', '05_harmony_BayesSpace', 'test_plots')
 
-sample_id = "Br2720"
+donor = "Br2720" # "Br6471"
 discrete_var = "10x_kmeans_7_clusters"
 cont_var = "sum_gene"
 
@@ -18,12 +19,16 @@ dir.create(plot_dir, showWarnings = FALSE)
 spe = readRDS(spe_path)
 
 for (donor in unique(spe$sample_id)[unique(spe$sample_id) != "Br6432"]) {
-    p = vis_merged(spe, sampleid = donor, coldatavar = discrete_var)
+    p = spot_plot(
+        spe, donor, "", discrete_var, include_legend = FALSE, is_discrete = TRUE
+    )
     pdf(file.path(plot_dir, sprintf('vis_merged_discrete_%s.pdf', donor)))
     print(p)
     dev.off()
 
-    p = vis_merged(spe, sampleid = donor, coldatavar = cont_var)
+    p = spot_plot(
+        spe, donor, "", cont_var, include_legend = FALSE, is_discrete = FALSE
+    )
     pdf(file.path(plot_dir, sprintf('vis_merged_continuous_%s.pdf', donor)))
     print(p)
     dev.off()
