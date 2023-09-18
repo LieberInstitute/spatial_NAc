@@ -46,12 +46,15 @@ spot_plot <- function(
     ) {
     IDEAL_POINT_SIZE <- 200
 
-    #   Subset to specific sample ID
-    spe_small = spe[, spe$sample_id == sample_id]
+    #   Subset to specific sample ID, and ensure overlapping spots are dropped
+    spe_small = spe[
+        ,
+        (spe$sample_id == sample_id) &
+        !is.na(spe$exclude_overlapping) &
+        !spe$exclude_overlapping
+    ]
     
-    #   Determine some pixel values for the horizontal and vertical bounds
-    #   of the spots
-    MIN_ROW = min(spatialCoords(spe_small)[, 'pxl_col_in_fullres'])
+    #   Determine some pixel values for the horizontal bounds of the spots
     MIN_COL = min(spatialCoords(spe_small)[, 'pxl_row_in_fullres'])
     MAX_COL = max(spatialCoords(spe_small)[, 'pxl_row_in_fullres'])
 
@@ -59,19 +62,6 @@ spot_plot <- function(
     #   between array columns 
     INTER_SPOT_DIST_PX = 2 * (MAX_COL - MIN_COL) /
         (max(spe_small$array_col) - min(spe_small$array_col))
-    
-    #   Find the distance (in pixels) between array columns and between array
-    #   rows, respectively
-    INTERVAL_COL = INTER_SPOT_DIST_PX / 2
-    INTERVAL_ROW = INTER_SPOT_DIST_PX * cos(pi / 6)
-    
-    #   Now overwrite spatialCoords to use pixel coordinates rounded to the
-    #   nearest array value. This ensures smooth and equidistant plotted points
-    #   even in overlapping capture areas
-    spatialCoords(spe_small)[, 'pxl_col_in_fullres'] = MIN_ROW +
-        spe_small$array_row * INTERVAL_ROW
-    spatialCoords(spe_small)[, 'pxl_row_in_fullres'] = MAX_COL -
-        spe_small$array_col * INTERVAL_COL
     
     #   Find the appropriate spot size for this donor. This can vary because
     #   ggplot downscales a plot the fit desired output dimensions (in this
@@ -100,26 +90,6 @@ spot_plot <- function(
             )
         }
     } else {
-        #   For continuous variables, we'll average the values for overlapping
-        #   spots
-        a = colData(spe_small) |>
-            as_tibble() |>
-            group_by(array_row, array_col) |>
-            mutate(
-                !!var_name := mean(!!sym(var_name)),
-                is_first_spot = cur_group_id(),
-            ) |>
-            #   This "extra" mutate is needed due to https://github.com/tidyverse/dplyr/issues/6889
-            mutate(is_first_spot = !(duplicated(is_first_spot)))
-        
-        #   Keep only one spot in cases of multiple spots mapping to the same
-        #   array coordinates. Update the colData to use the average over
-        #   duplicated spots
-        spe_small = spe_small[, a$is_first_spot]
-        colData(spe_small)[[var_name]] = a |>
-            filter(is_first_spot) |>
-            pull({{ var_name }})
-
         p <- vis_gene(
             spe_small,
             sampleid = sample_id, geneid = var_name, return_plots = TRUE,
