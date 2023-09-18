@@ -17,21 +17,14 @@ donor_formula = "TODO"
 
 #  Paths
 sce_in <- "TODO"
-spe_in <- here(
-    "processed-data", "05_harmony_BayesSpace", "spe_filtered.rds"
-)
+spe_in <- here("processed-data", "05_harmony_BayesSpace", "spe_filtered.rds")
 
 sce_out <- here("processed-data", "07_spot_deconvo", "sce.h5ad")
 sce_r_out <- here("processed-data", "07_spot_deconvo", "sce.rds")
 spe_out <- here("processed-data", "07_spot_deconvo", "spe.h5ad")
-
-# sample_IF_out <- here(
-#     "processed-data", "spot_deconvo", "05-shared_utilities", "IF", "sample_ids.txt"
-# )
-# sample_nonIF_out <- here(
-#     "processed-data", "spot_deconvo", "05-shared_utilities", "nonIF", "sample_ids.txt"
-# )
-marker_object_out <- here("processed-data", "07_spot_deconvo", "marker_stats.rds")
+marker_object_out <- here(
+    "processed-data", "07_spot_deconvo", "marker_stats.rds"
+)
 
 #  Make sure output directory exists
 dir.create(dirname(spe_out), recursive = TRUE, showWarnings = FALSE)
@@ -93,7 +86,7 @@ write_anndata(spe, spe_out)
 gc()
 
 #-------------------------------------------------------------------------------
-#   Rank marker genes
+#   Subset to overlapping, non-mitochondrial genes
 #-------------------------------------------------------------------------------
 
 #   We won't consider genes that aren't in both objects
@@ -107,6 +100,23 @@ print(
         "that were not present in the spatial data"
     )
 )
+
+#   Filter out mitochondrial genes (which in single-nucleus data must be
+#   technical artifacts, and therefore don't make meaningful markers or training
+#   genes for spot deconvolution)
+keep <- !grepl("^MT-", rownames(sce))
+perc_keep <- 100 * (1 - length(which(keep)) / length(keep))
+message(
+    paste0(
+        "Dropped ", perc_keep, "% of total genes when filtering out ",
+        "mitochondrial genes"
+    )
+)
+sce <- sce[keep, ]
+
+#-------------------------------------------------------------------------------
+#   Rank marker genes
+#-------------------------------------------------------------------------------
 
 print("Running getMeanRatio2 and findMarkers_1vAll to rank genes as markers...")
 marker_stats <- get_mean_ratio2(
