@@ -117,7 +117,9 @@ for (donor in refined_donors) {
                 ss(key, '_[ABCD]1', 2),
                 key |> str_replace('(.*_[ABCD]1).*', '\\1'),
                 sep = '_'
-            )
+            ),
+            #   Change from character to logical
+            exclude_overlapping = exclude_overlapping == 'True'
         )
 }
 coords = do.call(rbind, coords_list)
