@@ -33,17 +33,23 @@ genes = list(
     'white_matter' = c('MBP', 'GFAP', 'PLP1', 'AQP4')
 )
 
+#   All gene symbols should exist in the SpatialExperiment
 stopifnot(all(unlist(genes) %in% rowData(spe)$gene_name))
-
-a = assays(spe)$counts[match(genes[[subregion]], rowData(spe)$gene_name),]
-
-#   For each spot, average expression Z-scores across all requested genes
-b = (a - rowMeans(a)) / (rowSdDiffs(a))
-spe$temp_var = colMeans(b)
 
 #   Plot all samples together in one PDF page, but have separate PDFs for each
 #   subregion
 for (subregion in names(genes)) {
+    #   Subset lognorm counts to just the selected genes
+    gene_counts = assays(spe)$logcounts[
+        match(genes[[subregion]], rowData(spe)$gene_name),
+    ]
+
+    #   For each spot, average expression Z-scores across all selected genes
+    gene_z = (gene_counts - rowMeans(gene_counts)) / (rowSdDiffs(gene_counts))
+    spe$temp_var = colMeans(gene_z)
+
+    #   Plot spatial distribution of averaged expression Z-scores for each
+    #   sample (donor)
     plot_list = list()
     for (sample_id in unique(spe$sample_id)) {
         plot_list[[sample_id]] = spot_plot(
@@ -52,13 +58,14 @@ for (subregion in names(genes)) {
         )
     }
 
+    #   Save plots
     pdf(
         file.path(plot_dir, paste0(subregion, '.pdf')),
         width = 7 * ceiling(length(unique(spe$sample_id)) / plot_nrow),
         height = plot_nrow * 7
     )
-    plot_grid(plotlist = plot_list, nrow = plot_nrow)
+    print(plot_grid(plotlist = plot_list, nrow = plot_nrow))
     dev.off()
 }
 
-session_info()
+session_inf
