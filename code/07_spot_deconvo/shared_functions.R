@@ -35,13 +35,13 @@ spot_plot <- function(
         colors = NULL, assayname = "logcounts", minCount = 0.5
     ) {
     IDEAL_POINT_SIZE <- 200
+    IMAGE_ID <- "lowres"
 
     #   Subset to specific sample ID, and ensure overlapping spots are dropped
     spe_small = spe[
         ,
         (spe$sample_id == sample_id) &
-        !is.na(spe$exclude_overlapping) &
-        !spe$exclude_overlapping
+        (is.na(spe$exclude_overlapping) | !spe$exclude_overlapping)
     ]
     
     #   Determine some pixel values for the horizontal bounds of the spots
@@ -58,8 +58,11 @@ spot_plot <- function(
     #   case presumably a square region on a PDF), and stitched images can vary
     #   in aspect ratio. Also, lowres images always have a larger image
     #   dimension of 1200, no matter how many spots fit in either dimension.
+    small_image_data = imgData(spe_small)[
+        imgData(spe_small)$image_id == IMAGE_ID,
+    ]
     spot_size = IDEAL_POINT_SIZE * INTER_SPOT_DIST_PX *
-       scaleFactors(spe_small) / max(dim(imgData(spe_small)$data[[1]]))
+       small_image_data$scaleFactor / max(dim(small_image_data$data[[1]]))
 
     #   If the quantity to plot is discrete, use 'vis_clus'. Otherwise use
     #   'vis_gene'.
