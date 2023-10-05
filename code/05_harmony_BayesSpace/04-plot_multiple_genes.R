@@ -3,6 +3,7 @@ library(here)
 library(sessioninfo)
 library(spatialLIBD)
 library(ggplot2)
+library(cowplot)
 
 source(here('code', '07_spot_deconvo', 'shared_functions.R'))
 
@@ -10,6 +11,7 @@ spe_path = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
 )
 plot_dir = here('plots', '05_harmony_BayesSpace', 'multi_gene')
+plot_nrow = 2
 
 dir.create(plot_dir, showWarnings = FALSE)
 
@@ -33,21 +35,30 @@ genes = list(
 
 stopifnot(all(unlist(genes) %in% rowData(spe)$gene_name))
 
-sample_id = unique(spe$sample_id)[1]
-subregion = "shell"
-
 a = assays(spe)$counts[match(genes[[subregion]], rowData(spe)$gene_name),]
 
 #   For each spot, average expression Z-scores across all requested genes
 b = (a - rowMeans(a)) / (rowSdDiffs(a))
 spe$temp_var = colMeans(b)
 
-p = spot_plot(
-    spe, sample_id, title = subregion, var_name = 'temp_var',
-    include_legend = TRUE, is_discrete = FALSE, minCount = 0
-)
-pdf(file.path(plot_dir, 'test.pdf'))
-print(p)
-dev.off()
+#   Plot all samples together in one PDF page, but have separate PDFs for each
+#   subregion
+for (subregion in names(genes)) {
+    plot_list = list()
+    for (sample_id in unique(spe$sample_id)) {
+        plot_list[[sample_id]] = spot_plot(
+            spe, sample_id, title = sample_id, var_name = 'temp_var',
+            include_legend = TRUE, is_discrete = FALSE, minCount = 0
+        )
+    }
+
+    pdf(
+        file.path(plot_dir, paste0(subregion, '.pdf')),
+        width = 7 * ceiling(length(unique(spe$sample_id)) / plot_nrow),
+        height = plot_nrow * 7
+    )
+    plot_grid(plotlist = plot_list, nrow = plot_nrow)
+    dev.off()
+}
 
 session_info()
