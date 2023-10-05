@@ -11,7 +11,6 @@ spe_path = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
 )
 plot_dir = here('plots', '05_harmony_BayesSpace', 'multi_gene')
-plot_nrow = 2
 
 dir.create(plot_dir, showWarnings = FALSE)
 
@@ -59,13 +58,9 @@ for (subregion in names(genes)) {
     }
 
     #   Save plots
-    pdf(
-        file.path(plot_dir, paste0(subregion, '.pdf')),
-        width = 7 * ceiling(length(unique(spe$sample_id)) / plot_nrow),
-        height = plot_nrow * 7
-    )
-    print(plot_grid(plotlist = plot_list, nrow = plot_nrow))
+    pdf(file.path(plot_dir, paste0(subregion, '.pdf')))
+    print(plot_list)
     dev.off()
 }
 
-session_inf
+session_info()
