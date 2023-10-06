@@ -14,7 +14,7 @@ sample_info_path = Path(
     here('raw-data', 'sample_info', 'visium-mastersheet.xlsx')
 )
 
-xml_map_path = here('raw-data', 'sample_key_spatial_NAc_temp.csv')
+xml_map_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 
 ################################################################################
 #   Functions

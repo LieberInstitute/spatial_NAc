@@ -30,7 +30,7 @@ echo "Job id: ${job_id}"
 echo "Job name: ${job_name}"
 echo "Node name: ${node_name}"
 
-module load loopy/1.0.0-next.24
+module load samui/1.0.0-next.24
 python 02-clean_sample_info.py
 
 echo "**** Job ends ****"
