@@ -6,7 +6,7 @@
 #$ -e ../../processed-data/02_image_stitching/04-export_adjustments.log
 #$ -l mf=5G,h_vmem=5G
 
-#SBATCH -q shared
+#SBATCH -p shared
 #SBATCH --mem=5G
 #SBATCH --job-name=export_adjustments
 #SBATCH -o ../../processed-data/02_image_stitching/04-export_adjustments.log

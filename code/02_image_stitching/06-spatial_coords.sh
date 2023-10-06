@@ -6,7 +6,7 @@
 #$ -e /dev/null
 #$ -l mf=5G,h_vmem=5G,h_fsize=50G
 
-#SBATCH -q shared
+#SBATCH -p shared
 #SBATCH --mem=5G
 #SBATCH --job-name=spatial_coords
 #SBATCH -o /dev/null

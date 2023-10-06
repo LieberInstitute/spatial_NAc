@@ -5,7 +5,7 @@
 #$ -e /dev/null
 #$ -l mf=5G,h_vmem=5G
 
-#SBATCH -q shared
+#SBATCH -p shared
 #SBATCH --mem=5G
 #SBATCH --job-name=adjust_transform
 #SBATCH -o /dev/null
