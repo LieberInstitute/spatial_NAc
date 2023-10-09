@@ -12,6 +12,8 @@
 #SBATCH -o ../../processed-data/02_image_stitching/02-clean_sample_info.log
 #SBATCH -e ../../processed-data/02_image_stitching/02-clean_sample_info.log
 
+set -e
+
 if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
     job_name=$SLURM_JOB_NAME
@@ -29,6 +31,8 @@ echo "User: ${USER}"
 echo "Job id: ${job_id}"
 echo "Job name: ${job_name}"
 echo "Node name: ${node_name}"
+
+module list
 
 module load samui/1.0.0-next.24
 python 02-clean_sample_info.py
