@@ -42,6 +42,9 @@ genes_nac = list(
     'white_matter' = c('MBP', 'GFAP', 'PLP1', 'AQP4')
 )
 
+best_sample_dlpfc = 'Br6522_Ant_IF'
+best_sample_nac = 'Br8492'
+
 ################################################################################
 #   Functions
 ################################################################################
@@ -51,10 +54,12 @@ genes_nac = list(
 #   expression (by subregion, expected to correspond to the names of 'genes').
 #   The average (across genes) is taken of each gene's Z-score (across all spots
 #   in all samples).
-plot_z_score = function(spe, genes, dataset, assay) {
+plot_z_score = function(spe, genes, dataset, assay, best_sample) {
+    plot_list_sample = list()
+
     #   Plot all samples together in one PDF page, but have separate PDFs for
     #   each subregion
-    for (subregion in names(genes)) {
+    for (subregion in sort(names(genes))) {
         #   Subset lognorm counts to just the selected genes
         gene_counts = assays(spe)[[assay]][
             match(genes[[subregion]], rowData(spe)$gene_id),
@@ -70,20 +75,32 @@ plot_z_score = function(spe, genes, dataset, assay) {
 
         #   Plot spatial distribution of averaged expression Z-scores for each
         #   sample (donor)
-        plot_list = list()
+        plot_list_subregion = list()
         for (sample_id in unique(spe$sample_id)) {
-            plot_list[[sample_id]] = spot_plot(
+            plot_list_subregion[[sample_id]] = spot_plot(
                 spe, sample_id, title = sample_id, var_name = 'temp_var',
                 include_legend = TRUE, is_discrete = FALSE, minCount = 0,
                 assayname = assay
             )
         }
 
+        plot_list_sample[[subregion]] = plot_list_subregion[[best_sample]] +
+            labs(title = subregion)
+
         #   Save plots
         pdf(file.path(plot_dir, sprintf('%s_%s.pdf', dataset, subregion)))
-        print(plot_list)
+        print(plot_list_subregion)
         dev.off()
     }
+
+    #   Now plot every subregion for the best sample (a single-page, single-row
+    #   PDF)
+    pdf(
+        file.path(plot_dir, sprintf('%s_%s.pdf', dataset, best_sample)),
+        width = 7 * length(genes)
+    )
+    print(plot_grid(plotlist = plot_list_sample, nrow = 1))
+    dev.off()
 }
 
 ################################################################################
@@ -110,7 +127,7 @@ for (subregion in names(genes_nac)) {
 }
 
 #   Plot NAc data using Z-score approach
-plot_z_score(spe_nac, genes_nac, 'NAc')
+plot_z_score(spe_nac, genes_nac, 'NAc', best_sample_nac)
 
 #-------------------------------------------------------------------------------
 #   DLPFC plots
@@ -137,7 +154,6 @@ for (cell_type in unique(marker_dlpfc$cellType.target)) {
 }
 
 #   Plot DLPFC data using Z-score approach
-plot_z_score(spe_dlpfc, genes_dlpfc, 'DLPFC', 'counts')
-
+plot_z_score(spe_dlpfc, genes_dlpfc, 'DLPFC', 'counts', best_sample_dlpfc)
 
 session_info()
