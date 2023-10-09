@@ -58,8 +58,8 @@ sample_info = (
 sample_info['Brain'] = (
     sample_info['Brain']
         .astype(str)
-        #   Remove additional pieces like '-left' from brain number
-        .replace(to_replace = r'^(Br[0-9]{4}).*', value = r'\1', regex = True)
+        #   Remove additional pieces like '-left' or 'Hs_' from brain number
+        .replace(to_replace = r'^.*(Br[0-9]{4}).*', value = r'\1', regex = True)
 )
 
 #   Make slide number consistent
