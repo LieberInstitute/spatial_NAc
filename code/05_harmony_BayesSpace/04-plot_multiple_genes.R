@@ -4,6 +4,7 @@ library(sessioninfo)
 library(spatialLIBD)
 library(ggplot2)
 library(cowplot)
+library(tidyverse)
 
 source(here('code', '07_spot_deconvo', 'shared_functions.R'))
 
@@ -24,6 +25,8 @@ marker_dlpfc_path = file.path(
 )
 plot_dir = here('plots', '05_harmony_BayesSpace', 'multi_gene')
 
+num_markers = 10
+
 #   List of genes provided by Svitlana, named by the subregion they're markers
 #   for
 genes_nac = list(
@@ -43,24 +46,27 @@ genes_nac = list(
 #   Functions
 ################################################################################
 
-#   Given a SpatialExperiment and set of genes (contained in the 'gene_name'
+#   Given a SpatialExperiment and set of genes (contained in the 'gene_id'
 #   rowData column), export a set of spatial plots that combine all genes'
 #   expression (by subregion, expected to correspond to the names of 'genes').
 #   The average (across genes) is taken of each gene's Z-score (across all spots
 #   in all samples).
-plot_z_score = function(spe, genes) {
+plot_z_score = function(spe, genes, dataset, assay) {
     #   Plot all samples together in one PDF page, but have separate PDFs for
     #   each subregion
     for (subregion in names(genes)) {
         #   Subset lognorm counts to just the selected genes
-        gene_counts = assays(spe)$logcounts[
-            match(genes[[subregion]], rowData(spe)$gene_name),
+        gene_counts = assays(spe)[[assay]][
+            match(genes[[subregion]], rowData(spe)$gene_id),
         ]
 
         #   For each spot, average expression Z-scores across all selected genes
         gene_z = (gene_counts - rowMeans(gene_counts)) /
             (rowSdDiffs(gene_counts))
         spe$temp_var = colMeans(gene_z)
+        if(any(is.na(spe$temp_var))) {
+            stop('some unexpressed genes')
+        }
 
         #   Plot spatial distribution of averaged expression Z-scores for each
         #   sample (donor)
@@ -68,12 +74,13 @@ plot_z_score = function(spe, genes) {
         for (sample_id in unique(spe$sample_id)) {
             plot_list[[sample_id]] = spot_plot(
                 spe, sample_id, title = sample_id, var_name = 'temp_var',
-                include_legend = TRUE, is_discrete = FALSE, minCount = 0
+                include_legend = TRUE, is_discrete = FALSE, minCount = 0,
+                assayname = assay
             )
         }
 
         #   Save plots
-        pdf(file.path(plot_dir, paste0(subregion, '.pdf')))
+        pdf(file.path(plot_dir, sprintf('%s_%s.pdf', dataset, subregion)))
         print(plot_list)
         dev.off()
     }
@@ -85,13 +92,52 @@ plot_z_score = function(spe, genes) {
 
 dir.create(plot_dir, showWarnings = FALSE)
 
-spe_nac = readRDS(spe_path)
+#-------------------------------------------------------------------------------
+#   NAc plots
+#-------------------------------------------------------------------------------
+
+spe_nac = readRDS(spe_nac_path)
 spe_nac$exclude_overlapping = spe_nac$exclude_overlapping == "True"
 
-#   All gene symbols should exist in the SpatialExperiment for NAc
+#   Convert NAc gene symbols to Ensembl IDs. All gene symbols should exist in
+#   the SpatialExperiment
 stopifnot(all(unlist(genes_nac) %in% rowData(spe_nac)$gene_name))
+for (subregion in names(genes_nac)) {
+    genes_nac[[subregion]] = rowData(spe_nac)[
+        match(genes_nac[[subregion]], rowData(spe_nac)$gene_name),
+        'gene_id'
+    ]
+}
 
 #   Plot NAc data using Z-score approach
-plot_z_score(spe_nac, genes_nac)
+plot_z_score(spe_nac, genes_nac, 'NAc')
+
+#-------------------------------------------------------------------------------
+#   DLPFC plots
+#-------------------------------------------------------------------------------
+
+spe_dlpfc = readRDS(spe_dlpfc_path)
+spe_dlpfc$exclude_overlapping = FALSE
+
+#   Grab just the top [num_markers] markers for each excitatory cell type
+#   marking for 1 specific layer
+marker_dlpfc = readRDS(marker_dlpfc_path) |>
+    filter(
+        rank_ratio <= num_markers,
+        grepl('^Excit_L[3-6]$', cellType.target)
+    )
+
+#   Form a list of genes where target cell types are the names and Ensembl IDs
+#   are the values
+genes_dlpfc = list()
+for (cell_type in unique(marker_dlpfc$cellType.target)) {
+    genes_dlpfc[[cell_type]] = marker_dlpfc |>
+        filter(cellType.target == cell_type) |>
+        pull(gene)
+}
+
+#   Plot DLPFC data using Z-score approach
+plot_z_score(spe_dlpfc, genes_dlpfc, 'DLPFC', 'counts')
+
 
 session_info()
