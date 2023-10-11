@@ -442,73 +442,80 @@ coords |>
 #   Explore why/ where duplication occurs
 #-------------------------------------------------------------------------------
 
-#   Take 4 random duplicated mappings from each sample ID
+#   Take only duplicated mappings
 dup_df_orig = coords |>
     group_by(array_row, array_col, sample_id) |>
     mutate(num_members = n()) |>
-    filter(num_members > 1) |>
-    slice_head(n = 1) |>
-    group_by(sample_id) |>
-    sample_n(size = 4, replace = TRUE) |>
-    select(!num_members)
+    filter(num_members > 1)
 
-plot_list = list()
-for (i in 1:nrow(dup_df_orig)) {
-    #   Grab the set of source spots mapping to the same destination spot,
-    #   mark them as duplicates, and use their original pixel coordinates
-    dup_df = coords |>
-        filter(
-            sample_id == dup_df_orig$sample_id[i],
-            array_row == dup_df_orig$array_row[i],
-            array_col == dup_df_orig$array_col[i]
-        ) |>
-        mutate(
-            coord_type = "duplicate",
-            pxl_row = pxl_row_in_fullres,
-            pxl_col = pxl_col_in_fullres
-        )
-    
-    #   Grab the set of nearby source spots surrounding the duplicate mapping,
-    #   and use the rounded pixel coordinates from them
-    dup_df = coords |>
-        filter(
-            sample_id == dup_df_orig$sample_id[i],
-            abs(array_row - dup_df_orig$array_row[i]) <= 4,
-            abs(array_col - dup_df_orig$array_col[i]) <= 7,
-        ) |>
-        mutate(
-            coord_type = "nearby",
-            pxl_row = pxl_row_rounded,
-            pxl_col = pxl_col_rounded
-        ) |>
-        rbind(dup_df)
-    
-    plot_list[[i]] = ggplot(dup_df) +
-        geom_point(aes(x = pxl_col, y = pxl_row, color = coord_type)) +
-        coord_fixed()
+#   If duplicated sites exist, plot some examples
+if (nrow(dup_df_orig) > 0) {
+    #   Take 4 random duplicated mappings from each sample ID
+    dup_df_orig = dup_df_orig |>
+        slice_head(n = 1) |>
+        group_by(sample_id) |>
+        sample_n(size = 4, replace = TRUE) |>
+        select(!num_members)
 
-    #   Grab the legend from the first plot (which matches all other legends)
-    if (i == 1) {
-        legend = get_legend(plot_list[[i]])
+    plot_list = list()
+    for (i in 1:nrow(dup_df_orig)) {
+        #   Grab the set of source spots mapping to the same destination spot,
+        #   mark them as duplicates, and use their original pixel coordinates
+        dup_df = coords |>
+            filter(
+                sample_id == dup_df_orig$sample_id[i],
+                array_row == dup_df_orig$array_row[i],
+                array_col == dup_df_orig$array_col[i]
+            ) |>
+            mutate(
+                coord_type = "duplicate",
+                pxl_row = pxl_row_in_fullres,
+                pxl_col = pxl_col_in_fullres
+            )
+        
+        #   Grab the set of nearby source spots surrounding the duplicate
+        #   mapping, and use the rounded pixel coordinates from them
+        dup_df = coords |>
+            filter(
+                sample_id == dup_df_orig$sample_id[i],
+                abs(array_row - dup_df_orig$array_row[i]) <= 4,
+                abs(array_col - dup_df_orig$array_col[i]) <= 7,
+            ) |>
+            mutate(
+                coord_type = "nearby",
+                pxl_row = pxl_row_rounded,
+                pxl_col = pxl_col_rounded
+            ) |>
+            rbind(dup_df)
+        
+        plot_list[[i]] = ggplot(dup_df) +
+            geom_point(aes(x = pxl_col, y = pxl_row, color = coord_type)) +
+            coord_fixed()
+
+        #   Grab the legend from the first plot (which matches all other
+        #   legends)
+        if (i == 1) {
+            legend = get_legend(plot_list[[i]])
+        }
+        
+        plot_list[[i]] = plot_list[[i]] +
+            theme(
+                axis.text.x = element_blank(),
+                axis.text.y = element_blank(),
+                axis.title.x = element_blank(),
+                axis.ticks.x = element_blank(),
+                axis.ticks.y = element_blank(),
+                axis.title.y = element_blank(),
+                legend.position = "none"
+            )
     }
-    
-    plot_list[[i]] = plot_list[[i]] +
-        theme(
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.y = element_blank(),
-            legend.position = "none"
-        )
-}
 
-plot_list[['legend']] = legend
-pdf(file.path(plot_dir, 'duplicated_sites.pdf'))
-grid.arrange(
-    grobs = plot_list, bottom = "pixel col", left = "pixel row", ncol = 4
-)
-dev.off()
+    plot_list[['legend']] = legend
+    pdf(file.path(plot_dir, 'duplicated_sites.pdf'))
+    grid.arrange(
+        grobs = plot_list, bottom = "pixel col", left = "pixel row", ncol = 4
+    )
+    dev.off()
+}
 
 session_info()
