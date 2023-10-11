@@ -61,6 +61,12 @@ json_out_path = Path(
     )
 )
 
+#   List of donors that won't be run through the Samui-refinement process.
+#   Instead, we'll just run these donors with 'file_suffix' = 'initial',
+#   outputting scalefactors, spot coordinates, and the low-res image without
+#   having to run with 'file_suffix' = 'adjusted'
+unadjusted_donors = ['Br8667']
+
 json_out_path.parent.mkdir(parents = True, exist_ok = True)
 
 #   55-micrometer diameter for Visium spot but 65-micrometer spot diameter used
@@ -385,7 +391,7 @@ with tifffile.TiffWriter(img_out_browser_path, bigtiff = True) as tiff:
 
 #   Write the low-resolution combined PNG needed for the SpatialExperiment
 #   object, as well as a combined spaceranger-compatible JSON
-if file_suffix == 'adjusted':
+if (file_suffix == 'adjusted') or (this_donor in unadjusted_donors):
     combined_img, lowres_sf = merge_image_export(
         sample_info, theta, trans_img, max0, max1
     )
@@ -436,7 +442,7 @@ for i in range(sample_info.shape[0]):
     tissue_positions_list.append(tissue_positions)
 
 #   Also export tissue positions with SpatialExperiment-friendly colnames
-if file_suffix == 'adjusted':
+if (file_suffix == 'adjusted') or (this_donor in unadjusted_donors):
     tissue_positions_r = pd.concat(tissue_positions_list).rename(
         {
             'row': 'array_row', 'col': 'array_col', 'y': 'pxl_row_in_fullres',
