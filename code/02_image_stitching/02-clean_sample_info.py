@@ -77,9 +77,10 @@ sample_info.index = sample_info['Slide #'] + '_' + sample_info['Array #']
 
 xml_map = pd.read_csv(xml_map_path, index_col = 'Slide')
 xml_map.index.name = 'sample_id'
-xml_map = xml_map.loc[:, ['Brain', 'XML file name']].copy()
+xml_map = xml_map.loc[:, ['Brain', 'XML file name', 'In analysis']].copy()
 xml_map['Slide #'] = [x.split('_')[0] for x in xml_map.index]
 xml_map['Array #'] = [x.split('_')[1] for x in xml_map.index]
+xml_map['In analysis'] = xml_map['In analysis'] == 'Yes'
 
 #   Merge sample_info and xml_map by index, keeping the union of their columns.
 #   There should be a more elegant way to do this...
