@@ -1,0 +1,182 @@
+{
+  "version": "1.0.15",
+  "name": "Visium V11U08-082_A1",
+  "description": "",
+  "datasets": [
+    {
+      "uid": "V11U08-082_A1",
+      "name": "V11U08-082_A1",
+      "files": [
+        {
+          "fileType": "raster.json",
+          "options": {
+            "renderLayers": [
+              "Spatial_NAc-V11U08-082_A1-raw"
+            ],
+            "schemaVersion": "0.0.2",
+            "images": [
+              {
+                "name": "Spatial_NAc-V11U08-082_A1-raw",
+                "url": "http://localhost:3000/Spatial_NAc-V11U08-082_A1-raw.zarr",
+                "type": "zarr",
+                "metadata": {
+                  "isBitmask": false,
+                  "dimensions": [
+                    {
+                      "field": "t",
+                      "type": "quantitative",
+                      "values": null
+                    },
+                    {
+                      "field": "channel",
+                      "type": "nominal",
+                      "values": [
+                        "Channel 0",
+                        "Channel 1",
+                        "Channel 2"
+                      ]
+                    },
+                    {
+                      "field": "y",
+                      "type": "quantitative",
+                      "values": null
+                    },
+                    {
+                      "field": "x",
+                      "type": "quantitative",
+                      "values": null
+                    }
+                  ],
+                  "isPyramid": true,
+                  "transform": {
+                    "translate": {
+                      "y": 0,
+                      "x": 0
+                    },
+                    "scale": 1
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "fileType": "anndata.zarr",
+          "url": "http://localhost:3000/Spatial_NAc-V11U08-082_A1-anndata.zarr",
+          "options": {
+            "obsLocations": {
+              "path": "obsm/spatial"
+            },
+            "obsEmbedding": [
+              {
+                "path": "obsm/X_umap",
+                "embeddingType": "X_UMAP",
+                "dims": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "path": "obsm/X_pca",
+                "embeddingType": "X_PCA",
+                "dims": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "obsLabels": [
+              {
+                "path": "obs/sample",
+                "obsLabelsType": "Sample"
+              }
+            ],
+            "obsSets": [
+              {
+                "name": "Clustering",
+                "path": "obs/clustering"
+              }
+            ],
+            "obsFeatureMatrix": {
+              "path": "X"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "coordinationSpace": {
+    "dataset": {
+      "A": "V11U08-082_A1"
+    },
+    "embeddingType": {
+      "X_UMAP": "X_UMAP",
+      "X_PCA": "X_PCA"
+    }
+  },
+  "layout": [
+    {
+      "component": "layerController",
+      "coordinationScopes": {
+        "dataset": "A"
+      },
+      "x": 0,
+      "y": 0,
+      "w": 3,
+      "h": 12
+    },
+    {
+      "component": "spatial",
+      "coordinationScopes": {
+        "dataset": "A"
+      },
+      "x": 3,
+      "y": 0,
+      "w": 3,
+      "h": 12
+    },
+    {
+      "component": "scatterplot",
+      "coordinationScopes": {
+        "dataset": "A",
+        "embeddingType": "X_UMAP"
+      },
+      "x": 6,
+      "y": 0,
+      "w": 3,
+      "h": 6
+    },
+    {
+      "component": "scatterplot",
+      "coordinationScopes": {
+        "dataset": "A",
+        "embeddingType": "X_PCA"
+      },
+      "x": 6,
+      "y": 6,
+      "w": 3,
+      "h": 6
+    },
+    {
+      "component": "featureList",
+      "coordinationScopes": {
+        "dataset": "A"
+      },
+      "x": 9,
+      "y": 0,
+      "w": 3,
+      "h": 6
+    },
+    {
+      "component": "obsSets",
+      "coordinationScopes": {
+        "dataset": "A"
+      },
+      "x": 9,
+      "y": 6,
+      "w": 3,
+      "h": 6
+    }
+  ],
+  "initStrategy": "auto"
+}
