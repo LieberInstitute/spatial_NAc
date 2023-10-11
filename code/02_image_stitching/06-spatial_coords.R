@@ -209,7 +209,7 @@ sample_info = read.csv(sample_info_path) |>
         array_num = 'Array..',
         slide_num = 'Slide..' 
     ) |>
-    filter(Brain == opt$donor, In.analysis != "True")
+    filter(Brain == opt$donor, In.analysis == "True")
 
 #-------------------------------------------------------------------------------
 #   Read in the untransformed and unfiltered (by "in tissue") spot coordinates
