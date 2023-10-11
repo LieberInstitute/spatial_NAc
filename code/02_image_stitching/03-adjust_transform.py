@@ -74,6 +74,10 @@ array_pairs = {
     'Br8325': [
         ('V13M06-376_A1', 'V13M06-376_D1'), ('V13M06-376_A1', 'V13M06-376_C1'),
         ('V13M06-376_A1', 'V13M06-376_B1'), ('V13M06-376_B1', 'V13F06-313_C1')
+    ],
+    'Br3942': [
+        ('V13M06-379_A1', 'V13M06-379_D1'), ('V13M06-379_A1', 'V13M06-379_B1'),
+        ('V13M06-379_B1', 'V13M06-379_C1')
     ]
 }
 
@@ -224,7 +228,9 @@ def arrange_a_b(
 #   Read in sample info and subset to samples of interest
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 sample_info = sample_info.loc[
-    (sample_info['Brain'] == this_donor) & ~sample_info['XML file name'].isna(),
+    (sample_info['Brain'] == this_donor) &
+    ~sample_info['XML file name'].isna() &
+    sample_info['In analysis'],
     :
 ]
 
