@@ -2,7 +2,7 @@
 
 #SBATCH -p shared
 #SBATCH -c 1
-#SBATCH --mem=15G
+#SBATCH --mem=25G
 #SBATCH --job-name=04-plot_multiple_genes
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/04-plot_multiple_genes.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/04-plot_multiple_genes.log
