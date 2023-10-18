@@ -25,7 +25,7 @@ marker_dlpfc_path = file.path(
 )
 plot_dir = here('plots', '05_harmony_BayesSpace', 'multi_gene')
 
-num_markers = 10
+num_markers = 25
 
 #   List of genes provided by Svitlana, named by the subregion they're markers
 #   for
@@ -78,10 +78,7 @@ plot_z_score = function(
         #   For each spot, average expression Z-scores across all selected genes
         gene_z = (gene_counts - rowMeans(gene_counts)) /
             (rowSdDiffs(gene_counts))
-        spe$temp_var = colMeans(gene_z)
-        if(any(is.na(spe$temp_var))) {
-            stop('some unexpressed genes')
-        }
+        spe$temp_var = colMeans(gene_z, na.rm = TRUE)
 
         #   Plot spatial distribution of averaged expression Z-scores for each
         #   sample
@@ -225,10 +222,38 @@ spe_dlpfc$exclude_overlapping = FALSE
 #   Grab just the top [num_markers] markers for each excitatory cell type
 #   marking for 1 specific layer
 marker_dlpfc = readRDS(marker_dlpfc_path) |>
+    mutate(
+        symbol = rowData(spe_dlpfc)$gene_name[
+            match(gene, rownames(spe_dlpfc))
+        ]
+    ) |>
     filter(
-        rank_ratio <= num_markers,
-        grepl('^Excit_L[3-6]$', cellType.target)
+        #   Just one-layer excitatory cell types
+        grepl('^Excit_L[3-6]$', cellType.target),
+        #   No mitochondrial genes
+        !grepl("^MT-", symbol)
     )
+
+#   "Re-rank" rank_ratio, since there may be missing ranks now
+for (ct in unique(marker_dlpfc$cellType.target)) {
+    old_ranks <- marker_dlpfc |>
+        filter(cellType.target == ct) |>
+        pull(rank_ratio) |>
+        sort()
+
+    for (i in 1:length(which((marker_dlpfc$cellType.target == ct)))) {
+        index <- which(
+            (marker_dlpfc$cellType.target == ct) &
+                (marker_dlpfc$rank_ratio == old_ranks[i])
+        )
+        stopifnot(length(index) == 1)
+        marker_dlpfc[index, "rank_ratio"] <- i
+    }
+}
+
+#   Now take the top [num_markers] markers
+marker_dlpfc = marker_dlpfc |>
+    filter(rank_ratio <= num_markers)
 
 #   Form a list of genes where target cell types are the names and Ensembl IDs
 #   are the values
@@ -238,6 +263,9 @@ for (cell_type in unique(marker_dlpfc$cellType.target)) {
         filter(cellType.target == cell_type) |>
         pull(gene)
 }
+
+#   All genes (originally from 'marker_dlpfc') should be in 'spe_dlpfc'
+stopifnot(all(unlist(genes_dlpfc) %in% rowData(spe_dlpfc)$gene_id))
 
 #   Plot DLPFC data using Z-score approach
 plot_z_score(
