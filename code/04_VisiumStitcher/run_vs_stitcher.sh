@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH
 #SBATCH --job-name=run_vs_stitcher
-#SBATCH --time=0:15:0
+#SBATCH --time=0:30:0
 #SBATCH --partition=defq
 #SBATCH --mem=20G
 

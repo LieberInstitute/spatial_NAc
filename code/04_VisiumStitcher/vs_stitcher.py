@@ -15,7 +15,7 @@ homeDir = "/data/abattle4/prashanthi/spatial_NAc/"
 sample_key = pd.read_csv(homeDir + "raw-data/sample_key_spatial_NAc.csv")
 transforms_all = pd.read_csv(homeDir + "processed-data/02_image_stitching/adjusted_transforms_highres.csv")
 sample_key = sample_key[sample_key['In analysis'] == "Yes"]
-sample_key = sample_key[sample_key['Refined transforms'] == "Yes"]
+#sample_key = sample_key[sample_key['Refined transforms'] == "No"]
 
 brain_list = []
 for brain in sample_key.Brain.unique():
