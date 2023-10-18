@@ -142,7 +142,7 @@ plot_sparsity = function(spe, genes, dataset, best_sample, plot_dir) {
             plot_list_subregion[[sample_id]] = spot_plot(
                 spe, sample_id, title = sample_id,
                 var_name = 'prop_nonzero_marker', include_legend = TRUE,
-                is_discrete = FALSE, minCount = 0
+                is_discrete = FALSE, minCount = 0.1
             )
         }
 
@@ -275,6 +275,15 @@ plot_z_score(
     assay = 'counts',
     best_sample = best_sample_dlpfc,
     plot_dir = z_score_dir
+)
+
+#   Plot DLPFC data using sparsity approach
+plot_sparsity(
+    spe = spe_dlpfc,
+    genes = genes_dlpfc,
+    dataset = 'DLPFC',
+    best_sample = best_sample_dlpfc,
+    plot_dir = sparsity_dir
 )
 
 session_info()
