@@ -1,4 +1,5 @@
 library("spatialLIBD")
+library("HDF5Array")
 library("markdown")
 
 ## spatialLIBD uses golem
@@ -8,7 +9,7 @@ options("golem.app.prod" = TRUE)
 options(repos = BiocManager::repositories())
 
 ## Load the data
-spe <- readRDS("spe_shiny.rds")
+spe <- loadHDF5SummarizedExperiment("spe_shiny")
 vars <- colnames(colData(spe))
 spe$exclude_overlapping <- as.factor(spe$exclude_overlapping)
 
