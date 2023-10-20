@@ -34,26 +34,9 @@ sample_info = read.csv(sample_info_path2) |>
     select(-In.analysis) |>
     right_join(sample_info, by = "sample_id") |>
     filter(In.analysis == "Yes") |>
+    select(-In.analysis) |>
     mutate(spaceranger_dir = dirname(normalizePath(spaceranger_dir))) |>
     rename(slide_num = Slide.., array_num = Array.., donor = Brain)
-
-#   Grab donors that are in analysis but don't have refined transforms
-unrefined_donors = sample_info |>
-    filter(In.analysis == "Yes", Refined.transforms == "No") |>
-    pull(donor) |>
-    unique()
-
-#   Similarly for those that do have refined transforms
-refined_donors = sample_info |>
-    filter(In.analysis == "Yes", Refined.transforms == "Yes") |>
-    pull(donor) |>
-    unique()
-
-#   Ensure each unrefined donor consists of just one sample
-n_unrefined_samples = sample_info |>
-    filter(donor %in% unrefined_donors) |>
-    nrow()
-stopifnot(n_unrefined_samples == length(unrefined_donors))
 
 #   We only need certain columns in the colData
 sample_info = sample_info |>
@@ -63,6 +46,8 @@ sample_info = sample_info |>
             raw_image_path, Age, Sex, Diagnosis
         )
     )
+
+all_donors = unique(sample_info$donor)
 
 ################################################################################
 #   Build the SPE object using [slide]_[capture area] as samples, to start
@@ -87,7 +72,7 @@ message("Adding transformed spot coordinates and sample info to colData")
 
 #   Merge all transformed spot coordinates into a single tibble
 coords_list = list()
-for (donor in refined_donors) {
+for (donor in all_donors) {
     #   Read in and clean up transformed spot coordinates
     spot_coords = file.path(
             transformed_dir, donor, 'tissue_positions_list.csv'
@@ -142,8 +127,12 @@ message("Using transformed spatialCoords by default")
 
 #   Swap out original spot pixel coordinates for transformed ones, where they
 #   exist
-spe$pxl_col_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_col_in_fullres'])
-spe$pxl_row_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_row_in_fullres'])
+spe$pxl_col_in_fullres_original = unname(
+    spatialCoords(spe)[, 'pxl_col_in_fullres']
+)
+spe$pxl_row_in_fullres_original = unname(
+    spatialCoords(spe)[, 'pxl_row_in_fullres']
+)
 
 coords_col = ifelse(
     is.na(spe$pxl_col_in_fullres_transformed),
@@ -184,27 +173,16 @@ message("Overwriting imgData(spe) with merged images (one per donor)")
 
 #   Read in the merged images for donors where they exist
 img_data = readImgData(
-    path = file.path(transformed_dir, refined_donors),
-    sample_id = refined_donors,
+    path = file.path(transformed_dir, all_donors),
+    sample_id = all_donors,
     imageSources = file.path(
-        transformed_dir, refined_donors, "tissue_lowres_image.png"
+        transformed_dir, all_donors, "tissue_lowres_image.png"
     ),
     scaleFactors = file.path(
-        transformed_dir, refined_donors, "scalefactors_json.json"
+        transformed_dir, all_donors, "scalefactors_json.json"
     ),
     load = TRUE
 )
-
-#   For donors with one sample, use the images already read in from spaceranger
-unrefined_ids = sample_info[[
-    match(unrefined_donors, sample_info$donor), 'sample_id'
-]]
-img_data_unrefined = imgData(spe)[imgData(spe)$sample_id %in% unrefined_ids,]
-img_data_unrefined$sample_id = sample_info$donor[
-    match(img_data_unrefined$sample_id, sample_info$sample_id)
-]
-
-img_data = rbind(img_data, img_data_unrefined)
 
 ################################################################################
 #   Change from [slide]_[array] to donor as sample ID
