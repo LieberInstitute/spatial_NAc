@@ -73,10 +73,15 @@ message("Adding transformed spot coordinates and sample info to colData")
 #   Merge all transformed spot coordinates into a single tibble
 coords_list = list()
 for (donor in all_donors) {
+    tissue_positions_path = list.files(
+        file.path(transformed_dir, donor),
+        pattern = '^tissue_positions(_list)?\\.csv$',
+        full.names = TRUE
+    )
+    stopifnot(length(tissue_positions_path) == 1)
+
     #   Read in and clean up transformed spot coordinates
-    spot_coords = file.path(
-            transformed_dir, donor, 'tissue_positions_list.csv'
-        ) |>
+    spot_coords = tissue_positions_path |>
         read.csv() |>
         as_tibble() |>
         rename(
@@ -171,7 +176,7 @@ spe$array_col = ifelse(
 
 message("Overwriting imgData(spe) with merged images (one per donor)")
 
-#   Read in the merged images for donors where they exist
+#   Read in the merged images for donors
 img_data = readImgData(
     path = file.path(transformed_dir, all_donors),
     sample_id = all_donors,
