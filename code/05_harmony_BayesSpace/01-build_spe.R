@@ -31,6 +31,7 @@ sample_info = read.csv(sample_info_path) |>
 sample_info = read.csv(sample_info_path2) |>
     as_tibble() |>
     rename(sample_id = X) |>
+    select(-In.analysis) |>
     right_join(sample_info, by = "sample_id") |>
     filter(In.analysis == "Yes") |>
     mutate(spaceranger_dir = dirname(normalizePath(spaceranger_dir))) |>
