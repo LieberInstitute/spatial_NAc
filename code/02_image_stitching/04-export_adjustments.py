@@ -23,10 +23,12 @@ out_path = here(
     'processed-data', '02_image_stitching', 'adjusted_transforms_highres.csv'
 )
 
-#   Read in sample info and subset to relevant columns
+unadjusted_donors = ['Br8667']
+
+#   Read in sample info and only grab samples in analysis
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 sample_info = sample_info.loc[
-    :, ['Brain', 'Slide #', 'Array #', 'spaceranger_dir']
+    ~sample_info['In analysis'].isna() & sample_info['In analysis'], :
 ]
 sample_info.index.name = 'sample_id'
 
@@ -36,12 +38,25 @@ estimates = pd.concat(
 )
 
 estimates = estimates.loc[
-    estimates['adjusted'], estimates.columns != 'adjusted'
+    estimates['adjusted'],
+    estimates.columns != 'adjusted'
 ]
 
 #   Add in some sample info (particularly we'll need the spaceranger paths to
 #   scale to high resolution)
-estimates = pd.merge(estimates, sample_info, how = 'left', on = 'sample_id')
+estimates = pd.merge(estimates, sample_info, how = 'right', on = 'sample_id')
+
+#   Use initial transforms where adjusted don't exist
+for colname in ['x', 'y', 'theta']:
+    #   Adjusted transformation estimates should be missing only for unadjusted
+    #   donors
+    assert all(
+        estimates['Brain'].isin(unadjusted_donors) == estimates[colname].isna()
+    )
+    
+    estimates.loc[estimates[colname].isna(), colname] = estimates.loc[
+        estimates[colname].isna(), 'initial_transform_' + colname
+    ]
 
 #   Scale translations to high resolution
 for sample_id in estimates.index:
@@ -51,13 +66,14 @@ for sample_id in estimates.index:
     )
     with open(json_path, 'r') as f:
         spaceranger_json = json.load(f)
-    
+    #
     #   Scale to high resolution
     estimates.loc[sample_id, ['x', 'y']] *= spaceranger_json['tissue_hires_scalef']
 
+#   Subset to important columns and export
 (
     estimates
-        .drop('spaceranger_dir', axis = 1)
+        .loc[:, ['x', 'y', 'theta', 'Brain', 'Slide #', 'Array #']]
         .to_csv(out_path)
 )
 
