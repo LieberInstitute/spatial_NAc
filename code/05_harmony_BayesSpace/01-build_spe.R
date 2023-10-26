@@ -6,6 +6,7 @@ library(jaffelab)
 library(sessioninfo)
 library(scran)
 library(BiocParallel)
+library(spatialNAcUtils)
 
 sample_info_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 sample_info_path2 = here(
@@ -16,6 +17,7 @@ raw_out_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
 filtered_out_path = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
 )
+plot_dir = here('plots', '05_harmony_BayesSpace')
 num_cores = 4
 
 ################################################################################
@@ -115,6 +117,10 @@ for (donor in all_donors) {
 }
 coords = do.call(rbind, coords_list)
 
+#   The same number of spots should exist before and after the Samui/ImageJ
+#   refinement workflow
+stopifnot(nrow(coords) == ncol(spe))
+
 #   Add transformed spot coordinates, spot-overlap info, and sample_info to
 #   colData
 colData(spe) = colData(spe) |>
@@ -130,8 +136,7 @@ rownames(colData(spe)) = rownames(spatialCoords(spe)) # tibbles lose rownames
 
 message("Using transformed spatialCoords by default")
 
-#   Swap out original spot pixel coordinates for transformed ones, where they
-#   exist
+#   Swap out original spot pixel coordinates for transformed ones
 spe$pxl_col_in_fullres_original = unname(
     spatialCoords(spe)[, 'pxl_col_in_fullres']
 )
@@ -139,16 +144,8 @@ spe$pxl_row_in_fullres_original = unname(
     spatialCoords(spe)[, 'pxl_row_in_fullres']
 )
 
-coords_col = ifelse(
-    is.na(spe$pxl_col_in_fullres_transformed),
-    spe$pxl_col_in_fullres_original, spe$pxl_col_in_fullres_transformed
-)
-coords_row = ifelse(
-    is.na(spe$pxl_row_in_fullres_transformed),
-    spe$pxl_row_in_fullres_original, spe$pxl_row_in_fullres_transformed
-)
 spatialCoords(spe) = matrix(
-    c(coords_col, coords_row),
+    c(spe$pxl_col_in_fullres_transformed, spe$pxl_row_in_fullres_transformed),
     ncol = 2,
     dimnames = list(
         rownames(spatialCoords(spe)),
@@ -156,18 +153,11 @@ spatialCoords(spe) = matrix(
     )
 )
 
-#   Swap out original spot array coordinates for transformed ones, where they
-#   exist
+#   Swap out original spot array coordinates for transformed ones
 spe$array_row_original = spe$array_row
 spe$array_col_original = spe$array_col
-spe$array_row = ifelse(
-    is.na(spe$array_row_transformed),
-    spe$array_row_original, spe$array_row_transformed
-)
-spe$array_col = ifelse(
-    is.na(spe$array_col_transformed),
-    spe$array_col_original, spe$array_col_transformed
-)
+spe$array_row = spe$array_row_transformed
+spe$array_col = spe$array_col_transformed
 
 ################################################################################
 #   Use merged images (one image per donor) instead of single-capture-area
@@ -251,34 +241,40 @@ saveRDS(spe, raw_out_path)
 #   Compute log-normalized counts
 ################################################################################
 
+spe <- spe[,spe$in_tissue]
+
+#   Compute outlier spots by library size
 spe$scran_low_lib_size <-
     factor(
         isOutlier(
             spe$sum_umi,
             type = "lower",
             log = TRUE,
-            batch = spe$sample_id
+            batch = spe$sample_id_original
         ),
         levels = c("TRUE", "FALSE")
     )
 
-vis_grid_clus(
-    spe = spe,
-    clustervar = "scran_low_lib_size",
-    pdf = here("plots", "01_build_spe", paste0("vis_clus_sample_aware_low_lib_size.pdf")),
-    sort_clust = FALSE,
-    colors = c("FALSE" = "grey90", "TRUE" = "orange"),
-    spatial = FALSE,
-    point_size = 2,
-    height = 24,
-    width = 90
-)
+plot_list = list()
+for (donor in unique(spe$sample_id)) {
+    plot_list[[donor]] = spot_plot(
+        spe,
+        sample_id = donor,
+        title = donor,
+        var_name = "scran_low_lib_size",
+        include_legend = TRUE,
+        is_discrete = TRUE
+    )
+}
+pdf(file.path(plot_dir, "sample_aware_low_lib_size.pdf"))
+print(plot_list)
+dev.off()
 
 #   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
 #   genes, and drop genes with 0 counts in every spot
 spe <- spe[
     rowSums(assays(spe)$counts) > 0,
-    spe$in_tissue & (colSums(assays(spe)$counts) > 0)
+    (colSums(assays(spe)$counts) > 0)
 ]
 
 message("Running quickCluster()")
