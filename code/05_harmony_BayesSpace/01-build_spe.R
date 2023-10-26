@@ -251,6 +251,29 @@ saveRDS(spe, raw_out_path)
 #   Compute log-normalized counts
 ################################################################################
 
+spe$scran_low_lib_size <-
+    factor(
+        isOutlier(
+            spe$sum_umi,
+            type = "lower",
+            log = TRUE,
+            batch = spe$sample_id
+        ),
+        levels = c("TRUE", "FALSE")
+    )
+
+vis_grid_clus(
+    spe = spe,
+    clustervar = "scran_low_lib_size",
+    pdf = here("plots", "01_build_spe", paste0("vis_clus_sample_aware_low_lib_size.pdf")),
+    sort_clust = FALSE,
+    colors = c("FALSE" = "grey90", "TRUE" = "orange"),
+    spatial = FALSE,
+    point_size = 2,
+    height = 24,
+    width = 90
+)
+
 #   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
 #   genes, and drop genes with 0 counts in every spot
 spe <- spe[
