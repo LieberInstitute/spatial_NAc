@@ -56,6 +56,22 @@ all_donors = unique(sample_info$donor)
 #   Build the SPE object using [slide]_[capture area] as samples, to start
 ################################################################################
 
+#   'read10xVisiumWrapper' silently breaks when multiple validly named tissue
+#   positions files exist for the same sample. A script for VisiumStitcher
+#   supposedly depends on always having a 'tissue_positions_list.csv', which
+#   creates conflicting requirements. As a temporary workaround, just rename
+#   duplicate files while read10xVisiumWrapper is running
+new_paths = file.path(
+    sample_info$spaceranger_dir, 'spatial', 'tissue_positions.csv'
+)
+old_paths = file.path(
+    sample_info$spaceranger_dir, 'spatial', 'tissue_positions_list.csv'
+)
+bad_old_paths = old_paths[file.exists(old_paths) & file.exists(new_paths)]
+temp_old_paths = sub('/tissue_', '/.temp_tissue_', bad_old_paths)
+
+file.rename(bad_old_paths, temp_old_paths)
+
 message("Building SpatialExperiment using [slide]_[capture area] as sample ID")
 spe = read10xVisiumWrapper(
     samples = sample_info$spaceranger_dir,
@@ -66,6 +82,8 @@ spe = read10xVisiumWrapper(
     load = TRUE,
     verbose = TRUE
 )
+
+file.rename(temp_old_paths, bad_old_paths)
 
 #   Explicitly check that all samples have the right number of spots to avoid
 #   silent issues downstream
