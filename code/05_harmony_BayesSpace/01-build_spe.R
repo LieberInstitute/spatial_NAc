@@ -75,12 +75,9 @@ message("Adding transformed spot coordinates and sample info to colData")
 #   Merge all transformed spot coordinates into a single tibble
 coords_list = list()
 for (donor in all_donors) {
-    tissue_positions_path = list.files(
-        file.path(transformed_dir, donor),
-        pattern = '^tissue_positions(_list)?\\.csv$',
-        full.names = TRUE
+    tissue_positions_path = file.path(
+        transformed_dir, donor, 'tissue_positions.csv'
     )
-    stopifnot(length(tissue_positions_path) == 1)
 
     #   Read in and clean up transformed spot coordinates
     spot_coords = tissue_positions_path |>
