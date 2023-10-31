@@ -19,6 +19,7 @@ filtered_out_path = here(
 )
 plot_dir = here('plots', '05_harmony_BayesSpace')
 num_cores = 4
+num_spots = 4992 # Visium always uses a 64 x 78 grid
 
 ################################################################################
 #   Read in the two sources of sample info and merge
@@ -65,6 +66,20 @@ spe = read10xVisiumWrapper(
     load = TRUE,
     verbose = TRUE
 )
+
+#   Explicitly check that all samples have the right number of spots to avoid
+#   silent issues downstream
+spots_by_id = table(spe$sample_id)
+if (any(spots_by_id != num_spots)) {
+    bad_ids = paste(
+        names(spots_by_id)[spots_by_id != num_spots], collapse = "', '"
+    )
+    stop(
+        sprintf(
+            "The following IDs did not have %d spots: '%s'", num_spots, bad_ids
+        )
+    )
+}
 
 ################################################################################
 #   Read in transformed spot coordinates and add to colData
