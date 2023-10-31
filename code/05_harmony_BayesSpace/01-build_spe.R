@@ -19,7 +19,6 @@ filtered_out_path = here(
 )
 plot_dir = here('plots', '05_harmony_BayesSpace')
 num_cores = 4
-num_spots = 4992 # Visium always uses a 64 x 78 grid
 
 ################################################################################
 #   Read in the two sources of sample info and merge
@@ -85,20 +84,6 @@ spe = read10xVisiumWrapper(
 
 file.rename(temp_old_paths, bad_old_paths)
 
-#   Explicitly check that all samples have the right number of spots to avoid
-#   silent issues downstream
-spots_by_id = table(spe$sample_id)
-if (any(spots_by_id != num_spots)) {
-    bad_ids = paste(
-        names(spots_by_id)[spots_by_id != num_spots], collapse = "', '"
-    )
-    stop(
-        sprintf(
-            "The following IDs did not have %d spots: '%s'", num_spots, bad_ids
-        )
-    )
-}
-
 ################################################################################
 #   Read in transformed spot coordinates and add to colData
 ################################################################################
@@ -147,9 +132,9 @@ for (donor in all_donors) {
 }
 coords = do.call(rbind, coords_list)
 
-#   The same number of spots should exist before and after the Samui/ImageJ
-#   refinement workflow
-stopifnot(nrow(coords) == ncol(spe))
+#   'read10xVisiumWrapper' may return a subset of spots used in the Samui
+#   workflow, but not vice versa
+stopifnot(all(spe$key %in% coords$key))
 
 #   Add transformed spot coordinates, spot-overlap info, and sample_info to
 #   colData
