@@ -23,6 +23,9 @@ marker_dlpfc_path = file.path(
     'processed-data/spot_deconvo/05-shared_utilities/marker_stats_layer.rds'
 )
 plot_dir = here('plots', '05_harmony_BayesSpace', 'multi_gene')
+z_score_dir = file.path(plot_dir, 'z_score')
+sparsity_dir = file.path(plot_dir, 'sparsity')
+pc_dir = file.path(plot_dir, 'pc')
 
 num_markers = 25
 
@@ -44,6 +47,9 @@ genes_nac = list(
 best_sample_dlpfc = 'Br6522_Ant_IF'
 best_sample_nac = 'Br8492'
 
+plot_funs = c(spot_plot_z_score, spot_plot_sparsity, spot_plot_pca)
+names(plot_funs) = c(z_score_dir, sparsity_dir, pc_dir)
+
 ################################################################################
 #   Functions
 ################################################################################
@@ -53,166 +59,35 @@ best_sample_nac = 'Br8492'
 #   genes: named list of character vectors whose names are "subregion"s for
 #       which the genes (as Ensembl IDs) are markers
 #   dataset: character(1) included in output PDF names
-#   assay: character(1) expected to be in names(assays(spe))
 #   best_sample: character(1) in spe$sample_id giving a specific sample that
 #       be plotted across each subregion for comparison
 #   plot_dir: character(1) giving directory to write plots to
+#   plot_fun: function from spatialNAcUtils for plotting multiple genes
+#       spatially
 #
-#   For each subregion and sample, plot a spatial map of the average
-#   (across genes) of each gene's Z-score of expression (across all spots
-#   in all samples). Returns NULL
-plot_z_score = function(
-        spe, genes, dataset, assay, best_sample, plot_dir
+#   For each subregion and sample, plot a spatial map summarizing
+#   gene expression across 'genes', using the method described in 'plot_fun'
+make_plots = function(
+        spe, genes, dataset, best_sample, plot_dir, plot_fun
     ) {
     plot_list_sample = list()
 
     #   Plot all samples together in one PDF page, but have separate PDFs for
     #   each subregion
     for (subregion in sort(names(genes))) {
-        #   Subset assay to just the selected genes
-        gene_counts = assays(spe)[[assay]][
-            match(genes[[subregion]], rowData(spe)$gene_id),
-        ]
-
-        #   For each spot, average expression Z-scores across all selected genes
-        gene_z = (gene_counts - rowMeans(gene_counts)) /
-            (rowSdDiffs(gene_counts))
-        spe$temp_var = colMeans(gene_z, na.rm = TRUE)
-
-        #   Plot spatial distribution of averaged expression Z-scores for each
-        #   sample
         plot_list_subregion = list()
         for (sample_id in unique(spe$sample_id)) {
-            plot_list_subregion[[sample_id]] = spot_plot(
-                spe, sample_id, title = sample_id, var_name = 'temp_var',
-                include_legend = TRUE, is_discrete = FALSE, minCount = 0,
-                assayname = assay
-            )
-        }
-
-        plot_list_sample[[subregion]] = plot_list_subregion[[best_sample]] +
-            labs(title = subregion)
-
-        #   Save plots
-        pdf(file.path(plot_dir, sprintf('%s_%s.pdf', dataset, subregion)))
-        print(plot_list_subregion)
-        dev.off()
-    }
-
-    #   Now plot every subregion for the best sample (a single-page, single-row
-    #   PDF)
-    pdf(
-        file.path(plot_dir, sprintf('%s_%s.pdf', dataset, best_sample)),
-        width = 7 * length(genes)
-    )
-    print(plot_grid(plotlist = plot_list_sample, nrow = 1))
-    dev.off()
-}
-
-#   spe: SpatialExperiment with counts assay and rowData column 'gene_id'
-#       corresponding the Ensembl gene names, and colData column 'sample_id'
-#   genes: named list of character vectors whose names are "subregion"s for
-#       which the genes (as Ensembl IDs) are markers
-#   dataset: character(1) included in output PDF names
-#   best_sample: character(1) in spe$sample_id giving a specific sample that
-#       be plotted across each subregion for comparison
-#   plot_dir: character(1) giving directory to write plots to
-#
-#   For each subregion and sample, plot a spatial map of the proportion of
-#   markers for the given subregion that have nonzero expression (computed in
-#   each spot). Returns NULL
-plot_sparsity = function(spe, genes, dataset, best_sample, plot_dir) {
-    plot_list_sample = list()
-
-    #   Plot all samples together in one PDF page, but have separate PDFs for
-    #   each subregion
-    for (subregion in sort(names(genes))) {
-        #   For each spot, compute proportion of marker genes with nonzero
-        #   expression
-        spe$prop_nonzero_marker <- colMeans(
-            assays(
-                    spe[match(genes[[subregion]], rowData(spe)$gene_id),]
-                )$counts > 0
-        )
-
-        #   Plot spatial distribution of this proportion for each sample (donor)
-        plot_list_subregion = list()
-        for (sample_id in unique(spe$sample_id)) {
-            plot_list_subregion[[sample_id]] = spot_plot(
-                spe, sample_id, title = sample_id,
-                var_name = 'prop_nonzero_marker', include_legend = TRUE,
-                is_discrete = FALSE, minCount = 0.1
-            )
-        }
-
-        plot_list_sample[[subregion]] = plot_list_subregion[[best_sample]] +
-            labs(title = subregion)
-
-        #   Save plots
-        pdf(file.path(plot_dir, sprintf('%s_%s.pdf', dataset, subregion)))
-        print(plot_list_subregion)
-        dev.off()
-    }
-
-    #   Now plot every subregion for the best sample (a single-page, single-row
-    #   PDF)
-    pdf(
-        file.path(plot_dir, sprintf('%s_%s.pdf', dataset, best_sample)),
-        width = 7 * length(genes)
-    )
-    print(plot_grid(plotlist = plot_list_sample, nrow = 1))
-    dev.off()
-}
-
-#   spe: SpatialExperiment with rowData column 'gene_id' corresponding the
-#       Ensembl gene names, and colData column 'sample_id'
-#   genes: named list of character vectors whose names are "subregion"s for
-#       which the genes (as Ensembl IDs) are markers
-#   dataset: character(1) included in output PDF names
-#   assay: character(1) expected to be in names(assays(spe))
-#   best_sample: character(1) in spe$sample_id giving a specific sample that
-#       be plotted across each subregion for comparison
-#   plot_dir: character(1) giving directory to write plots to
-#
-#   For each subregion and sample, plot a spatial map summarizing expression of
-#   all 'genes'. Gene expression is subsetted to the genes of interest, and PCA
-#   is performed on the transposed expression data, such that each PC represents
-#   a "spot profile", where larger elements represent spots of greater
-#   expression variation within the gene set. Returns NULL
-plot_pc = function(spe, genes, dataset, assay, best_sample, plot_dir) {
-    plot_list_sample = list()
-
-    #   Plot all samples together in one PDF page, but have separate PDFs for
-    #   each subregion
-    for (subregion in sort(names(genes))) {
-        #   Take gene expression for the select genes, and transpose it. Then
-        #   perform PCA, so PCs capture highly variable spots with respect to
-        #   the marker genes
-        spot_exp = t(assays(spe)[[assay]][genes[[subregion]],])
-        pc_exp = prcomp(spot_exp, center = TRUE, scale = TRUE)
-        spe$pc_select_genes <- pc_exp$x[,'PC1']
-
-        #   Given that:
-        #       - 'genes' is assumed to represent markers of the subregion (and
-        #         thus their expression follows a similar pattern spatially)
-        #       - the first PC captures the most variation
-        #   Then each gene's coefficients to the first PC should tend to have
-        #   the same sign. Next, the sign of each PC is arbitary, and we'd like
-        #   plots to have positive values where expression is greater. If most
-        #   genes have negative coefficients to the first PC, we reverse the
-        #   sign of the coefficients to make visual intrepretation consistent
-        if (mean(pc_exp$rotation[,1] > 0) < 0.5) {
-            spe$pc_select_genes = -1 * spe$pc_select_genes
-        }
-
-        #   Plot spatial distribution of this proportion for each sample (donor)
-        plot_list_subregion = list()
-        for (sample_id in unique(spe$sample_id)) {
-            plot_list_subregion[[sample_id]] = spot_plot(
-                spe, sample_id, title = sample_id,
-                var_name = 'pc_select_genes', include_legend = TRUE,
-                is_discrete = FALSE, minCount = 0
-            )
+            if (dataset == 'DLPFC') {
+                plot_list_subregion[[sample_id]] = plot_fun(
+                    spe, genes[[subregion]], sample_id, title = sample_id, 
+                    include_legend = TRUE, assayname = "counts"
+                )
+            } else {
+                plot_list_subregion[[sample_id]] = plot_fun(
+                    spe, genes[[subregion]], sample_id, title = sample_id, 
+                    include_legend = TRUE
+                )
+            }
         }
 
         plot_list_sample[[subregion]] = plot_list_subregion[[best_sample]] +
@@ -257,40 +132,20 @@ for (subregion in names(genes_nac)) {
     ]
 }
 
-z_score_dir = file.path(plot_dir, 'z_score')
-sparsity_dir = file.path(plot_dir, 'sparsity')
-pc_dir = file.path(plot_dir, 'pc')
 dir.create(z_score_dir, showWarnings = FALSE)
 dir.create(sparsity_dir, showWarnings = FALSE)
 dir.create(pc_dir, showWarnings = FALSE)
 
-#   Plot NAc data using Z-score approach
-plot_z_score(
-    spe = spe_nac,
-    genes = genes_nac,
-    dataset = 'NAc',
-    assay = 'logcounts',
-    best_sample = best_sample_nac,
-    plot_dir = z_score_dir
-)
-
-#   Plot NAc data using sparsity approach
-plot_sparsity(
-    spe = spe_nac,
-    genes = genes_nac,
-    dataset = 'NAc',
-    best_sample = best_sample_nac,
-    plot_dir = sparsity_dir
-)
-
-plot_pc(
-    spe = spe_nac,
-    genes = genes_nac,
-    dataset = 'NAc',
-    assay = 'logcounts',
-    best_sample = best_sample_nac,
-    plot_dir = pc_dir
-)
+for (i in 1:length(plot_funs)) {
+    make_plots(
+        spe = spe_nac,
+        genes = genes_nac,
+        dataset = 'NAc',
+        best_sample = best_sample_nac,
+        plot_dir = names(plot_funs)[[i]],
+        plot_fun = plot_funs[[i]]
+    )
+}
 
 #-------------------------------------------------------------------------------
 #   DLPFC plots
@@ -347,23 +202,15 @@ for (cell_type in unique(marker_dlpfc$cellType.target)) {
 #   All genes (originally from 'marker_dlpfc') should be in 'spe_dlpfc'
 stopifnot(all(unlist(genes_dlpfc) %in% rowData(spe_dlpfc)$gene_id))
 
-#   Plot DLPFC data using Z-score approach
-plot_z_score(
-    spe = spe_dlpfc,
-    genes = genes_dlpfc,
-    dataset = 'DLPFC',
-    assay = 'counts',
-    best_sample = best_sample_dlpfc,
-    plot_dir = z_score_dir
-)
-
-#   Plot DLPFC data using sparsity approach
-plot_sparsity(
-    spe = spe_dlpfc,
-    genes = genes_dlpfc,
-    dataset = 'DLPFC',
-    best_sample = best_sample_dlpfc,
-    plot_dir = sparsity_dir
-)
+for (i in 1:length(plot_funs)) {
+    make_plots(
+        spe = spe_dlpfc,
+        genes = genes_dlpfc,
+        dataset = 'DLPFC',
+        best_sample = best_sample_dlpfc,
+        plot_dir = names(plot_funs)[[i]],
+        plot_fun = plot_funs[[i]]
+    )
+}
 
 session_info()
