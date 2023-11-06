@@ -26,7 +26,7 @@ for brain in sample_key.Brain.unique():
     # Read in the data from all capture areas correspnding to the brain and specify the corrected transforms
     for i in range(sample_key_brain.shape[0]):
         adata = sc.read_visium(homeDir + "processed-data/01_spaceranger_reorg/" +
-                       sample_key_brain.Slide[i] + "/outs", count_file="filtered_feature_bc_matrix.h5")
+                       sample_key_brain.Slide[i] + "/outs", count_file="raw_feature_bc_matrix.h5")
         adata.var_names_make_unique()
         adata.obs_names = [sample_key_brain.Slide[i]+j for j in adata.obs_names]
         adata.obs['sample'] = sample_key_brain.Slide[i]
