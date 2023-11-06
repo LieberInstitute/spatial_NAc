@@ -6,6 +6,7 @@ library(jaffelab)
 library(sessioninfo)
 library(scran)
 library(BiocParallel)
+library(spatialNAcUtils)
 
 sample_info_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 sample_info_path2 = here(
@@ -16,6 +17,7 @@ raw_out_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
 filtered_out_path = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
 )
+plot_dir = here('plots', '05_harmony_BayesSpace')
 num_cores = 4
 
 ################################################################################
@@ -31,28 +33,12 @@ sample_info = read.csv(sample_info_path) |>
 sample_info = read.csv(sample_info_path2) |>
     as_tibble() |>
     rename(sample_id = X) |>
+    select(-In.analysis) |>
     right_join(sample_info, by = "sample_id") |>
     filter(In.analysis == "Yes") |>
+    select(-In.analysis) |>
     mutate(spaceranger_dir = dirname(normalizePath(spaceranger_dir))) |>
     rename(slide_num = Slide.., array_num = Array.., donor = Brain)
-
-#   Grab donors that are in analysis but don't have refined transforms
-unrefined_donors = sample_info |>
-    filter(In.analysis == "Yes", Refined.transforms == "No") |>
-    pull(donor) |>
-    unique()
-
-#   Similarly for those that do have refined transforms
-refined_donors = sample_info |>
-    filter(In.analysis == "Yes", Refined.transforms == "Yes") |>
-    pull(donor) |>
-    unique()
-
-#   Ensure each unrefined donor consists of just one sample
-n_unrefined_samples = sample_info |>
-    filter(donor %in% unrefined_donors) |>
-    nrow()
-stopifnot(n_unrefined_samples == length(unrefined_donors))
 
 #   We only need certain columns in the colData
 sample_info = sample_info |>
@@ -63,9 +49,27 @@ sample_info = sample_info |>
         )
     )
 
+all_donors = unique(sample_info$donor)
+
 ################################################################################
 #   Build the SPE object using [slide]_[capture area] as samples, to start
 ################################################################################
+
+#   'read10xVisiumWrapper' silently breaks when multiple validly named tissue
+#   positions files exist for the same sample. A script for VisiumStitcher
+#   supposedly depends on always having a 'tissue_positions_list.csv', which
+#   creates conflicting requirements. As a temporary workaround, just rename
+#   duplicate files while read10xVisiumWrapper is running
+new_paths = file.path(
+    sample_info$spaceranger_dir, 'spatial', 'tissue_positions.csv'
+)
+old_paths = file.path(
+    sample_info$spaceranger_dir, 'spatial', 'tissue_positions_list.csv'
+)
+bad_old_paths = old_paths[file.exists(old_paths) & file.exists(new_paths)]
+temp_old_paths = sub('/tissue_', '/.temp_tissue_', bad_old_paths)
+
+file.rename(bad_old_paths, temp_old_paths)
 
 message("Building SpatialExperiment using [slide]_[capture area] as sample ID")
 spe = read10xVisiumWrapper(
@@ -78,6 +82,8 @@ spe = read10xVisiumWrapper(
     verbose = TRUE
 )
 
+file.rename(temp_old_paths, bad_old_paths)
+
 ################################################################################
 #   Read in transformed spot coordinates and add to colData
 ################################################################################
@@ -86,11 +92,13 @@ message("Adding transformed spot coordinates and sample info to colData")
 
 #   Merge all transformed spot coordinates into a single tibble
 coords_list = list()
-for (donor in refined_donors) {
+for (donor in all_donors) {
+    tissue_positions_path = file.path(
+        transformed_dir, donor, 'tissue_positions.csv'
+    )
+
     #   Read in and clean up transformed spot coordinates
-    spot_coords = file.path(
-            transformed_dir, donor, 'tissue_positions_list.csv'
-        ) |>
+    spot_coords = tissue_positions_path |>
         read.csv() |>
         as_tibble() |>
         rename(
@@ -124,6 +132,10 @@ for (donor in refined_donors) {
 }
 coords = do.call(rbind, coords_list)
 
+#   'read10xVisiumWrapper' may return a subset of spots used in the Samui
+#   workflow, but not vice versa
+stopifnot(all(spe$key %in% coords$key))
+
 #   Add transformed spot coordinates, spot-overlap info, and sample_info to
 #   colData
 colData(spe) = colData(spe) |>
@@ -139,21 +151,16 @@ rownames(colData(spe)) = rownames(spatialCoords(spe)) # tibbles lose rownames
 
 message("Using transformed spatialCoords by default")
 
-#   Swap out original spot pixel coordinates for transformed ones, where they
-#   exist
-spe$pxl_col_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_col_in_fullres'])
-spe$pxl_row_in_fullres_original = unname(spatialCoords(spe)[, 'pxl_row_in_fullres'])
+#   Swap out original spot pixel coordinates for transformed ones
+spe$pxl_col_in_fullres_original = unname(
+    spatialCoords(spe)[, 'pxl_col_in_fullres']
+)
+spe$pxl_row_in_fullres_original = unname(
+    spatialCoords(spe)[, 'pxl_row_in_fullres']
+)
 
-coords_col = ifelse(
-    is.na(spe$pxl_col_in_fullres_transformed),
-    spe$pxl_col_in_fullres_original, spe$pxl_col_in_fullres_transformed
-)
-coords_row = ifelse(
-    is.na(spe$pxl_row_in_fullres_transformed),
-    spe$pxl_row_in_fullres_original, spe$pxl_row_in_fullres_transformed
-)
 spatialCoords(spe) = matrix(
-    c(coords_col, coords_row),
+    c(spe$pxl_col_in_fullres_transformed, spe$pxl_row_in_fullres_transformed),
     ncol = 2,
     dimnames = list(
         rownames(spatialCoords(spe)),
@@ -161,18 +168,11 @@ spatialCoords(spe) = matrix(
     )
 )
 
-#   Swap out original spot array coordinates for transformed ones, where they
-#   exist
+#   Swap out original spot array coordinates for transformed ones
 spe$array_row_original = spe$array_row
 spe$array_col_original = spe$array_col
-spe$array_row = ifelse(
-    is.na(spe$array_row_transformed),
-    spe$array_row_original, spe$array_row_transformed
-)
-spe$array_col = ifelse(
-    is.na(spe$array_col_transformed),
-    spe$array_col_original, spe$array_col_transformed
-)
+spe$array_row = spe$array_row_transformed
+spe$array_col = spe$array_col_transformed
 
 ################################################################################
 #   Use merged images (one image per donor) instead of single-capture-area
@@ -181,29 +181,18 @@ spe$array_col = ifelse(
 
 message("Overwriting imgData(spe) with merged images (one per donor)")
 
-#   Read in the merged images for donors where they exist
+#   Read in the merged images for donors
 img_data = readImgData(
-    path = file.path(transformed_dir, refined_donors),
-    sample_id = refined_donors,
+    path = file.path(transformed_dir, all_donors),
+    sample_id = all_donors,
     imageSources = file.path(
-        transformed_dir, refined_donors, "tissue_lowres_image.png"
+        transformed_dir, all_donors, "tissue_lowres_image.png"
     ),
     scaleFactors = file.path(
-        transformed_dir, refined_donors, "scalefactors_json.json"
+        transformed_dir, all_donors, "scalefactors_json.json"
     ),
     load = TRUE
 )
-
-#   For donors with one sample, use the images already read in from spaceranger
-unrefined_ids = sample_info[[
-    match(unrefined_donors, sample_info$donor), 'sample_id'
-]]
-img_data_unrefined = imgData(spe)[imgData(spe)$sample_id %in% unrefined_ids,]
-img_data_unrefined$sample_id = sample_info$donor[
-    match(img_data_unrefined$sample_id, sample_info$sample_id)
-]
-
-img_data = rbind(img_data, img_data_unrefined)
 
 ################################################################################
 #   Change from [slide]_[array] to donor as sample ID
@@ -267,11 +256,40 @@ saveRDS(spe, raw_out_path)
 #   Compute log-normalized counts
 ################################################################################
 
+spe <- spe[,spe$in_tissue]
+
+#   Compute outlier spots by library size
+spe$scran_low_lib_size <-
+    factor(
+        isOutlier(
+            spe$sum_umi,
+            type = "lower",
+            log = TRUE,
+            batch = spe$sample_id_original
+        ),
+        levels = c("TRUE", "FALSE")
+    )
+
+plot_list = list()
+for (donor in unique(spe$sample_id)) {
+    plot_list[[donor]] = spot_plot(
+        spe,
+        sample_id = donor,
+        title = donor,
+        var_name = "scran_low_lib_size",
+        include_legend = TRUE,
+        is_discrete = TRUE
+    )
+}
+pdf(file.path(plot_dir, "sample_aware_low_lib_size.pdf"))
+print(plot_list)
+dev.off()
+
 #   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
 #   genes, and drop genes with 0 counts in every spot
 spe <- spe[
     rowSums(assays(spe)$counts) > 0,
-    spe$in_tissue & (colSums(assays(spe)$counts) > 0)
+    (colSums(assays(spe)$counts) > 0)
 ]
 
 message("Running quickCluster()")

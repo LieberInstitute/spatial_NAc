@@ -19,7 +19,7 @@ rsconnect::deployApp(
     appDir = here("code", "06_deploy_app"),
     appFiles = c(
         "app.R",
-        "spe_shiny.rds",
+        list.files(here("code", "06_deploy_app", "spe_shiny"), full.names = TRUE),
         with_dir(here("code", "06_deploy_app"), dir("www", full.names = TRUE))
     ),
     appName = "Spatial_NAc",

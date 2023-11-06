@@ -407,7 +407,7 @@ if (file_suffix == 'adjusted') or (this_donor in unadjusted_donors):
 #   Handle the spot coordinates
 for i in range(sample_info.shape[0]):
     #   Read in the tissue positions file to get spatial coordinates. Index by
-    #   barcode + sample ID, and subset to only spots within tissue
+    #   barcode + sample ID
     pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
     this_dir = sample_info['spaceranger_dir'].iloc[i]
     tissue_path = [
@@ -416,20 +416,20 @@ for i in range(sample_info.shape[0]):
         ][0]
     if '_list' in tissue_path.name: 
         tissue_positions = pd.read_csv(
-                tissue_path,
-                header = None,
-                # Note the switch of x and y
-                names = ["in_tissue", "row", "col", "y", "x"],
-                index_col = 0
-            ).query('in_tissue == 1')
+            tissue_path,
+            header = None,
+            # Note the switch of x and y
+            names = ["in_tissue", "row", "col", "y", "x"],
+            index_col = 0
+        )
     else:
         tissue_positions = pd.read_csv(
-                tissue_path,
-                skiprows = 1,
-                # Note the switch of x and y
-                names = ["in_tissue", "row", "col", "y", "x"],
-                index_col = 0
-            ).query('in_tissue == 1')
+            tissue_path,
+            skiprows = 1,
+            # Note the switch of x and y
+            names = ["in_tissue", "row", "col", "y", "x"],
+            index_col = 0
+        )
     
     tissue_positions.index = tissue_positions.index + '_' + sample_info.index[i]
 

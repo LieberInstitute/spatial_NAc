@@ -1,4 +1,5 @@
 library("SpatialExperiment")
+library("HDF5Array")
 library("lobstr")
 library("here")
 library("sessioninfo")
@@ -6,11 +7,7 @@ library("sessioninfo")
 spe_path_in <- here(
     "processed-data", "05_harmony_BayesSpace", "spe_filtered.rds"
 )
-spe_path_out <- here(
-    "code", "06_deploy_app", "spe_shiny.rds"
-)
-
-dir.create(dirname(spe_path_out), showWarnings = FALSE, recursive = TRUE)
+spe_dir_out <- here("code", "06_deploy_app", "spe_shiny")
 
 spe <- readRDS(spe_path_in)
 spe
@@ -126,7 +123,7 @@ spe
 # altExpNames(0):
 # spatialCoords names(2) : pxl_col_in_fullres pxl_row_in_fullres
 # imgData names(4): sample_id image_id data scaleFactor
-saveRDS(spe, spe_path_out)
+saveHDF5SummarizedExperiment(spe, spe_dir_out, replace = TRUE)
 
 ## Reproducibility information
 print("Reproducibility information:")

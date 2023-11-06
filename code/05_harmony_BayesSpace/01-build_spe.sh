@@ -7,7 +7,7 @@
 #$ -pe local 4
 #$ -l mf=10G,h_vmem=10G,h_fsize=50G
 
-#SBATCH -q shared
+#SBATCH -p shared
 #SBATCH -c 4
 #SBATCH --mem=40G
 #SBATCH --job-name=build_spe
