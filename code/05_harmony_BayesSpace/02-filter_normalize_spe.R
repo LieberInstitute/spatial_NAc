@@ -39,40 +39,6 @@ spe <- spe[
     (colSums(assays(spe)$counts) > 0) & spe$in_tissue
 ]
 
-#   Compute outlier spots by library size
-spe$scran_low_lib_size <-
-    factor(
-        isOutlier(
-            spe$sum_umi,
-            type = "lower",
-            log = TRUE,
-            batch = spe$sample_id_original
-        ),
-        levels = c("TRUE", "FALSE")
-    )
-
-plot_list = list()
-for (donor in unique(spe$sample_id)) {
-    plot_list[[donor]] = spot_plot(
-        spe,
-        sample_id = donor,
-        title = donor,
-        var_name = "scran_low_lib_size",
-        include_legend = TRUE,
-        is_discrete = TRUE
-    )
-}
-pdf(file.path(plot_dir, "sample_aware_low_lib_size.pdf"))
-print(plot_list)
-dev.off()
-
-#   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
-#   genes, and drop genes with 0 counts in every spot
-spe <- spe[
-    rowSums(assays(spe)$counts) > 0,
-    (colSums(assays(spe)$counts) > 0)
-]
-
 message("Running quickCluster()")
 
 Sys.time()
@@ -93,6 +59,7 @@ spe <- computeSumFactors(
 )
 Sys.time()
 
+print("Quick cluster table:")
 table(spe$scran_quick_cluster)
 
 message("Running checking sizeFactors()")
@@ -175,8 +142,8 @@ dev.off()
 
 message("Running nullResiduals()")
 spe <- nullResiduals(
-    spe, assay = "counts", fam = "binomial", # default params
-    type = "deviance"
+    # default params
+    spe, assay = "counts", fam = "binomial", type = "deviance"
 )
 
 
