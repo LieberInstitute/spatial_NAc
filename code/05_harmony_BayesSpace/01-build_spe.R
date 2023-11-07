@@ -61,7 +61,7 @@ old_paths = file.path(
 bad_old_paths = old_paths[file.exists(old_paths) & file.exists(new_paths)]
 temp_old_paths = sub('/tissue_', '/.temp_tissue_', bad_old_paths)
 
-file.rename(bad_old_paths, temp_old_paths)
+stopifnot(all(file.rename(bad_old_paths, temp_old_paths)))
 
 message("Building SpatialExperiment using [slide]_[capture area] as sample ID")
 spe = read10xVisiumWrapper(
@@ -74,7 +74,7 @@ spe = read10xVisiumWrapper(
     verbose = TRUE
 )
 
-file.rename(temp_old_paths, bad_old_paths)
+stopifnot(all(file.rename(temp_old_paths, bad_old_paths)))
 
 ################################################################################
 #   Read in transformed spot coordinates and add to colData
@@ -82,15 +82,20 @@ file.rename(temp_old_paths, bad_old_paths)
 
 message("Adding transformed spot coordinates and sample info to colData")
 
+#   Add sample info to the colData
+colData(spe) = colData(spe) |>
+    as_tibble() |>
+    left_join(sample_info, by = 'sample_id') |>
+    DataFrame()
+
 #   Merge all transformed spot coordinates into a single tibble
 coords_list = list()
-for (donor in all_donors) {
-    tissue_positions_path = file.path(
-        transformed_dir, donor, 'tissue_positions.csv'
-    )
-
-    #   Read in and clean up transformed spot coordinates
-    spot_coords = tissue_positions_path |>
+for (this_donor in all_donors) {
+    #   Read in and clean up transformed spot coordinates from the Samui
+    #   workflow
+    spot_coords_samui = file.path(
+            transformed_dir, this_donor, 'tissue_positions.csv'
+        ) |>
         read.csv() |>
         as_tibble() |>
         rename(
@@ -100,19 +105,26 @@ for (donor in all_donors) {
             pxl_row_in_fullres_transformed = pxl_row_in_fullres,
             pxl_col_in_fullres_transformed = pxl_col_in_fullres
         ) |>
+        #   Reformat to be [barcode]_[sample_id] (matching spe$key)
+        mutate(
+            key = paste(
+                ss(key, '_[ABCD]1', 2),
+                key |> str_replace('(.*_[ABCD]1).*', '\\1'),
+                sep = '_'
+            )
+        ) |>
         select(-in_tissue)
     
-    #   Read in and clean Visium Stitcher info about spot overlaps
-    coords_list[[donor]] = file.path(
-            transformed_dir, donor, 'vs_stitcher.csv'
+    #   Read in spots and 'exclude_overlapping' info from Visium Stitcher. In
+    #   general, spots here are a subset of those from the Samui workflow
+    spot_coords_stitcher = file.path(
+            transformed_dir, this_donor, 'vs_stitcher.csv'
         ) |>
         read.csv() |>
         as_tibble() |>
         rename(key = X) |>
-        select(c(key, overlap_slide, exclude_overlapping)) |>
-        left_join(spot_coords, by = "key") |>
+        #   Reformat to be [barcode]_[sample_id] (matching spe$key)
         mutate(
-            #   Reformat to be [barcode]_[sample_id] (matching spe$key)
             key = paste(
                 ss(key, '_[ABCD]1', 2),
                 key |> str_replace('(.*_[ABCD]1).*', '\\1'),
@@ -120,20 +132,30 @@ for (donor in all_donors) {
             ),
             #   Change from character to logical
             exclude_overlapping = exclude_overlapping == 'True'
-        )
+        ) |>
+        select(c(key, overlap_slide, exclude_overlapping))
+    
+    #   As a sanity check, confirm all spots in the SPE for this donor are
+    #   present in Samui spots (the converse may not be true). Then confirm
+    #   spots are identical between the SPE and Visium Stitcher
+    spe_keys = colData(spe) |>
+        as_tibble() |>
+        filter(donor == this_donor) |>
+        pull(key)
+    stopifnot(all(spe_keys %in% spot_coords_samui$key))
+    stopifnot(all(sort(spe_keys) == sort(spot_coords_stitcher$key)))
+    
+    #   Read in and clean Visium Stitcher info about spot overlaps
+    coords_list[[donor]] = left_join(
+        spot_coords_stitcher, spot_coords_samui, by = "key"
+    )
 }
 coords = do.call(rbind, coords_list)
 
-#   'read10xVisiumWrapper' may return a subset of spots used in the Samui
-#   workflow, but not vice versa
-stopifnot(all(spe$key %in% coords$key))
-
-#   Add transformed spot coordinates, spot-overlap info, and sample_info to
-#   colData
+#   Add transformed spot coordinates and spot-overlap info to colData
 colData(spe) = colData(spe) |>
     as_tibble() |>
     left_join(coords, by = "key") |>
-    left_join(sample_info, by = 'sample_id') |>
     DataFrame()
 rownames(colData(spe)) = rownames(spatialCoords(spe)) # tibbles lose rownames
 
