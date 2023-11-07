@@ -6,9 +6,11 @@ library(jaffelab)
 library(sessioninfo)
 library(scran)
 library(BiocParallel)
+library(BiocSingular)
 library(spatialNAcUtils)
 library(scran)
 library(scater)
+library(scry)
 
 sample_info_path = here('raw-data', 'sample_key_spatial_NAc.csv')
 sample_info_path2 = here(
@@ -22,7 +24,7 @@ filtered_out_path = here(
 )
 plot_dir = here('plots', '05_harmony_BayesSpace')
 num_cores = 4
-num_red_dims = 20
+num_red_dims = 50
 
 ################################################################################
 #   Compute log-normalized counts
@@ -157,43 +159,37 @@ dev.off()
 #   Compute GLM-PCA
 ################################################################################
 
-message("running Deviance Feat. Selection - ", Sys.time())
-sce <- devianceFeatureSelection(sce,
-    assay = "counts", fam = "binomial", sorted = F,
-    batch = as.factor(sce$round)
+message("Running devianceFeatureSelection()")
+spe <- devianceFeatureSelection(
+    spe, assay = "counts", fam = "binomial", sorted = FALSE,
+    batch = as.factor(spe$sample_id_original)
 )
 
-# This temp file just used for getting batch-corrected components (drops a variety of entries)
-
-pdf(here("plots", "03_build_sce", "normalize1", "binomial_deviance.pdf"))
-plot(sort(rowData(sce)$binomial_deviance, decreasing = T),
+pdf(file.path(plot_dir, "binomial_deviance.pdf"))
+plot(sort(rowData(spe)$binomial_deviance, decreasing = T),
     type = "l", xlab = "ranked genes",
     ylab = "binomial deviance", main = "Feature Selection with Deviance"
 )
 abline(v = 2000, lty = 2, col = "red")
 dev.off()
 
-message("running nullResiduals - ", Sys.time())
-sce <- nullResiduals(sce,
-    assay = "counts", fam = "binomial", # default params
+message("Running nullResiduals()")
+spe <- nullResiduals(
+    spe, assay = "counts", fam = "binomial", # default params
     type = "deviance"
 )
 
 
-hdgs.hb <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:2000]
+hdgs.hb <- rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:2000]
 
-message("running PCA - ", Sys.time())
-sce_uncorrected <- runPCA(sce,
+message("Running GLM-PCA")
+spe <- runPCA(
+    spe,
     exprs_values = "binomial_deviance_residuals",
-    subset_row = hdgs.hb, ncomponents = 100,
+    subset_row = hdgs.hb, ncomponents = num_red_dims,
     name = "GLMPCA_approx",
     BSPARAM = BiocSingular::IrlbaParam()
 )
-
-message("Adding GLM-PCA to 'reducedDims(spe)'")
-reducedDims(spe)$GLMPCA = glmpca(
-    assays(spe)$counts, num_red_dims, fam = "poi", minibatch = "stochastic"
-)$factors
 
 message("Saving filtered spe")
 saveRDS(spe, filtered_out_path)
