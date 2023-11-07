@@ -153,14 +153,42 @@ pdf(file.path(dir_plots, "pca_elbow.pdf"), useDingbats = FALSE)
 plot(percent.var, xlab = "PC", ylab = "Variance explained (%)")
 dev.off()
 
-message("Adding PCA to 'reducedDims(spe)'")
-pca = prcomp(t(assays(spe)$counts), rank = num_red_dims)
-reducedDims(spe)$PCA = pca$x
-metadata(spe)$PCA_var_explained = jaffelab::getPcaVars(pca)[1:num_red_dims]
-message(
-    sprintf("Percent of variance explained for the top %s PCs:", num_red_dims)
+################################################################################
+#   Compute GLM-PCA
+################################################################################
+
+message("running Deviance Feat. Selection - ", Sys.time())
+sce <- devianceFeatureSelection(sce,
+    assay = "counts", fam = "binomial", sorted = F,
+    batch = as.factor(sce$round)
 )
-print(metadata(spe)$PCA_var_explained)
+
+# This temp file just used for getting batch-corrected components (drops a variety of entries)
+
+pdf(here("plots", "03_build_sce", "normalize1", "binomial_deviance.pdf"))
+plot(sort(rowData(sce)$binomial_deviance, decreasing = T),
+    type = "l", xlab = "ranked genes",
+    ylab = "binomial deviance", main = "Feature Selection with Deviance"
+)
+abline(v = 2000, lty = 2, col = "red")
+dev.off()
+
+message("running nullResiduals - ", Sys.time())
+sce <- nullResiduals(sce,
+    assay = "counts", fam = "binomial", # default params
+    type = "deviance"
+)
+
+
+hdgs.hb <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:2000]
+
+message("running PCA - ", Sys.time())
+sce_uncorrected <- runPCA(sce,
+    exprs_values = "binomial_deviance_residuals",
+    subset_row = hdgs.hb, ncomponents = 100,
+    name = "GLMPCA_approx",
+    BSPARAM = BiocSingular::IrlbaParam()
+)
 
 message("Adding GLM-PCA to 'reducedDims(spe)'")
 reducedDims(spe)$GLMPCA = glmpca(
