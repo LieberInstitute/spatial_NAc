@@ -4,11 +4,10 @@
 #$ -N "build_spe"
 #$ -o ../../processed-data/05_harmony_BayesSpace/logs/01-build_spe.log
 #$ -e ../../processed-data/05_harmony_BayesSpace/logs/01-build_spe.log
-#$ -pe local 4
-#$ -l mf=10G,h_vmem=10G,h_fsize=50G
+#$ -l mf=40G,h_vmem=40G,h_fsize=50G
 
 #SBATCH -p shared
-#SBATCH -c 4
+#SBATCH -c 1
 #SBATCH --mem=40G
 #SBATCH --job-name=build_spe
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/01-build_spe.log
