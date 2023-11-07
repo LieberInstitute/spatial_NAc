@@ -146,7 +146,7 @@ for (this_donor in all_donors) {
     stopifnot(all(sort(spe_keys) == sort(spot_coords_stitcher$key)))
     
     #   Read in and clean Visium Stitcher info about spot overlaps
-    coords_list[[donor]] = left_join(
+    coords_list[[this_donor]] = left_join(
         spot_coords_stitcher, spot_coords_samui, by = "key"
     )
 }
