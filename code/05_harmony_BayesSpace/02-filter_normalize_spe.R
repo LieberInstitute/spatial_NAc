@@ -11,15 +11,20 @@ library(spatialNAcUtils)
 library(scran)
 library(scater)
 library(scry)
+library(HDF5Array)
 
 processed_dir = here("processed-data", "05_harmony_BayesSpace")
 raw_in_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
-filtered_out_path = here(
+filtered_ordinary_path = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
 )
+filtered_hdf5_dir = here(
+    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
+)
 plot_dir = here('plots', '05_harmony_BayesSpace')
-num_cores = Sys.getenv('SLURM_CPUS_ON_NODE')
 num_red_dims = 50
+
+num_cores = Sys.getenv('SLURM_CPUS_ON_NODE')
 
 ################################################################################
 #   Compute log-normalized counts
@@ -34,7 +39,7 @@ spe <- spe[
     (colSums(assays(spe)$counts) > 0) & spe$in_tissue
 ]
 
-message("Running quickCluster()")
+message(Sys.time(), " - Running quickCluster()")
 
 Sys.time()
 spe$scran_quick_cluster <- quickCluster(
@@ -45,7 +50,7 @@ spe$scran_quick_cluster <- quickCluster(
 )
 Sys.time()
 
-message("Running computeSumFactors()")
+message(Sys.time(), " - Running computeSumFactors()")
 Sys.time()
 spe <- computeSumFactors(
     spe,
@@ -57,17 +62,25 @@ Sys.time()
 print("Quick cluster table:")
 table(spe$scran_quick_cluster)
 
-message("Running checking sizeFactors()")
+message(Sys.time(), " - Running checking sizeFactors()")
 summary(sizeFactors(spe))
 
-message("Running logNormCounts()")
+message(Sys.time(), " - Running logNormCounts()")
 spe <- logNormCounts(spe)
+
+#   Save a copy of the SPE with HDF5-backed assays, which will be important to
+#   control memory consumption later
+message(Sys.time(), " - Saving HDF5-backed object to control memory later")
+spe = saveHDF5SummarizedExperiment(
+    spe, dir = filtered_hdf5_dir, replace = TRUE, as.sparse = TRUE
+)
+gc()
 
 ################################################################################
 #   Compute PCA
 ################################################################################
 
-message("Running modelGeneVar()")
+message(Sys.time(), " - Running modelGeneVar()")
 ## From
 ## http://bioconductor.org/packages/release/bioc/vignettes/scran/inst/doc/scran.html#4_variance_modelling
 dec <- modelGeneVar(
@@ -92,7 +105,7 @@ mapply(function(block, blockname) {
 }, dec$per.block, names(dec$per.block))
 dev.off()
 
-message("Running getTopHVGs()")
+message(Sys.time(), " - Running getTopHVGs()")
 top.hvgs <- getTopHVGs(dec, prop = 0.1)
 
 top.hvgs.fdr5 <- getTopHVGs(dec, fdr.threshold = 0.05)
@@ -106,7 +119,7 @@ save(
     file = file.path(processed_dir, "top.hvgs.Rdata")
 )
 
-message("Running runPCA()")
+message(Sys.time(), " - Running runPCA()")
 Sys.time()
 spe <- runPCA(spe, subset_row = top.hvgs, ncomponents = num_red_dims)
 Sys.time()
@@ -121,7 +134,7 @@ dev.off()
 #   Compute GLM-PCA
 ################################################################################
 
-message("Running devianceFeatureSelection()")
+message(Sys.time(), " - Running devianceFeatureSelection()")
 spe <- devianceFeatureSelection(
     spe, assay = "counts", fam = "binomial", sorted = FALSE,
     batch = as.factor(spe$sample_id_original)
@@ -135,7 +148,7 @@ plot(sort(rowData(spe)$binomial_deviance, decreasing = T),
 abline(v = 2000, lty = 2, col = "red")
 dev.off()
 
-message("Running nullResiduals()")
+message(Sys.time(), " - Running nullResiduals()")
 spe <- nullResiduals(
     # default params
     spe, assay = "counts", fam = "binomial", type = "deviance"
@@ -144,7 +157,7 @@ spe <- nullResiduals(
 
 hdgs.hb <- rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:2000]
 
-message("Running GLM-PCA")
+message(Sys.time(), " - Running GLM-PCA")
 spe <- runPCA(
     spe,
     exprs_values = "binomial_deviance_residuals",
@@ -153,7 +166,13 @@ spe <- runPCA(
     BSPARAM = BiocSingular::IrlbaParam()
 )
 
-message("Saving filtered spe")
-saveRDS(spe, filtered_out_path)
+message(Sys.time(), " - Saving HDF5-backed filtered spe")
+spe = saveHDF5SummarizedExperiment(
+    spe, dir = filtered_hdf5_dir, replace = TRUE, as.sparse = TRUE
+)
+
+message(Sys.time(), " - Saving ordinary filtered spe")
+spe = realize(spe)
+saveRDS(spe, filtered_ordinary_path)
 
 session_info()
