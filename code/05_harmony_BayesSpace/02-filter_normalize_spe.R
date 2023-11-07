@@ -12,18 +12,13 @@ library(scran)
 library(scater)
 library(scry)
 
-sample_info_path = here('raw-data', 'sample_key_spatial_NAc.csv')
-sample_info_path2 = here(
-    'processed-data', '02_image_stitching', 'sample_info_clean.csv'
-)
-transformed_dir = here('processed-data', '04_VisiumStitcher')
 processed_dir = here("processed-data", "05_harmony_BayesSpace")
 raw_in_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
 filtered_out_path = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
 )
 plot_dir = here('plots', '05_harmony_BayesSpace')
-num_cores = 4
+num_cores = Sys.getenv('SLURM_CPUS_ON_NODE')
 num_red_dims = 50
 
 ################################################################################
@@ -118,7 +113,7 @@ Sys.time()
 
 #   Plot variance explained
 percent.var <- attr(reducedDim(spe, "PCA"), "percentVar")
-pdf(file.path(dir_plots, "pca_elbow.pdf"), useDingbats = FALSE)
+pdf(file.path(plot_dir, "pca_elbow.pdf"), useDingbats = FALSE)
 plot(percent.var, xlab = "PC", ylab = "Variance explained (%)")
 dev.off()
 
