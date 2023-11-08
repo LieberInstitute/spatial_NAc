@@ -2,7 +2,7 @@
 
 #SBATCH -p shared
 #SBATCH -c 4
-#SBATCH --mem=80G
+#SBATCH --mem=100G
 #SBATCH --job-name=filter_normalize_spe
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/02-filter_normalize_spe.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/02-filter_normalize_spe.log

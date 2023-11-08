@@ -25,6 +25,7 @@ plot_dir = here('plots', '05_harmony_BayesSpace')
 num_red_dims = 50
 
 num_cores = Sys.getenv('SLURM_CPUS_ON_NODE')
+set.seed(0)
 
 ################################################################################
 #   Compute log-normalized counts
@@ -72,7 +73,7 @@ spe <- logNormCounts(spe)
 #   control memory consumption later
 message(Sys.time(), " - Saving HDF5-backed object to control memory later")
 spe = saveHDF5SummarizedExperiment(
-    spe, dir = filtered_hdf5_dir, replace = TRUE, as.sparse = TRUE
+    spe, dir = paste0(filtered_hdf5_dir, '_temp'), replace = TRUE, as.sparse = TRUE
 )
 gc()
 
