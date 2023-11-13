@@ -6,14 +6,15 @@ library(ggplot2)
 library(cowplot)
 library(tidyverse)
 library(spatialNAcUtils)
+library(HDF5Array)
 
 ################################################################################
 #   Path and variable definitions
 ################################################################################
 
 dlpfc_repo = '/dcs04/lieber/lcolladotor/spatialDLPFC_LIBD4035/spatialDLPFC'
-spe_nac_path = here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
+spe_nac_dir = here(
+    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
 )
 spe_dlpfc_path = file.path(
     dlpfc_repo, 'processed-data/spot_deconvo/05-shared_utilities/IF/spe.rds'
@@ -41,7 +42,8 @@ genes_nac = list(
             'Oprd1', 'Adora2a', 'Pde1a', 'Peg10', 'Dlk1', 'Htr2c'
         )
     ),
-    'white_matter' = c('MBP', 'GFAP', 'PLP1', 'AQP4')
+    'white_matter' = c('MBP', 'GFAP', 'PLP1', 'AQP4'),
+    'D1_islands' = c('OPRM1', 'CHST9')
 )
 
 best_sample_dlpfc = 'Br6522_Ant_IF'
@@ -119,8 +121,7 @@ dir.create(plot_dir, showWarnings = FALSE)
 #   NAc plots
 #-------------------------------------------------------------------------------
 
-spe_nac = readRDS(spe_nac_path)
-spe_nac$exclude_overlapping = spe_nac$exclude_overlapping == "True"
+spe_nac = loadHDF5SummarizedExperiment(spe_nac_dir)
 
 #   Convert NAc gene symbols to Ensembl IDs. All gene symbols should exist in
 #   the SpatialExperiment
