@@ -73,7 +73,7 @@ spe <- logNormCounts(spe)
 #   control memory consumption later
 message(Sys.time(), " - Saving HDF5-backed object to control memory later")
 spe = saveHDF5SummarizedExperiment(
-    spe, dir = paste0(filtered_hdf5_dir, '_temp'), replace = TRUE, as.sparse = TRUE
+    spe, dir = paste0(filtered_hdf5_dir, '_temp'), replace = TRUE
 )
 gc()
 
@@ -169,7 +169,7 @@ spe <- runPCA(
 
 message(Sys.time(), " - Saving HDF5-backed filtered spe")
 spe = saveHDF5SummarizedExperiment(
-    spe, dir = filtered_hdf5_dir, replace = TRUE, as.sparse = TRUE
+    spe, dir = filtered_hdf5_dir, replace = TRUE
 )
 
 message(Sys.time(), " - Saving ordinary filtered spe")
