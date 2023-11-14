@@ -7,21 +7,23 @@ library(sessioninfo)
 library(spatialNAcUtils)
 library(HDF5Array)
 library(nnSVG)
+library(scran)
+library(scuttle)
 
 spe_dir = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
 )
 
+message(Sys.time(), ' | Loading SpatialExperiment')
+spe = loadHDF5SummarizedExperiment(spe_dir)
 sample_id = unique(spe$sample_id)[as.integer(Sys.getenv('SLURM_ARRAY_TASK_ID'))]
 out_path = here(
-    'processed-data', '05_harmony_BayesSpace', 'nnSVG_out', paste0(sample_id, '.csv')
+    'processed-data', '05_harmony_BayesSpace', 'nnSVG_out',
+    paste0(sample_id, '.csv')
 )
 
 set.seed(0)
 dir.create(dirname(out_path), showWarnings = FALSE)
-
-message(Sys.time(), ' | Loading SpatialExperiment')
-spe = loadHDF5SummarizedExperiment(spe_dir)
 
 #-------------------------------------------------------------------------------
 #   Subset to this sample, filter lowly expressed and mitochondrial genes, and
@@ -41,7 +43,7 @@ spe = filter_genes(
     filter_genes_pcspots = 0.5, 
     filter_mito = TRUE
 )
-spe = spe[, colSums(assays(spe)$counts) > 0]
+spe = spe[rowSums(assays(spe)$counts) == 0, colSums(assays(spe)$counts) > 0]
 
 #-------------------------------------------------------------------------------
 #   Recompute logcounts (library-size normalization as recommended in
