@@ -43,7 +43,9 @@ spe = filter_genes(
     filter_genes_pcspots = 0.5, 
     filter_mito = TRUE
 )
-spe = spe[rowSums(assays(spe)$counts) == 0, colSums(assays(spe)$counts) > 0]
+spe = spe[rowSums(assays(spe)$counts) > 0, colSums(assays(spe)$counts) > 0]
+message("Dimensions of spe after filtering:")
+print(dim(spe))
 
 #-------------------------------------------------------------------------------
 #   Recompute logcounts (library-size normalization as recommended in
