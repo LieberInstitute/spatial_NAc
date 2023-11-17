@@ -2,11 +2,11 @@
 
 #SBATCH -p shared
 #SBATCH -c 1
-#SBATCH --mem=30G
+#SBATCH --mem=20G
 #SBATCH --job-name=05-run_nnSVG
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/05-run_nnSVG_%a.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/05-run_nnSVG_%a.log
-#SBATCH --array=1-2%2
+#SBATCH --array=3-10%4
 
 set -e
 
