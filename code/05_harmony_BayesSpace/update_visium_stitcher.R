@@ -7,6 +7,7 @@
 library(spatialLIBD)
 library(SpatialExperiment)
 library(here)
+library(jaffelab)
 library(tidyverse)
 library(sessioninfo)
 library(spatialNAcUtils)
