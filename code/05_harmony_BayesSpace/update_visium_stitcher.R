@@ -28,6 +28,8 @@ spe_raw = readRDS(raw_path)
 #   Add the columns of 'coords' to colData(spe), joining on 'key'. Return the
 #   updated colData
 add_to_coldata = function(spe, coords) {
+    orig = colData(spe)
+
     a = colData(spe) |>
         as_tibble() |>
         select(-c(exclude_overlapping, overlap_slide)) |>
@@ -38,7 +40,16 @@ add_to_coldata = function(spe, coords) {
     #   Remove the 'X' added to colnames that start with an integer when converting
     #   to a tibble
     colnames(a) = sub('^X([0-9])', '\\1', colnames(a))
-    
+
+    #   Ensure colData has not changed except the 'exclude_overlapping' and
+    #   'overlap_slide' columns
+    after = a
+    after$exclude_overlapping = NULL
+    after$overlap_slide = NULL
+    orig$exclude_overlapping = NULL
+    orig$overlap_slide = NULL
+    stopifnot(identical(orig, after))
+
     return(a)
 }
 
