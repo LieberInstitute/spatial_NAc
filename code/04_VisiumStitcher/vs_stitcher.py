@@ -30,6 +30,7 @@ for brain in sample_key.Brain.unique():
         adata.var_names_make_unique()
         adata.obs_names = [sample_key_brain.Slide[i]+j for j in adata.obs_names]
         adata.obs['sample'] = sample_key_brain.Slide[i]
+        adata = adata[adata.obs.in_tissue == 1]
         if(sample_key_brain.loc[i, 'Refined transforms'] == 'No'):
             transform = vs.transform_finder(homeDir + sample_key_brain['XML file name'][i])
             adata.uns['transform'] = transform[sample_key_brain['Transform_index'][i]]
