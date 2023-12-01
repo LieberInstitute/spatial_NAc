@@ -6,7 +6,7 @@
 #SBATCH --job-name=05-run_nnSVG
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/05-run_nnSVG_%a.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/05-run_nnSVG_%a.log
-#SBATCH --array=3-10%4
+#SBATCH --array=1-10%5
 
 set -e
 

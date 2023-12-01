@@ -1,10 +1,10 @@
 **** Job starts ****
-Wed Nov 15 04:54:04 PM EST 2023
+Tue Nov 28 04:22:08 PM EST 2023
 **** JHPCE info ****
 User: neagles
-Job id: 840401
+Job id: 925477
 Job name: 05-run_nnSVG
-Node name: compute-115
+Node name: compute-141
 Loading conda_R/4.3
 Loading required package: SpatialExperiment
 Loading required package: SingleCellExperiment
@@ -154,17 +154,17 @@ The following object is masked from ‘package:rhdf5’:
     h5ls
 
 Loading required package: scuttle
-2023-11-15 16:54:50.162077 | Loading SpatialExperiment
-2023-11-15 16:55:15.243841 | Filtering genes, and spots, and to Br8492
+2023-11-28 16:22:32.785029 | Loading SpatialExperiment
+2023-11-28 16:22:47.323093 | Filtering genes, spots, and to Br8492
 Gene filtering: removing mitochondrial genes
 removed 13 mitochondrial genes
-Gene filtering: retaining genes with at least 3 counts in at least 0.5% (n = 86) of spatial locations
-removed 28278 out of 31320 genes due to low expression
+Gene filtering: retaining genes with at least 3 counts in at least 0.5% (n = 69) of spatial locations
+removed 28397 out of 31320 genes due to low expression
 Dimensions of spe after filtering:
-[1]  3042 17178
-2023-11-15 16:56:22.860154 | Re-computing logcounts
-2023-11-15 16:56:25.19595 | Running nnSVG
-2023-11-16 09:09:42.129795 | Exporting results
+[1]  2923 13756
+2023-11-28 16:23:15.756588 | Re-computing logcounts
+2023-11-28 16:23:16.533994 | Running nnSVG
+2023-11-28 21:38:00.582306 | Exporting results
 ─ Session info ───────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.1 Patched (2023-07-19 r84711)
@@ -175,7 +175,7 @@ Dimensions of spe after filtering:
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2023-11-16
+ date     2023-11-28
  pandoc   3.1.3 @ /jhpce/shared/community/core/conda_R/4.3/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -402,4 +402,4 @@ Dimensions of spe after filtering:
 
 ──────────────────────────────────────────────────────────────────────────────
 **** Job ends ****
-Thu Nov 16 09:09:44 AM EST 2023
+Tue Nov 28 09:39:40 PM EST 2023
