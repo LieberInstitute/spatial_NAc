@@ -27,11 +27,11 @@ dir.create(dirname(out_path), showWarnings = FALSE)
 
 #-------------------------------------------------------------------------------
 #   Subset to this sample, filter lowly expressed and mitochondrial genes, and
-#   take spots with at least some nonzero counts
+#   take spots with at least some nonzero counts. Also drop overlapping spots
 #-------------------------------------------------------------------------------
 
-message(Sys.time(), ' | Filtering genes, and spots, and to ', sample_id)
-spe = spe[, spe$sample_id == sample_id]
+message(Sys.time(), ' | Filtering genes, spots, and to ', sample_id)
+spe = spe[, (spe$sample_id == sample_id) & !spe$exclude_overlapping]
 
 #   Bring fully into memory to speed up computations later
 assays(spe) = list(counts = assays(spe)$counts)
