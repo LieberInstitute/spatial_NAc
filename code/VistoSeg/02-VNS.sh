@@ -1,37 +1,48 @@
 #!/bin/bash
-#$ -cwd
-#$ -l mem_free=100G,h_vmem=100G,h_stack=256M,h_fsize=100G
-#$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt
-#$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID.txt
-#$ -m e
-#$ -M heenadivecha@gmail.com
-#$ -t 1
-#$ -tc 1
+
+#SBATCH -p shared
+#SBATCH -c 1
+#SBATCH --mem=50G
+#SBATCH --job-name=02-VNS
+#SBATCH -o ../../processed-data/VistoSeg/logs/02-VNS_%a.log
+#SBATCH -e ../../processed-data/VistoSeg/logs/02-VNS_%a.log
+#SBATCH --array=1%1
+
+num_clusters=5
+
+#   Paths as R code
+toolbox_dir="here::here('code', 'VistoSeg', 'code')"
+inputs_csv="here::here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')"
+
+set -e
 
 echo "**** Job starts ****"
 date
-
-
 echo "**** JHPCE info ****"
 echo "User: ${USER}"
-echo "Job id: ${JOB_ID}"
-echo "Job name: ${JOB_NAME}"
-echo "Hostname: ${HOSTNAME}"
-echo "Task id: ${SGE_TASK_ID}"
-echo "****"
-echo "Sample id: $(cat /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/VNS_list.txt | awk '{print $NF}' | awk "NR==${SGE_TASK_ID}")"
-echo "****"
+echo "Job id: ${SLURM_JOB_ID}"
+echo "Job name: ${SLURM_JOB_NAME}"
+echo "Node name: ${SLURMD_NODENAME}"
 
-module load matlab/R2019a
+module load matlab/R2023a
+module load conda_R/4.3
+module list
 
+#   Evaluate variable values in R and for this array task
+toolbox=$(Rscript -e "cat($toolbox_dir)")
+image_path=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+cat(sample_info[$SLURM_ARRAY_TASK_ID, 'raw_image_path'])
+")
+sample_id=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+cat(sample_info[$SLURM_ARRAY_TASK_ID, 'sample_id'])
+")
 
-toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code'
-fname=$(cat /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/VNS_list.txt | awk '{print $NF}' | awk "NR==${SGE_TASK_ID}")
+echo "Running VNS with sample ID ${sample_id}..."
 
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), VNS('$fname',5)"
+#   Run VNS
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), VNS('$image_path',$num_clusters)"
 
 echo "**** Job ends ****"
 date
-
-
-
