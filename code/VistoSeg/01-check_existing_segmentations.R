@@ -1,15 +1,21 @@
 #   Some work with VistoSeg has already been done. This script confirms that the
-#   current in-analysis samples have not been processed through VistoSeg
+#   current in-analysis samples have not been processed through VistoSeg. It
+#   also generates a CSV of inputs needed by different pieces of VistoSeg
 
 library(here)
 library(tidyverse)
+library(sessioninfo)
 
-sample_info_path = here(
+sample_info_in_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
+sample_info_out_path = here(
+    'processed-data', 'VistoSeg', 'VistoSeg_inputs.csv'
+)
+
 old_image_list = here('code', 'VistoSeg', 'code', 'VNS_list.txt')
 
-sample_info = read.csv(sample_info_path) |>
+sample_info = read.csv(sample_info_in_path) |>
     as_tibble() |>
     filter(In.analysis == "True") |>
     rename(sample_id = X)
@@ -17,6 +23,7 @@ sample_info = read.csv(sample_info_path) |>
 message('Total samples: ', nrow(sample_info))
 
 #   No relevant raw images appear to have been segmented
+message("Segmentations exist for the relevant samples?")
 sample_info$raw_image_path |>
     str_replace('\\.tif$', '_nuclei.mat') |>
     file.exists() |>
@@ -30,4 +37,12 @@ old_sample_ids = paste(
 )
 
 #   Also, none of the old to-be-segmented samples are in the relevant set now
+message("Sample IDs for the existing segmentations belong in the current set of sample IDs?")
 table(old_sample_ids %in% sample_info$sample_id)
+
+#   Write CSV of VistoSeg inputs
+sample_info |>
+    select(sample_id, raw_image_path, spaceranger_dir) |>
+    write_csv(sample_info_out_path)
+
+session_info()
