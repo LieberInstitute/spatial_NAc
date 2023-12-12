@@ -26,17 +26,19 @@ nn_out_list = list()
 for (sample_id in unique(spe$sample_id)) {
     nn_out_list[[sample_id]] = file.path(nn_out_dir, paste0(sample_id, '.csv')) |>
         read.csv() |>
-        as_tibble()
+        as_tibble() |>
+        mutate(sample_id = sample_id)
 }
 nn_out = do.call(rbind, nn_out_list)
 
 #   Compute summary metrics across donors: proportion of samples where the gene
 #   was significant; proportion in the top 100 ranks; average rank
+num_samples = length(unique(spe$sample_id))
 nn_out_summary = nn_out |>
     group_by(gene_id) |>
     summarize(
-        nnsvg_prop_sig_adj = mean(padj < sig_cutoff),
-        nnsvg_prop_top_100 = mean(rank < 100),
+        nnsvg_prop_sig_adj = sum(padj < sig_cutoff) / num_samples,
+        nnsvg_prop_top_100 = sum(rank < 100) / num_samples,
         nnsvg_avg_rank = mean(rank)
     ) |>
     #   Compute a rank of average ranks
@@ -46,22 +48,28 @@ nn_out_summary = nn_out |>
 #   Visually examine top-ranked SVGs
 ################################################################################
 
+#   Take top-ranked genes of those where all samples had statistically
+#   significant spatial variability
+num_genes = 10
 top_genes = nn_out_summary |>
-    filter(nnsvg_avg_rank_rank <= 5) |>
-    pull(gene_id)
+    filter(nnsvg_prop_sig_adj == 1) |>
+    arrange(nnsvg_avg_rank_rank) |>
+    slice_head(n = num_genes) |>
+    mutate(
+        symbol = rowData(spe)[match(gene_id, rowData(spe)$gene_id), 'gene_name']
+    )
 
-plot_list = lapply(
-    top_genes,
-    function(gene) {
-        spot_plot(
-            spe,
-            sample_id = best_sample_id,
-            var_name = gene,
-            is_discrete = FALSE,
-            minCount = 0
-        )
-    }
-)
+plot_list = list()
+for (i in 1:num_genes) {
+    plot_list[[i]] = spot_plot(
+        spe,
+        sample_id = best_sample_id,
+        title = paste(best_sample_id, top_genes$symbol[i], sep = '_'),
+        var_name = top_genes$gene_id[i],
+        is_discrete = FALSE,
+        minCount = 0
+    )
+}
 
 pdf(file.path(plot_dir, 'nnSVG_top_SVGs.pdf'))
 print(plot_list)
