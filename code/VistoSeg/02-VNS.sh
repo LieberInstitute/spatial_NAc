@@ -2,11 +2,11 @@
 
 #SBATCH -p shared
 #SBATCH -c 1
-#SBATCH --mem=50G
+#SBATCH --mem=100G
 #SBATCH --job-name=02-VNS
 #SBATCH -o ../../processed-data/VistoSeg/logs/02-VNS_%a.log
 #SBATCH -e ../../processed-data/VistoSeg/logs/02-VNS_%a.log
-#SBATCH --array=1%1
+#SBATCH --array=2-38%5
 
 num_clusters=5
 

@@ -1,98 +1,101 @@
 ## Required libraries
-library("here")
-library("SpatialExperiment")
-library("spatialLIBD")
-library("sessioninfo")
-library("scran") ## requires uwot for UMAP
-library("uwot")
-library("scater")
-library("BiocParallel")
-library("PCAtools")
-library("ggplot2")
-library("Polychrome")
-library("harmony")
+library(here)
+library(SpatialExperiment)
+library(spatialLIBD)
+library(sessioninfo)
+library(scran) ## requires uwot for UMAP
+library(uwot)
+library(scater)
+library(BiocParallel)
+library(parallel)
+library(PCAtools)
+library(ggplot2)
+library(Polychrome)
+library(harmony)
+library(HDF5Array)
+
+
+# Define harmony function that would allow us to specify which reduction to use with SingleCellExperiment object
+RunHarmony_mod <- function(
+    object,
+    group.by.vars,
+    reduction.use = "PCA",
+    dims.use = NULL,
+    verbose = TRUE,
+    reduction.save = "HARMONY",
+    ...
+) {
+
+    ## Get PCA embeddings
+    if (!"PCA" %in% SingleCellExperiment::reducedDimNames(object)) {
+        stop("PCA must be computed before running Harmony.")
+    }
+    pca_embedding <- SingleCellExperiment::reducedDim(object, reduction.use)
+    if (is.null(dims.use)) {
+        dims.use <- seq_len(ncol(pca_embedding))
+    }
+
+    if (is.null(dims.use)) {
+        dims.use <- seq_len(ncol(pca_embedding))
+    }
+    dims_avail <- seq_len(ncol(pca_embedding))
+    if (!all(dims.use %in% dims_avail)) {
+        stop("trying to use more dimensions than computed with PCA. Rerun
+            PCA with more dimensions or use fewer PCs")
+    }
+
+    metavars_df <- SingleCellExperiment::colData(object)
+    if (!all(group.by.vars %in% colnames(metavars_df))) {
+        stop('Trying to integrate over variables missing in colData')
+    }
+
+    harmonyEmbed <- RunHarmony(
+        data_mat = pca_embedding[, dims.use],  
+        meta_data = metavars_df,
+        vars_use = group.by.vars,
+        return_object = FALSE,
+        verbose = verbose,
+        ...
+    )
+   
+
+    rownames(harmonyEmbed) <- row.names(metavars_df)
+    colnames(harmonyEmbed) <- paste0(reduction.save, "_", seq_len(ncol(harmonyEmbed)))
+    SingleCellExperiment::reducedDim(object, reduction.save) <- harmonyEmbed
+
+    return(object)
+}
 
 tsne_perplex_vals = c("05", "20", "50", "80")
-num_cores = 4
+num_cores = detectCores() - 1
 
 ## Create output directories
 dir_plots <- here("plots", "05_harmony_BayesSpace")
 dir_rdata <- here("processed-data", "05_harmony_BayesSpace")
-spe_in <- file.path(dir_rdata, "spe_filtered.rds")
+filtered_hdf5_dir = here(
+    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
+)
+harmony_hdf5_dir = here(
+    'processed-data', '05_harmony_BayesSpace', 'spe_harmony'
+)
 
 dir.create(dir_plots, showWarnings = FALSE)
 dir.create(dir_rdata, showWarnings = FALSE)
+
 dir.create(file.path(dir_rdata, "clusters_graphbased"), showWarnings = FALSE)
 dir.create(file.path(dir_rdata, "clusters_graphbased_cut_at"), showWarnings = FALSE)
 
 set.seed(20230712)
 
 ## Load the data
-spe <- readRDS(spe_in)
-
-message("Running modelGeneVar()")
-## From
-## http://bioconductor.org/packages/release/bioc/vignettes/scran/inst/doc/scran.html#4_variance_modelling
-dec <- modelGeneVar(spe,
-    block = spe$sample_id,
-    BPPARAM = MulticoreParam(num_cores)
-)
-
-pdf(file.path(dir_plots, "scran_modelGeneVar.pdf"), useDingbats = FALSE)
-mapply(function(block, blockname) {
-    plot(
-        block$mean,
-        block$total,
-        xlab = "Mean log-expression",
-        ylab = "Variance",
-        main = blockname
-    )
-    curve(metadata(block)$trend(x),
-        col = "blue",
-        add = TRUE
-    )
-}, dec$per.block, names(dec$per.block))
-dev.off()
-
-message("Running getTopHVGs()")
-top.hvgs <- getTopHVGs(dec, prop = 0.1)
-length(top.hvgs)
-
-top.hvgs.fdr5 <- getTopHVGs(dec, fdr.threshold = 0.05)
-length(top.hvgs.fdr5)
-
-top.hvgs.fdr1 <- getTopHVGs(dec, fdr.threshold = 0.01)
-length(top.hvgs.fdr1)
-
-save(top.hvgs,
-    top.hvgs.fdr5,
-    top.hvgs.fdr1,
-    file = file.path(dir_rdata, "top.hvgs.Rdata")
-)
-
-
-message("Running runPCA()")
-Sys.time()
-spe <- runPCA(spe, subset_row = top.hvgs, ncomponents = 50)
-Sys.time()
-
-# make elbow plot to determine PCs to use
-percent.var <- attr(reducedDim(spe, "PCA"), "percentVar")
-chosen.elbow <- PCAtools::findElbowPoint(percent.var)
-chosen.elbow
-
-pdf(
-    file.path(dir_plots, "pca_elbow.pdf"),
-    useDingbats = FALSE
-)
-plot(percent.var, xlab = "PC", ylab = "Variance explained (%)")
-abline(v = chosen.elbow, col = "red")
-dev.off()
+spe = loadHDF5SummarizedExperiment(filtered_hdf5_dir)
 
 ## Perform harmony batch correction
 message("Running RunHarmony()")
 Sys.time()
-spe <- RunHarmony(spe, "sample_id", verbose = FALSE)
+spe <- RunHarmony_mod(spe, "donor", verbose = FALSE, reduction.use = "PCA", reduction.save = "harmony_donor")
+spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "slide_num"), verbose = TRUE, reduction.save = "harmony_donor_slide")
+spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "sample_id_original"), verbose = TRUE, reduction.save = "harmony_donor_captureArea")
 Sys.time()
 
 #   Perform dimensionality reduction using both PCA and harmony's reduced
