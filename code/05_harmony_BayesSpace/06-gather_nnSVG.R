@@ -105,6 +105,22 @@ print(plot_grid(plotlist = plot_list, ncol = num_samples))
 dev.off()
 
 ################################################################################
+#   Compare with HVGs (as ranked by binomial deviance)
+################################################################################
+
+num_genes = 100
+top_hvgs = rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:num_genes]
+top_svgs = top_genes$gene_id[1:num_genes]
+
+message(
+    sprintf(
+        'Number of genes that are shared among the top %s SVGs and HVGs:',
+        num_genes
+    )
+)
+table(top_hvgs %in% top_svgs)
+
+################################################################################
 #   Update SpatialExperiment with nnSVG results
 ################################################################################
 
