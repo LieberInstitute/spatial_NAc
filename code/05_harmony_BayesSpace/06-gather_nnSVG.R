@@ -109,7 +109,12 @@ dev.off()
 ################################################################################
 
 num_genes = 100
-top_hvgs = rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:num_genes]
+top_hvgs = rowData(spe) |>
+    as_tibble() |>
+    filter(!str_detect(gene_name, '^MT-')) |>
+    arrange(desc(binomial_deviance)) |>
+    slice_head(n = num_genes) |>
+    pull(gene_id)
 top_svgs = top_genes$gene_id[1:num_genes]
 
 message(
