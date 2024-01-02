@@ -58,8 +58,8 @@ top_genes = nn_out_summary |>
         symbol = rowData(spe)[match(gene_id, rowData(spe)$gene_id), 'gene_name']
     )
 
-#   Plot the top 10 genes for one sample
-num_genes = 10
+#   Plot the top 50 genes for one sample
+num_genes = 50
 plot_list = list()
 for (i in 1:num_genes) {
     plot_list[[i]] = spot_plot(
@@ -105,25 +105,50 @@ print(plot_grid(plotlist = plot_list, ncol = num_samples))
 dev.off()
 
 ################################################################################
-#   Compare with HVGs (as ranked by binomial deviance)
+#   Compare with HVGs (as ranked by 'getTopHVGs')
 ################################################################################
 
-num_genes = 100
-top_hvgs = rowData(spe) |>
-    as_tibble() |>
-    filter(!str_detect(gene_name, '^MT-')) |>
-    arrange(desc(binomial_deviance)) |>
-    slice_head(n = num_genes) |>
-    pull(gene_id)
-top_svgs = top_genes$gene_id[1:num_genes]
+#   Load HVGs, add gene symbols, and take just significant (after adjustment),
+#   non-mitochondrial genes
+load(hvg_path, verbose = TRUE)
+top_genes_hvg = tibble(
+        gene_id = top.hvgs.fdr5,
+        gene_name = rowData(spe)[
+            match(gene_id, rowData(spe)$gene_id), 'gene_name'
+        ]
+    ) |>
+    filter(!str_detect(gene_name, '^MT-'))
 
-message(
-    sprintf(
-        'Number of genes that are shared among the top %s SVGs and HVGs:',
-        num_genes
-    )
+if (any(is.na(top_genes_hvg$gene_name))) {
+    stop("Some HVGs not in SpatialExperiment")
+}
+
+num_points = 100
+overlap_df = tibble(
+    #   Sample [num_points] different numbers of genes, linearly spaced between
+    #   0 and as many top genes are shared
+    num_genes = as.integer(
+        1:num_points * min(nrow(top_genes), nrow(top_genes_hvg)) / num_points
+    ),
+    prop_overlap = NA
 )
-table(top_hvgs %in% top_svgs)
+
+#   At each number of genes, compute the proportion of SVGs that are also HVGs
+#   at the same cutoff 
+for (i in 1:num_points) {
+    overlap_df[i, 'prop_overlap'] = mean(
+        head(top_genes$gene_id, overlap_df$num_genes[i]) %in%
+        head(top_genes_hvg$gene_id, overlap_df$num_genes[i])
+    )
+}
+
+#   Plot how this proportion changes with number of genes
+p = ggplot(overlap_df) +
+    geom_line(aes(x = num_genes, y = prop_overlap)) +
+    scale_y_continuous(limits = c(0, max(overlap_df$prop_overlap)))
+pdf(file.path(plot_dir, 'HVG_SVG_prop_overlap.pdf'))
+print(p)
+dev.off()
 
 ################################################################################
 #   Update SpatialExperiment with nnSVG results
