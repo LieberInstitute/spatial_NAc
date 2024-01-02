@@ -21,10 +21,11 @@ vs_inputs = pd.read_csv(vs_inputs_path)
 
 #   Initialize the final combined image, which stacks all clusters vertically
 #   and all samples horizontally so the nuclei cluster can be easily determined
-#   for every sample in a single image
+#   for every sample in a single image. Note "n_clusters + 1", which is done
+#   because the raw image is also included once vertically
 final_img = np.zeros(
     (
-        subregion_size * n_clusters + num_pix_buffer * (n_clusters - 1),
+        subregion_size * (n_clusters + 1) + num_pix_buffer * n_clusters,
         subregion_size * vs_inputs.shape[0] +
             num_pix_buffer * (vs_inputs.shape[0] - 1)
     ),
@@ -33,20 +34,22 @@ final_img = np.zeros(
 
 #   Loop through all capture areas
 for sample_index, sample_id in enumerate(vs_inputs.loc[:, 'sample_id']):
+    print(f"Processing sample {sample_id} ({sample_index} of {vs_inputs.shape[0]})...")
+
     #   Grab the path to the raw image used as input to VNS
     raw_path = vs_inputs.loc[:, 'raw_image_path'].iloc[sample_index]
-    
+
     #   Subset and compress segmentations for each cluster, placing the
     #   result on 'final_img'
-    for cluster_index in range(n_clusters):
+    for cluster_index in range(n_clusters + 1):
+        #   Actually, the 0th cluster will represent the raw image
+        if cluster_index == 0:
+            img_path = raw_path
+        else:
+            img_path = raw_path.replace('.tif', f'_cluster{cluster_index}.tif')
+        
         #   Read in the image for one cluster and convert to grayscale
-        img = np.array(
-            Image
-                .open(
-                    raw_path.replace('.tif', f'_cluster{cluster_index + 1}.tif')
-                )
-                .convert('L')
-        )
+        img = np.array(Image.open(img_path).convert('L'))
         
         #   Subset image to a square subregion in the center of the image, whose
         #   length is 'subregion_size'
