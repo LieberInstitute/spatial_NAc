@@ -7,8 +7,8 @@ Image.MAX_IMAGE_PIXELS = None
 
 vs_inputs_path = here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')
 n_clusters = 5
-subregion_ratio = 10
-comp_ratio = 8
+subregion_ratio = 100
+comp_ratio = 2
 num_pix_buffer = 10
 
 vs_inputs = pd.read_csv(vs_inputs_path)
@@ -26,7 +26,7 @@ for sample_id in vs_inputs.loc[:, 'sample_id']:
         #   Read in the image for one cluster and convert to grayscale
         img = np.array(
             Image
-                .open(raw_path.replace('.tif', f'_cluster{i}.tif'))
+                .open(raw_path.replace('.tif', f'_cluster{i + 1}.tif'))
                 .convert('L')
         )
         
@@ -38,7 +38,7 @@ for sample_id in vs_inputs.loc[:, 'sample_id']:
             int(bottom * img.shape[0]): int(top * img.shape[0]),
             int(bottom * img.shape[1]): int(top * img.shape[1])
         ]
-
+        
         #   Compress image according to 'compression_ratio'
         img = np.array(
             Image
@@ -48,26 +48,26 @@ for sample_id in vs_inputs.loc[:, 'sample_id']:
                 )
         )
         img_list.append(img)
-    
+
     #   New images for each cluster should all be the same size
     assert all([x.shape == img_list[0].shape for x in img_list])
 
-    #   Initialize the final image, which is a horizontal concatenation of the
+    #   Initialize the final image, which is a vertical concatenation of the
     #   subsampled images
     total_buffer_size = num_pix_buffer * (len(img_list) - 1)
     final_img = np.zeros(
         (
-            img_list[0].shape * len(img_list) + total_buffer_size,
-            img_list[1].shape * len(img_list) + total_buffer_size
+            img_list[0].shape[0] * len(img_list) + total_buffer_size,
+            img_list[0].shape[1]
         ),
         dtype = np.uint8
     )
 
-    #   Place all images in a horizontal series on the final image
+    #   Place all images in a vertical series on the final image
     for i, img in enumerate(img_list):
         start = (img.shape[0] + num_pix_buffer) * i
         final_img[start: start + img.shape[0], :] = img
-    
+
     #   Save results in the same directory
     (
         Image
