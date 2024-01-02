@@ -7,11 +7,12 @@ Image.MAX_IMAGE_PIXELS = None
 
 vs_inputs_path = here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')
 n_clusters = 5
-subregion_ratio = 100
-comp_ratio = 2
-num_pix_buffer = 10
+subregion_size = 300
+comp_ratio = 1
+num_pix_buffer = int(subregion_size / comp_ratio / 10)
 
 vs_inputs = pd.read_csv(vs_inputs_path)
+half_sub_size = int(subregion_size / 2)
 
 for sample_id in vs_inputs.loc[:, 'sample_id']:
     #   Grab the path to the raw image used as input to VNS
@@ -30,13 +31,12 @@ for sample_id in vs_inputs.loc[:, 'sample_id']:
                 .convert('L')
         )
         
-        #   Subset image to a subregion in the center of the image, whose size
-        #   is determined by 'subregion_ratio'
-        bottom = (subregion_ratio / 2 - 0.5) / subregion_ratio
-        top = (subregion_ratio / 2 + 0.5) / subregion_ratio
+        #   Subset image to a square subregion in the center of the image, whose
+        #   length is 'subregion_size'
+        center = (int(img.shape[0] / 2), int(img.shape[1] / 2))
         img = img[
-            int(bottom * img.shape[0]): int(top * img.shape[0]),
-            int(bottom * img.shape[1]): int(top * img.shape[1])
+            center[0] - half_sub_size: center[0] + half_sub_size,
+            center[1] - half_sub_size: center[1] + half_sub_size
         ]
         
         #   Compress image according to 'compression_ratio'
