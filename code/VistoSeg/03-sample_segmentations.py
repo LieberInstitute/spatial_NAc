@@ -2,32 +2,49 @@ from pyhere import here
 import pandas as pd
 import numpy as np
 from PIL import Image
+from pathlib import Path
 
 Image.MAX_IMAGE_PIXELS = None
 
-vs_inputs_path = here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')
+vs_inputs_path = Path(here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv'))
+out_dir = Path(here('processed-data', 'VistoSeg'))
+
 n_clusters = 5
 subregion_size = 300
 comp_ratio = 1
+
 num_pix_buffer = int(subregion_size / comp_ratio / 10)
+half_sub_size = int(subregion_size / 2)
+assert subregion_size % 2 == 0
 
 vs_inputs = pd.read_csv(vs_inputs_path)
-half_sub_size = int(subregion_size / 2)
 
-for sample_id in vs_inputs.loc[:, 'sample_id']:
+#   Initialize the final combined image, which stacks all clusters vertically
+#   and all samples horizontally so the nuclei cluster can be easily determined
+#   for every sample in a single image
+final_img = np.zeros(
+    (
+        subregion_size * n_clusters + num_pix_buffer * (n_clusters - 1),
+        subregion_size * vs_inputs.shape[0] +
+            num_pix_buffer * (vs_inputs.shape[0] - 1)
+    ),
+    dtype = np.uint8
+)
+
+#   Loop through all capture areas
+for sample_index, sample_id in enumerate(vs_inputs.loc[:, 'sample_id']):
     #   Grab the path to the raw image used as input to VNS
-    raw_path = vs_inputs.loc[
-        vs_inputs.loc[:, 'sample_id'] == sample_id, 'raw_image_path'
-    ][0]
-
-    #   Subset and compress segmentations for each cluster, appending the
-    #   result to 'img_list'
-    img_list = []
-    for i in range(n_clusters):
+    raw_path = vs_inputs.loc[:, 'raw_image_path'].iloc[sample_index]
+    
+    #   Subset and compress segmentations for each cluster, placing the
+    #   result on 'final_img'
+    for cluster_index in range(n_clusters):
         #   Read in the image for one cluster and convert to grayscale
         img = np.array(
             Image
-                .open(raw_path.replace('.tif', f'_cluster{i + 1}.tif'))
+                .open(
+                    raw_path.replace('.tif', f'_cluster{cluster_index + 1}.tif')
+                )
                 .convert('L')
         )
         
@@ -47,30 +64,21 @@ for sample_id in vs_inputs.loc[:, 'sample_id']:
                     (int(img.shape[0] / comp_ratio), int(img.shape[1] / comp_ratio))
                 )
         )
-        img_list.append(img)
+        
+        #   Place the image for this sample and cluster at the appropriate
+        #   position on the final combined image
+        start = (
+            (img.shape[0] + num_pix_buffer) * cluster_index,
+            (img.shape[1] + num_pix_buffer) * sample_index
+        )
+        final_img[
+            start[0]: start[0] + img.shape[0],
+            start[1]: start[1] + img.shape[1]
+        ] = img
 
-    #   New images for each cluster should all be the same size
-    assert all([x.shape == img_list[0].shape for x in img_list])
-
-    #   Initialize the final image, which is a vertical concatenation of the
-    #   subsampled images
-    total_buffer_size = num_pix_buffer * (len(img_list) - 1)
-    final_img = np.zeros(
-        (
-            img_list[0].shape[0] * len(img_list) + total_buffer_size,
-            img_list[0].shape[1]
-        ),
-        dtype = np.uint8
-    )
-
-    #   Place all images in a vertical series on the final image
-    for i, img in enumerate(img_list):
-        start = (img.shape[0] + num_pix_buffer) * i
-        final_img[start: start + img.shape[0], :] = img
-
-    #   Save results in the same directory
-    (
-        Image
-            .fromarray(final_img)
-            .save(raw_path.replace('.tif', '_all_clusters_subsampled.tif'))
-    )
+#   Save final image
+(
+    Image
+        .fromarray(final_img)
+        .save(out_dir / 'all_VNS_outputs_subsampled.tif')
+)
