@@ -2,11 +2,11 @@
 
 #SBATCH -p shared
 #SBATCH -c 1
-#SBATCH --mem=100G
+#SBATCH --mem=120G
 #SBATCH --job-name=04-refineVNS
 #SBATCH -o ../../processed-data/VistoSeg/logs/04-refineVNS_%a.log
 #SBATCH -e ../../processed-data/VistoSeg/logs/04-refineVNS_%a.log
-#SBATCH --array=2-38%5
+#SBATCH --array=7,27
 
 #   Paths as R code
 toolbox_dir="here::here('code', 'VistoSeg', 'code')"
