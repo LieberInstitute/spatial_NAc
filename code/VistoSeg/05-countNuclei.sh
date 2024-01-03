@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH -p shared
-#SBATCH -c 8
-#SBATCH --mem=64G
+#SBATCH -c 4
+#SBATCH --mem=100G
 #SBATCH --job-name=05-countNuclei
 #SBATCH -o ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
 #SBATCH -e ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
@@ -31,7 +31,7 @@ toolbox=$(Rscript -e "cat($toolbox_dir)")
 nuclei_path=$(Rscript -e "
 sample_info = read.csv($inputs_csv)
 nuclei_path = sub(
-    '\\.tif', '_nuclei.mat', sample_info[$SLURM_ARRAY_TASK_ID, 'raw_image_path']
+    '\\\.tif', '_nuclei.mat', sample_info[$SLURM_ARRAY_TASK_ID, 'raw_image_path']
 )
 cat(nuclei_path)
 ")
@@ -43,7 +43,7 @@ cat(sample_info[$SLURM_ARRAY_TASK_ID, 'spaceranger_dir'])
 echo "Running countNuclei with sample ID ${sample_id}..."
 
 #   Run VNS
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), countNuclei('${nuclei_path}','${spaceranger_dir}/scalefactors_json.json', '${spaceranger_dir}/tissue_positions_list.csv'"
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), countNuclei('${nuclei_path}','${spaceranger_dir}/scalefactors_json.json', '${spaceranger_dir}/tissue_positions_list.csv')"
 
 echo "**** Job ends ****"
 date

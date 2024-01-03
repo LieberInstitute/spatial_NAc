@@ -6,7 +6,7 @@
 #SBATCH --job-name=04-refineVNS
 #SBATCH -o ../../processed-data/VistoSeg/logs/04-refineVNS_%a.log
 #SBATCH -e ../../processed-data/VistoSeg/logs/04-refineVNS_%a.log
-#SBATCH --array=1
+#SBATCH --array=2-38%5
 
 #   Paths as R code
 toolbox_dir="here::here('code', 'VistoSeg', 'code')"
