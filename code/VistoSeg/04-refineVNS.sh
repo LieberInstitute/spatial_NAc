@@ -1,39 +1,50 @@
 #!/bin/bash
-#$ -cwd
-#$ -l mem_free=100G,h_vmem=100G,h_stack=256M,h_fsize=100G
-#$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID_refineVNS.txt 
-#$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/$TASK_ID_refineVNS.txt
-#$ -m e
-#$ -M heenadivecha@gmail.com
-#$ -t 2-16
-#$ -tc 1
+
+#SBATCH -p shared
+#SBATCH -c 1
+#SBATCH --mem=100G
+#SBATCH --job-name=04-refineVNS
+#SBATCH -o ../../processed-data/VistoSeg/logs/04-refineVNS_%a.log
+#SBATCH -e ../../processed-data/VistoSeg/logs/04-refineVNS_%a.log
+#SBATCH --array=1
+
+#   Paths as R code
+toolbox_dir="here::here('code', 'VistoSeg', 'code')"
+inputs_csv="here::here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')"
+
+set -e
 
 echo "**** Job starts ****"
 date
-
-
 echo "**** JHPCE info ****"
 echo "User: ${USER}"
-echo "Job id: ${JOB_ID}"s
-echo "Job name: ${JOB_NAME}"
-echo "Hostname: ${HOSTNAME}"
-echo "Task id: ${SGE_TASK_ID}"
+echo "Job id: ${SLURM_JOB_ID}"
+echo "Job name: ${SLURM_JOB_NAME}"
+echo "Node name: ${SLURMD_NODENAME}"
 
-## load MATLAB
-module load matlab/R2019a
+module load matlab/R2023a
+module load conda_R/4.3
+module list
 
-## Load toolbox for VistoSeg
-toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code'
+#   Evaluate variable values in R and for this array task
+toolbox=$(Rscript -e "cat($toolbox_dir)")
+image_path=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+cat(sample_info[$SLURM_ARRAY_TASK_ID, 'raw_image_path'])
+")
+sample_id=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+cat(sample_info[$SLURM_ARRAY_TASK_ID, 'sample_id'])
+")
+nuclei_channel=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+cat(sample_info[$SLURM_ARRAY_TASK_ID, 'nuclei_channel'])
+")
 
-## Read inputs from refineVNS_list.txt file
-fname=$(awk 'BEGIN {FS="\t"} {print $1}' refineVNS_list.txt | awk "NR==${SGE_TASK_ID}")
-M=$(awk 'BEGIN {FS="\t"} {print $2}' refineVNS_list.txt | awk "NR==${SGE_TASK_ID}")
+echo "Running refineVNS with sample ID ${sample_id}..."
 
-## Run refineVNS function
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), refineVNS('$fname',$M)"
+#   Run VNS
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), refineVNS('$image_path',$nuclei_channel)"
 
 echo "**** Job ends ****"
 date
-
-
-
