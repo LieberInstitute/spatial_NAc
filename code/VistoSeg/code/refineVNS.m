@@ -1,7 +1,6 @@
 function refineVNS(fname,M)
 disp('loading data')
 tic
-%Img1 = imread(fname);
 mask_name = [fname(1:end-4),'_mask.mat'];
 load(mask_name)
 toc
@@ -17,7 +16,7 @@ idx_light_blue = imbinarize(nonzeros(L_blue));
 blue_idx = find(mask{M});
 mask_dark_blue = mask{M};
 mask_dark_blue(blue_idx(idx_light_blue)) = 0;
-%mask_dark_blue = bwareafilt(mask_dark_blue,[8 200000]);
+mask_dark_blue = bwareafilt(mask_dark_blue,[10 20000]);
 blue_nuclei = he .* uint8(mask_dark_blue);
 toc 
 
