@@ -1,41 +1,49 @@
 #!/bin/bash
-#$ -cwd
-#$ -l mem_free=8G,h_vmem=8G,h_fsize=100G
-#$ -pe local 8
-#$ -N spatial_NAc
-#$ -o /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/countNuclei.$TASK_ID.txt
-#$ -e /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/logs/countNuclei.$TASK_ID.txt
-#$ -m e
-#$ -t 14-16
-#$ -tc 10
+
+#SBATCH -p shared
+#SBATCH -c 8
+#SBATCH --mem=64G
+#SBATCH --job-name=05-countNuclei
+#SBATCH -o ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
+#SBATCH -e ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
+#SBATCH --array=1
+
+#   Paths as R code
+toolbox_dir="here::here('code', 'VistoSeg', 'code')"
+inputs_csv="here::here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')"
+
+set -e
 
 echo "**** Job starts ****"
 date
-
 echo "**** JHPCE info ****"
 echo "User: ${USER}"
-echo "Job id: ${JOB_ID}"
-echo "Job name: ${JOB_NAME}"
-echo "Hostname: ${HOSTNAME}"
-echo "Task id: ${SGE_TASK_ID}"
-echo "****"
-echo "Sample id: $(cat /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code/countNuclei_list.txt | awk '{print $NF}' | awk "NR==${SGE_TASK_ID}")"
-echo "****"
+echo "Job id: ${SLURM_JOB_ID}"
+echo "Job name: ${SLURM_JOB_NAME}"
+echo "Node name: ${SLURMD_NODENAME}"
 
+module load matlab/R2023a
+module load conda_R/4.3
+module list
 
-module load matlab/R2019a
+#   Evaluate variable values in R and for this array task
+toolbox=$(Rscript -e "cat($toolbox_dir)")
+nuclei_path=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+nuclei_path = sub(
+    '\\.tif', '_nuclei.mat', sample_info[$SLURM_ARRAY_TASK_ID, 'raw_image_path']
+)
+cat(nuclei_path)
+")
+spaceranger_dir=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+cat(sample_info[$SLURM_ARRAY_TASK_ID, 'spaceranger_dir'])
+")
 
+echo "Running countNuclei with sample ID ${sample_id}..."
 
-toolbox='/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/VistoSeg/code'
-
-## Read parameters
-mask=$(awk 'BEGIN {FS="\t"} {print $1}' countNuclei_list.txt | awk "NR==${SGE_TASK_ID}")
-jsonname=$(awk 'BEGIN {FS="\t"} {print $2}' countNuclei_list.txt | awk "NR==${SGE_TASK_ID}")
-posname=$(awk 'BEGIN {FS="\t"} {print $3}' countNuclei_list.txt | awk "NR==${SGE_TASK_ID}")
-
-
-matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), countNuclei('$mask','$jsonname', '$posname')"
+#   Run VNS
+matlab -nodesktop -nosplash -nojvm -r "addpath(genpath('$toolbox')), countNuclei('${nuclei_path}','${spaceranger_dir}/scalefactors_json.json', '${spaceranger_dir}/tissue_positions_list.csv'"
 
 echo "**** Job ends ****"
 date
-
