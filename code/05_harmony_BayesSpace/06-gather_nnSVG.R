@@ -45,6 +45,8 @@ nn_out_summary = nn_out |>
     #   Compute a rank of average ranks
     mutate(nnsvg_avg_rank_rank = match(nnsvg_avg_rank, sort(nnsvg_avg_rank)))
 
+write_csv(nn_out_summary, file.path(nn_out_dir, 'summary_across_samples.csv'))
+
 ################################################################################
 #   Visually examine top-ranked SVGs
 ################################################################################
@@ -150,20 +152,4 @@ pdf(file.path(plot_dir, 'HVG_SVG_prop_overlap.pdf'))
 print(p)
 dev.off()
 
-################################################################################
-#   Update SpatialExperiment with nnSVG results
-################################################################################
-
-#   Add summary metrics from nnSVG to the SpatialExperiment
-rowData(spe) = rowData(spe) |>
-    as_tibble() |>
-    left_join(nn_out_summary, by = 'gene_id') |>
-    column_to_rownames('gene_id') |>
-    DataFrame()
-quickResaveHDF5SummarizedExperiment(spe)
-
-nn_out_summary |>
-    filter(nnsvg_avg_rank_rank <= 0.1 * nrow(spe))
-
-load(hvg_path)
 session_info()
