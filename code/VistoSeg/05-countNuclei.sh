@@ -6,7 +6,7 @@
 #SBATCH --job-name=05-countNuclei
 #SBATCH -o ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
 #SBATCH -e ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
-#SBATCH --array=1
+#SBATCH --array=2-38%5
 
 #   Paths as R code
 toolbox_dir="here::here('code', 'VistoSeg', 'code')"
@@ -34,6 +34,10 @@ nuclei_path = sub(
     '\\\.tif', '_nuclei.mat', sample_info[$SLURM_ARRAY_TASK_ID, 'raw_image_path']
 )
 cat(nuclei_path)
+")
+sample_id=$(Rscript -e "
+sample_info = read.csv($inputs_csv)
+cat(sample_info[$SLURM_ARRAY_TASK_ID, 'sample_id'])
 ")
 spaceranger_dir=$(Rscript -e "
 sample_info = read.csv($inputs_csv)
