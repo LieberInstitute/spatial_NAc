@@ -3,9 +3,13 @@ library(tidyverse)
 library(ggplot2)
 library(spatialLIBD)
 library(sessioninfo)
+library(HDF5Array)
 
 sample_info_path = here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')
 plot_dir = here('plots', 'VistoSeg')
+spe_dir = here(
+    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
+)
 
 dir.create(plot_dir, showWarnings = FALSE)
 
@@ -16,6 +20,8 @@ sample_info = read.csv(sample_info_path) |> as_tibble()
 #   into one tibble
 ################################################################################
 
+spe_nac = loadHDF5SummarizedExperiment(spe_dir)
+
 counts_list = list()
 for (i in 1:nrow(sample_info)) {
     counts_list[[i]] = read.csv(
@@ -24,7 +30,12 @@ for (i in 1:nrow(sample_info)) {
             as_tibble() |>
             mutate(sample_id = sample_info$sample_id[i])
 }
-counts = do.call(rbind, counts_list)
+
+#   We aren't interested in spots not in tissue (e.g. spots in holes in the
+#   tissue), and don't want them throwing off median, etc calculations
+counts = do.call(rbind, counts_list) |>
+    mutate(key = paste(barcode, sample_id, sep = '_')) |>
+    filter(key %in% spe_nac$key[spe_nac$in_tissue])
 
 ################################################################################
 #   Exploratory plots checking the distribution of nuclei counts across spots
@@ -75,6 +86,7 @@ dev.off()
 #   Verify that distribution of nuclei counts is somewhat comparable to those
 #   observed in DLPFC
 spe_dlpfc = fetch_data(type = "spatialDLPFC_Visium")
+stopifnot(all(spe_dlpfc$in_tissue))
 message(
     sprintf(
         "Median number of nuclei per spot (NAc, DLPFC): %s, %s",
