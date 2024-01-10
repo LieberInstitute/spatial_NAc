@@ -50,7 +50,9 @@ p = ggplot(counts) +
     ) +
     coord_cartesian(
         ylim = c(0, 2 * max(boxplot.stats(counts$Nmask_dark_blue)$stats))
-    )
+    ) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    labs(x = 'Sample ID', y = 'Num Nuclei Per Spot')
 pdf(file.path(plot_dir, 'nuclei_counts_by_sample.pdf'))
 print(p)
 dev.off()
@@ -79,7 +81,10 @@ p = counts |>
         geom_violin() +
         geom_jitter(aes(color = sample_id_plot)) +
         labs(color = 'Sample ID', x = '', y = 'Proportion of Outlier Spots')
-pdf(file.path(plot_dir, 'prop_outlier_spots_by_sample.pdf'))
+pdf(
+    file.path(plot_dir, 'prop_outlier_spots_by_sample.pdf'),
+    width = 5, height = 7
+)
 print(p)
 dev.off()
 
@@ -92,6 +97,14 @@ message(
         "Median number of nuclei per spot (NAc, DLPFC): %s, %s",
         median(counts$Nmask_dark_blue),
         median(spe_dlpfc$VistoSeg_count)
+    )
+)
+
+message(
+    sprintf(
+        "Max count for nuclei per spot (NAc, DLPFC): %s, %s",
+        max(counts$Nmask_dark_blue),
+        max(spe_dlpfc$VistoSeg_count)
     )
 )
 
