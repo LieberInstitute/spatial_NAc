@@ -152,4 +152,18 @@ pdf(file.path(plot_dir, 'HVG_SVG_prop_overlap.pdf'))
 print(p)
 dev.off()
 
+################################################################################
+#   Export CSV of top SVGs and HVGs
+################################################################################
+
+top_genes |>
+    select(gene_id, symbol) |>
+    slice_head(n = 100) |>
+    write_csv(file.path(dirname(hvg_path), 'top_100_SVGs.csv'))
+
+top_genes_hvg |>
+    dplyr::rename(symbol = gene_name) |>
+    slice_head(n = 100) |>
+    write_csv(file.path(dirname(hvg_path), 'top_100_HVGs.csv'))
+
 session_info()
