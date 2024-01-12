@@ -3,6 +3,11 @@ library(PRECAST)
 library(HDF5Array)
 library(Seurat)
 library(sessioninfo)
+library(tidyverse)
+library(Matrix)
+library(SpatialExperiment)
+
+k = as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
 
 spe_dir = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
@@ -11,9 +16,11 @@ svg_path = here(
     'processed-data', '05_harmony_BayesSpace', 'nnSVG_out',
     'summary_across_samples.csv'
 )
-out_dir = here('processed-data', '10_precast')
+out_path = here('processed-data', '10_precast', paste0('PRECAST_k', k, '.csv'))
+num_genes = 2000
 
 set.seed(1)
+dir.create(dirname(out_path), showWarnings = FALSE)
 
 spe = loadHDF5SummarizedExperiment(spe_dir)
 
@@ -28,12 +35,19 @@ seu_list = lapply(
         small_spe = spe[, spe$donor == donor]
 
         CreateSeuratObject(
-            counts = assays(small_spe)$counts,
-            meta.data = colData(small_spe),
+            #   Bring into memory to greatly improve speed
+            counts = as(assays(small_spe)$counts, "dgCMatrix"),
+            meta.data = as.data.frame(colData(small_spe)),
             project = 'spatialNAc'
         )
     }
 )
+
+svgs = read.csv(svg_path) |>
+    as_tibble() |>
+    arrange(nnsvg_avg_rank_rank) |>
+    slice_head(n = num_genes) |>
+    pull(gene_id)
 
 pre_obj = CreatePRECASTObject(
     seuList = seu_list,
@@ -59,8 +73,17 @@ pre_obj <- AddParSetting(
     pre_obj, Sigma_equal = FALSE, verbose = TRUE, maxIter = 30
 )
 
-pre_obj <- PRECAST(pre_obj, K = as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID")))
+#   Fit model
+pre_obj <- PRECAST(pre_obj, K = k)
+pre_obj <- SelectModel(pre_obj)
+pre_obj = IntegrateSpaData(pre_obj, species = "Human")
 
-save(pre_obj, out_dir)
+#   Extract PRECAST results, clean up column names, and export to CSV
+pre_obj@meta.data |>
+    rownames_to_column("key") |>
+    as_tibble() |>
+    select(-orig.ident) |>
+    rename_with(~ sub('_PRE_CAST', '', .x)) |>
+    write_csv(out_path)
 
 session_info()
