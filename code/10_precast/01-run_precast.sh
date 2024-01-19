@@ -2,11 +2,11 @@
 
 #SBATCH -p shared
 #SBATCH -c 1
-#SBATCH --mem=30G
-#SBATCH --job-name=01-precast
-#SBATCH -o ../../processed-data/10_precast/logs/01-precast_%a.log
-#SBATCH -e ../../processed-data/10_precast/logs/01-precast_%a.log
-#SBATCH --array=2-28%5
+#SBATCH --mem=60G
+#SBATCH --job-name=01-run_precast
+#SBATCH -o ../../processed-data/10_precast/logs/01-run_precast_%a.log
+#SBATCH -e ../../processed-data/10_precast/logs/01-run_precast_%a.log
+#SBATCH --array=3-28%3
 
 set -e
 
@@ -20,7 +20,7 @@ echo "Node name: ${SLURMD_NODENAME}"
 echo "Task id: ${SLURM_ARRAY_TASK_ID}"
 
 module load conda_R/4.3
-Rscript 01-precast.R
+Rscript 01-run_precast.R
 
 echo "**** Job ends ****"
 date
