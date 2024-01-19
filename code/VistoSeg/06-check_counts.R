@@ -25,7 +25,8 @@ spe_nac = loadHDF5SummarizedExperiment(spe_dir)
 counts_list = list()
 for (i in 1:nrow(sample_info)) {
     counts_list[[i]] = read.csv(
-                file.path(sample_info$spaceranger_dir[i], 'tissue_spot_counts.csv')
+                file.path(sample_info$spaceranger_dir[i],
+                'tissue_spot_counts.csv')
             ) |>
             as_tibble() |>
             mutate(sample_id = sample_info$sample_id[i])
@@ -88,32 +89,56 @@ pdf(
 print(p)
 dev.off()
 
-#   Verify that distribution of nuclei counts is somewhat comparable to those
-#   observed in DLPFC
+################################################################################
+#   Calculate quick numeric metrics to compare distribution of NAc,
+#   spatialDLPFC, and human pilot DLPFC nuclei counts
+################################################################################
+
+#-------------------------------------------------------------------------------
+#   Gather counts for the NAc, spatialDLPFC, and human pilot DLPFC datasets
+#   into a single tibble
+#-------------------------------------------------------------------------------
+
+count_df_nac = tibble(
+    n_nuclei = counts$Nmask_dark_blue,
+    dataset = "NAc"
+)
+rm(spe_nac)
+gc()
+
 spe_dlpfc = fetch_data(type = "spatialDLPFC_Visium")
 stopifnot(all(spe_dlpfc$in_tissue))
-message(
-    sprintf(
-        "Median number of nuclei per spot (NAc, DLPFC): %s, %s",
-        median(counts$Nmask_dark_blue),
-        median(spe_dlpfc$VistoSeg_count)
-    )
+count_df_dlpfc = tibble(
+    n_nuclei = spe_dlpfc$VistoSeg_count,
+    dataset = "spatialDLPFC"
 )
+rm(spe_dlpfc)
+gc()
 
-message(
-    sprintf(
-        "Max count for nuclei per spot (NAc, DLPFC): %s, %s",
-        max(counts$Nmask_dark_blue),
-        max(spe_dlpfc$VistoSeg_count)
-    )
+spe_dlpfc = fetch_data(type = "spe")
+stopifnot(all(spe_dlpfc$in_tissue))
+count_df_pilot = tibble(
+    n_nuclei = spe_dlpfc$cell_count,
+    dataset = "humanPilotDLPFC"
 )
+rm(spe_dlpfc)
+gc()
 
-message(
-    sprintf(
-        "3 SDs above median count for nuclei per spot (NAc, DLPFC): %s, %s",
-        round(upper_cutoff, 1),
-        round(median(spe_dlpfc$VistoSeg_count) + 3 * sd(spe_dlpfc$VistoSeg_count))
-    )
-)
+count_df = rbind(count_df_nac, count_df_dlpfc, count_df_pilot)
+
+#-------------------------------------------------------------------------------
+#   Compare distribution of spatialNAc, spatialDLPFC, and human pilot DLPFC
+#   nuclei counts
+#-------------------------------------------------------------------------------
+
+message("Median, maximum, and 3 SDs above the median nuclei counts by dataset:")
+count_df |>
+    group_by(dataset) |>
+    summarize(
+        count_median = median(n_nuclei),
+        count_max = max(n_nuclei),
+        count_cutoff = count_median + 3 * sd(n_nuclei)
+    ) |>
+    print()
 
 session_info()
