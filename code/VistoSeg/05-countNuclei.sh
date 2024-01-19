@@ -2,11 +2,11 @@
 
 #SBATCH -p shared
 #SBATCH -c 4
-#SBATCH --mem=100G
+#SBATCH --mem=120G
 #SBATCH --job-name=05-countNuclei
 #SBATCH -o ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
 #SBATCH -e ../../processed-data/VistoSeg/logs/05-countNuclei_%a.log
-#SBATCH --array=2-38%5
+#SBATCH --array=12
 
 #   Paths as R code
 toolbox_dir="here::here('code', 'VistoSeg', 'code')"
