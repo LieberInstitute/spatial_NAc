@@ -11,7 +11,10 @@ out_path = here('processed-data', '10_precast', 'PRECAST_k%s.csv')
 spe_dir = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
 )
+plot_dir = here('plots', '10_precast')
 wm_genes = c('MBP', 'GFAP', 'PLP1', 'AQP4')
+
+dir.create(plot_dir, showWarnings = FALSE)
 
 spe = loadHDF5SummarizedExperiment(spe_dir)
 
@@ -65,3 +68,23 @@ colData(spe) |>
 
 #   Note that correlations are consistently large and positive, indicating that
 #   cluster 1 roughly corresponds to gray matter, and 2 roughly to white matter
+
+################################################################################
+#   Simply plot cluster assignments for k=2 through k=28
+################################################################################
+
+for (k in 2:28) {
+    plot_list = list()
+    for (donor in unique(spe$sample_id)) {
+        plot_list[[donor]] = spot_plot(
+            spe, sample_id = donor, var_name = paste0("precast_k", k),
+            is_discrete = TRUE
+        )
+    }
+
+    pdf(file.path(plot_dir, sprintf('k%s_all_samples.pdf', k)))
+    print(plot_list)
+    dev.off()
+}
+
+session_info()
