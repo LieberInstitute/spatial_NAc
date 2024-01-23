@@ -175,12 +175,14 @@ p = results_df |>
     summarize(match_rate = mean(original == overlap)) |>
     ungroup() |>
     ggplot() +
-        geom_boxplot(aes(x = k, y = match_rate)) +
-        labs(x = "PRECAST k Value", y = "Proportion of matches")
+        geom_boxplot(aes(x = k, y = match_rate), outlier.shape = NA) +
+        labs(x = "PRECAST k Value", y = "Proportion of Matches", color = "Donor") +
+        geom_jitter(aes(x = k, y = match_rate, color = sample_id)) +
+        theme_bw(base_size = 24)
 
 pdf(
     file.path(plot_dir, 'cluster_assignment_at_overlaps.pdf'),
-    width = 10, height = 7
+    width = 15, height = 7
 )
 print(p)
 dev.off()
