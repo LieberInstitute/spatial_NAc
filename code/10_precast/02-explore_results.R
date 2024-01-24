@@ -13,11 +13,32 @@ spe_dir = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
 )
 plot_dir = here('plots', '10_precast')
-wm_genes = c('MBP', 'GFAP', 'PLP1', 'AQP4')
+
+#   List of genes provided by Svitlana, named by the subregion they're markers
+#   for
+subregion_genes = list(
+    'shell' = c(
+        'TAC3', 'TAC1', 'CALB2', 'GRIA4', 'CPNE4', 'GREB1L', 'ARHGAP6', 'OPRK1'
+    ),
+    'core' = toupper(
+        c(
+            'CALB1', 'HPCAL4', 'ZDBF2', 'LAMP5', 'Scn4b', 'Rgs9', 'Ppp3ca',
+            'Oprd1', 'Adora2a', 'Pde1a', 'Peg10', 'Dlk1', 'Htr2c'
+        )
+    ),
+    'white_matter' = c('MBP', 'GFAP', 'PLP1', 'AQP4'),
+    'D1_islands' = c('OPRM1', 'CHST9')
+)
 
 dir.create(plot_dir, showWarnings = FALSE)
 
 spe = loadHDF5SummarizedExperiment(spe_dir)
+stopifnot(all(unlist(subregion_genes) %in% rowData(spe)$gene_name))
+
+#   Only use logcounts, and bring into memory to speed up computations
+assays(spe) = list(logcounts = assays(spe)$logcounts)
+assays(spe) = list(logcounts = Matrix(assays(spe)$logcounts, sparse = TRUE))
+spe = realize(spe)
 
 ################################################################################
 #   Import PRECAST results and append to colData
@@ -50,8 +71,9 @@ colnames(spe) = temp
 #   For each spot, average expression Z-scores across all white matter genes.
 #   The idea is that the combined expression of several white matter genes
 #   should form a more precise marker of white matter than one gene
-stopifnot(all(wm_genes %in% rowData(spe)$gene_name))
-a <- assays(spe)$logcounts[match(wm_genes, rowData(spe)$gene_name),]
+a <- assays(spe)$logcounts[
+    match(subregion_genes[['white_matter']], rowData(spe)$gene_name),
+]
 gene_z <- (a - rowMeans(a)) / rowSds(a)
 spe$z_score <- colMeans(gene_z, na.rm = TRUE)
 
@@ -186,5 +208,59 @@ pdf(
 )
 print(p)
 dev.off()
+
+################################################################################
+#   Compare PRECAST clusters with marker gene expression of suspected biological
+#   regions (e.g. WM/GM, D1 islands, shell, core)
+################################################################################
+
+#   Specifically, k = 4 seems to consistently capture WM vs. GM, has a cluster
+#   spread in small pockets across the tissue (D1 islands?), and a cluster
+#   marking a subregion of GM (shell or core?)
+#
+#   Evaluate how well marker genes (albeit derived from mouse/ other species)
+#   of these biological regions line up with k = 4 clusters from PRECAST
+b = Sys.time()
+assay_subset = Matrix(
+    assays(spe)$logcounts[match(unlist(subregion_genes), rowData(spe)$gene_name),],
+    sparse = TRUE,
+    nrow = length(unlist(subregion_genes)),
+    dimnames = list(unlist(subregion_genes), colnames(spe))
+)
+a <- assay_subset[subregion_genes[[names(subregion_genes)[[1]]]],]
+gene_z <- colMeans((a - rowMeans(a)) / rowSds(a), na.rm = TRUE)
+Sys.time() - b
+
+#   Bring in the subset of the logcounts that we'll use, as this seems to be
+#   significantly faster than repeatedly performing HDF5-backed, chunked
+#   operations
+assay_subset = Matrix(
+    assays(spe)$logcounts[match(unlist(subregion_genes), rowData(spe)$gene_name),],
+    sparse = TRUE,
+    nrow = length(unlist(subregion_genes)),
+    dimnames = list(unlist(subregion_genes), colnames(spe))
+)
+
+cor_mat = matrix(0, nrow = length(subregion_genes), ncol = 4)
+rownames(cor_mat) = names(subregion_genes)
+for (subregion in names(subregion_genes)) {
+    #   For each spot, average expression Z-scores across the subregion.
+    #   The idea is that the combined expression of several genes
+    #   should form a more precise marker of the subregion than one gene
+    a <- assay_subset[subregion_genes[[subregion]],]
+    gene_z <- colMeans((a - rowMeans(a)) / rowSds(a), na.rm = TRUE)
+
+    #   Now compute correlation between cluster identity (in a boolean sense--
+    #   belonging or not belonging in the cluster) and the averaged Z-score
+    for (cluster_identity in 1:4) {
+        cor_mat[match(subregion, names(subregion_genes)), cluster_identity] =
+            cor(
+                gene_z, spe$precast_k4 == cluster_identity, use = "complete.obs"
+            )
+    }
+}
+
+message("Correlation of subregion markers with clusters in k=4:")
+print(cor_mat)
 
 session_info()
