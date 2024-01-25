@@ -6,7 +6,7 @@
 #SBATCH --job-name=05-run_nnSVG
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/05-run_nnSVG_precast_%a.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/05-run_nnSVG_precast_%a.log
-#SBATCH --array=1-10%5
+#SBATCH --array=2-10%5
 
 #   'TRUE' or 'FALSE': if TRUE, find SVGs within k=2 PRECAST clusters. If FALSE,
 #   run nnSVG without covariates
