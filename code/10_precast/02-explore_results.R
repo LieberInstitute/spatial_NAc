@@ -35,11 +35,6 @@ dir.create(plot_dir, showWarnings = FALSE)
 spe = loadHDF5SummarizedExperiment(spe_dir)
 stopifnot(all(unlist(subregion_genes) %in% rowData(spe)$gene_name))
 
-#   Only use logcounts, and bring into memory to speed up computations
-assays(spe) = list(logcounts = assays(spe)$logcounts)
-assays(spe) = list(logcounts = Matrix(assays(spe)$logcounts, sparse = TRUE))
-spe = realize(spe)
-
 ################################################################################
 #   Import PRECAST results and append to colData
 ################################################################################
