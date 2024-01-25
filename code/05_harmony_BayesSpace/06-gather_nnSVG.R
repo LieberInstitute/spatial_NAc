@@ -7,15 +7,35 @@ library(spatialNAcUtils)
 library(HDF5Array)
 library(nnSVG)
 library(cowplot)
+library(getopt)
+
+spec <- matrix(
+    c(
+        "use_precast", "p", 1, "logical", "Use k=2 PRECAST results as a covariate to nnSVG?"
+    ),
+    byrow = TRUE, ncol = 5
+)
+opt <- getopt(spec)
 
 spe_dir = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
 )
-nn_out_dir = here('processed-data', '05_harmony_BayesSpace', 'nnSVG_out')
+if (opt$use_precast) {
+    nn_out_dir = here(
+        'processed-data', '05_harmony_BayesSpace', 'nnSVG_precast_out'
+    )
+    plot_dir = here('plots', '05_harmony_BayesSpace', 'nnSVG_precast')
+} else {
+    nn_out_dir = here('processed-data', '05_harmony_BayesSpace', 'nnSVG_out')
+    plot_dir = here('plots', '05_harmony_BayesSpace', 'nnSVG')
+}
+
 hvg_path = here("processed-data", "05_harmony_BayesSpace", "top.hvgs.Rdata")
-plot_dir = here('plots', '05_harmony_BayesSpace')
 sig_cutoff = 0.05
 best_sample_id = 'Br8492'
+
+dir.create(nn_out_dir, showWarnings = FALSE)
+dir.create(plot_dir, showWarnings = FALSE)
 
 spe = loadHDF5SummarizedExperiment(spe_dir)
 
@@ -159,11 +179,13 @@ dev.off()
 top_genes |>
     select(gene_id, symbol) |>
     slice_head(n = 100) |>
-    write_csv(file.path(dirname(hvg_path), 'top_100_SVGs.csv'))
+    write_csv(file.path(nn_out_dir, 'top_100_SVGs.csv'))
 
-top_genes_hvg |>
-    dplyr::rename(symbol = gene_name) |>
-    slice_head(n = 100) |>
-    write_csv(file.path(dirname(hvg_path), 'top_100_HVGs.csv'))
+if (!opt$use_precast) {
+    top_genes_hvg |>
+        dplyr::rename(symbol = gene_name) |>
+        slice_head(n = 100) |>
+        write_csv(file.path(dirname(hvg_path), 'top_100_HVGs.csv'))
+}
 
 session_info()
