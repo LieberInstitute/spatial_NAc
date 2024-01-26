@@ -8,33 +8,33 @@ library(gridExtra)
 library(getopt)
 library(sessioninfo)
 
-spec = matrix(
+spec <- matrix(
     c("donor", "d", 1, "character", "Donor"),
     byrow = TRUE, ncol = 5
 )
-opt = getopt(spec)
+opt <- getopt(spec)
 
 #   Column names for raw tissue_positions_list.csv files
-tissue_colnames = c(
+tissue_colnames <- c(
     "barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres",
     "pxl_col_in_fullres"
 )
 
-tissue_path_in = here(
-    'processed-data', '02_image_stitching',
-    sprintf('tissue_positions_%s.csv', opt$donor)
+tissue_path_in <- here(
+    "processed-data", "02_image_stitching",
+    sprintf("tissue_positions_%s.csv", opt$donor)
 )
 
-tissue_path_out = here(
-    'processed-data', '04_VisiumStitcher', opt$donor,
-    'tissue_positions.csv'
+tissue_path_out <- here(
+    "processed-data", "04_VisiumStitcher", opt$donor,
+    "tissue_positions.csv"
 )
 
-sample_info_path = here(
-    'processed-data', '02_image_stitching', 'sample_info_clean.csv'
+sample_info_path <- here(
+    "processed-data", "02_image_stitching", "sample_info_clean.csv"
 )
 
-plot_dir = here('plots', '02_image_stitching', opt$donor)
+plot_dir <- here("plots", "02_image_stitching", opt$donor)
 
 dir.create(plot_dir, showWarnings = FALSE)
 
@@ -46,9 +46,9 @@ dir.create(plot_dir, showWarnings = FALSE)
 #   https://kb.10xgenomics.com/hc/en-us/articles/360035487812-What-is-the-size-of-the-spots-on-the-Visium-Gene-Expression-Slide-
 #   https://kb.10xgenomics.com/hc/en-us/articles/360035487892-How-much-space-is-there-between-spots-referred-to-as-white-space-
 #   https://support.10xgenomics.com/spatial-gene-expression/software/pipelines/latest/output/spatial
-SPOT_DIAMETER_M = 55e-6
-SPOT_DIAMETER_JSON_M = 65e-6
-INTER_SPOT_DIST_M = 100e-6
+SPOT_DIAMETER_M <- 55e-6
+SPOT_DIAMETER_JSON_M <- 65e-6
+INTER_SPOT_DIST_M <- 100e-6
 
 set.seed(0)
 
@@ -58,7 +58,7 @@ set.seed(0)
 
 #   Stop if the tibble-like 'coords', expected to contain columns 'array_row'
 #   and 'array_col', represents an invalid Visium array
-validate_array = function(coords) {
+validate_array <- function(coords) {
     #   Even array rows can only use even column indices
     coords |>
         filter(array_row %% 2 == 0) |>
@@ -84,21 +84,21 @@ validate_array = function(coords) {
     }
 }
 
-refine_fit = function(x, y, INTERVAL_X, INTERVAL_Y) {
+refine_fit <- function(x, y, INTERVAL_X, INTERVAL_Y) {
     #   Round x to the nearest integer, and track the error from doing so in the
     #   variable 'dx'
-    dx = x - clean_round(x)
-    x = x - dx
+    dx <- x - clean_round(x)
+    x <- x - dx
 
     #   Given x, round y to the nearest valid integer (y must be even iff x is),
     #   and track the error from doing so in the variable 'dy'
-    dy = rep(0, length(y))
-    dy[x %% 2 == 0] = y[x %% 2 == 0] - clean_round(y[x %% 2 == 0] / 2) * 2
-    dy[x %% 2 == 1] = y[x %% 2 == 1] - (clean_round(y[x %% 2 == 1] / 2 - 0.5) * 2 + 1)
-    y = y - dy
+    dy <- rep(0, length(y))
+    dy[x %% 2 == 0] <- y[x %% 2 == 0] - clean_round(y[x %% 2 == 0] / 2) * 2
+    dy[x %% 2 == 1] <- y[x %% 2 == 1] - (clean_round(y[x %% 2 == 1] / 2 - 0.5) * 2 + 1)
+    y <- y - dy
 
     #   Summarize error in Euclidean distance
-    error = sqrt((INTERVAL_X * dx) ** 2 + (INTERVAL_Y * dy) ** 2)
+    error <- sqrt((INTERVAL_X * dx)**2 + (INTERVAL_Y * dy)**2)
     return(list(x, y, error))
 }
 
@@ -113,45 +113,45 @@ refine_fit = function(x, y, INTERVAL_X, INTERVAL_Y) {
 #   tibble with modified 'array_row' + 'array_col' columns, as well as new
 #   'pxl_row_rounded' and 'pxl_col_rounded' columns representing the pixel
 #   coordinates rounded to the nearest exact array coordinates.
-fit_to_array = function(coords, inter_spot_dist_px) {
-    MIN_ROW = min(coords$pxl_col_in_fullres)
-    INTERVAL_ROW = inter_spot_dist_px * cos(pi / 6)
-    
-    MIN_COL = min(coords$pxl_row_in_fullres)
-    MAX_COL = max(coords$pxl_row_in_fullres)
-    INTERVAL_COL = inter_spot_dist_px / 2
+fit_to_array <- function(coords, inter_spot_dist_px) {
+    MIN_ROW <- min(coords$pxl_col_in_fullres)
+    INTERVAL_ROW <- inter_spot_dist_px * cos(pi / 6)
+
+    MIN_COL <- min(coords$pxl_row_in_fullres)
+    MAX_COL <- max(coords$pxl_row_in_fullres)
+    INTERVAL_COL <- inter_spot_dist_px / 2
 
     #   Calculate what "ideal" array rows and cols should be (allowed to be any
     #   float). Don't round yet. Note array_row maps with pxl_col, while
     #   array_col maps backwards with pxl_row
-    array_row_temp = (coords$pxl_col_in_fullres - MIN_ROW) / 
+    array_row_temp <- (coords$pxl_col_in_fullres - MIN_ROW) /
         INTERVAL_ROW
 
-    array_col_temp = (MAX_COL - coords$pxl_row_in_fullres) /
+    array_col_temp <- (MAX_COL - coords$pxl_row_in_fullres) /
         INTERVAL_COL
 
     #   For now, find the nearest row first, then round to the nearest possible
     #   column given the row
-    temp = refine_fit(array_row_temp, array_col_temp, INTERVAL_ROW, INTERVAL_COL)
-    error_row_first = temp[[3]]
-    coords$array_row = temp[[1]]
-    coords$array_col = temp[[2]]
+    temp <- refine_fit(array_row_temp, array_col_temp, INTERVAL_ROW, INTERVAL_COL)
+    error_row_first <- temp[[3]]
+    coords$array_row <- temp[[1]]
+    coords$array_col <- temp[[2]]
 
     #   Perform the opposite order (column then row). When this ordering results
     #   in lower error, use it instead
-    temp = refine_fit(array_col_temp, array_row_temp, INTERVAL_COL, INTERVAL_ROW)
-    error_col_first = temp[[3]]
-    coords$array_row[error_row_first > error_col_first] = temp[[2]][
+    temp <- refine_fit(array_col_temp, array_row_temp, INTERVAL_COL, INTERVAL_ROW)
+    error_col_first <- temp[[3]]
+    coords$array_row[error_row_first > error_col_first] <- temp[[2]][
         error_row_first > error_col_first
     ]
-    coords$array_col[error_row_first > error_col_first] = temp[[1]][
+    coords$array_col[error_row_first > error_col_first] <- temp[[1]][
         error_row_first > error_col_first
     ]
 
     #   Now make new pixel columns based on just the array values (these columns
     #   give the coordinates for given array row/cols)
-    coords$pxl_col_rounded = MIN_ROW + coords$array_row * INTERVAL_ROW
-    coords$pxl_row_rounded = MAX_COL - coords$array_col * INTERVAL_COL
+    coords$pxl_col_rounded <- MIN_ROW + coords$array_row * INTERVAL_ROW
+    coords$pxl_row_rounded <- MAX_COL - coords$array_col * INTERVAL_COL
 
     #-------------------------------------------------------------------------------
     #   array (0, 0) does not exist on an ordinary Visium array. Move any such
@@ -159,25 +159,25 @@ fit_to_array = function(coords, inter_spot_dist_px) {
     #-------------------------------------------------------------------------------
 
     #   Nearest points to (0, 0) are (0, 2) and (1, 1):
-    array_02 = c(MIN_ROW, MIN_COL + 2 * INTERVAL_COL)
-    array_11 = c(MIN_ROW + INTERVAL_ROW, MIN_COL + INTERVAL_COL)
+    array_02 <- c(MIN_ROW, MIN_COL + 2 * INTERVAL_COL)
+    array_11 <- c(MIN_ROW + INTERVAL_ROW, MIN_COL + INTERVAL_COL)
 
     #   Determine the distances to those nearest points
-    dist_coords = coords |>
+    dist_coords <- coords |>
         filter(array_row == 0, array_col == 0) |>
         mutate(
-            dist_02 = (pxl_col_in_fullres - array_02[1]) ** 2 +
-                (pxl_row_in_fullres - array_02[2]) ** 2,
-            dist_11 = (pxl_col_in_fullres - array_11[1]) ** 2 +
-                (pxl_row_in_fullres - array_11[2]) ** 2,
+            dist_02 = (pxl_col_in_fullres - array_02[1])**2 +
+                (pxl_row_in_fullres - array_02[2])**2,
+            dist_11 = (pxl_col_in_fullres - array_11[1])**2 +
+                (pxl_row_in_fullres - array_11[2])**2,
         )
 
     #   Move any instances of (0, 0) to the nearest alternative
-    indices = (coords$array_row == 0) & (coords$array_col == 0)
-    coords[indices, 'array_row'] = ifelse(
+    indices <- (coords$array_row == 0) & (coords$array_col == 0)
+    coords[indices, "array_row"] <- ifelse(
         dist_coords$dist_02 < dist_coords$dist_11, 0, 1
     )
-    coords[indices, 'array_col'] = ifelse(
+    coords[indices, "array_col"] <- ifelse(
         dist_coords$dist_02 < dist_coords$dist_11, 2, 1
     )
 
@@ -190,7 +190,7 @@ fit_to_array = function(coords, inter_spot_dist_px) {
 #   Round to the nearest integer, always rounding up at 0.5. This consistent
 #   behavior is favorable for our application, where we want to minimize
 #   duplicate mappings
-clean_round = function(x) {
+clean_round <- function(x) {
     return(floor(x) + ((x * 10) %% 10 >= 5))
 }
 
@@ -198,16 +198,16 @@ clean_round = function(x) {
 #   Read in sample info and spot coordinate info
 ################################################################################
 
-coords = read.csv(tissue_path_in) |>
+coords <- read.csv(tissue_path_in) |>
     as_tibble() |>
-    mutate(sample_id = paste(ss(key, '_', 2), ss(key, '_', 3), sep = '_'))
+    mutate(sample_id = paste(ss(key, "_", 2), ss(key, "_", 3), sep = "_"))
 
-sample_info = read.csv(sample_info_path) |>
+sample_info <- read.csv(sample_info_path) |>
     as_tibble() |>
     rename(
         sample_id = X,
-        array_num = 'Array..',
-        slide_num = 'Slide..' 
+        array_num = "Array..",
+        slide_num = "Slide.."
     ) |>
     filter(Brain == opt$donor, In.analysis == "True")
 
@@ -216,22 +216,22 @@ sample_info = read.csv(sample_info_path) |>
 #   to verify the relationship between array and pixel coordinates
 #-------------------------------------------------------------------------------
 
-raw_tissue_paths = sample_info |>
+raw_tissue_paths <- sample_info |>
     pull(spaceranger_dir) |>
-    list.files(pattern = '^tissue_positions(_list|)\\.csv$', full.names = TRUE)
+    list.files(pattern = "^tissue_positions(_list|)\\.csv$", full.names = TRUE)
 
 #   Read in coordinates, keeping track of sample ID as well
-raw_tissue_list = list()
+raw_tissue_list <- list()
 for (raw_tissue_path in raw_tissue_paths) {
-    raw_tissue_list[[raw_tissue_path]] = read.csv(raw_tissue_path, col.names = tissue_colnames)
-    raw_tissue_list[[raw_tissue_path]]$sample_id = raw_tissue_path |>
-        str_extract('/[^/]*_[ABCD]1/') |>
-        str_replace_all('/', '')
+    raw_tissue_list[[raw_tissue_path]] <- read.csv(raw_tissue_path, col.names = tissue_colnames)
+    raw_tissue_list[[raw_tissue_path]]$sample_id <- raw_tissue_path |>
+        str_extract("/[^/]*_[ABCD]1/") |>
+        str_replace_all("/", "")
 }
-raw_coords = do.call(rbind, raw_tissue_list) |> as_tibble()
+raw_coords <- do.call(rbind, raw_tissue_list) |> as_tibble()
 
 print("Correlation relationship between array (a) and pixel (p) row/col:")
-cor_raw_coords = raw_coords |>
+cor_raw_coords <- raw_coords |>
     group_by(sample_id) |>
     summarize(
         arow_v_prow = cor(array_row, pxl_row_in_fullres),
@@ -242,7 +242,7 @@ cor_raw_coords = raw_coords |>
 print(cor_raw_coords)
 
 #   We expect array_row to "line up with" pixel_col
-tol = 0.01
+tol <- 0.01
 stopifnot(all(abs(cor_raw_coords$arow_v_prow) < tol))
 stopifnot(all(1 - abs(cor_raw_coords$arow_v_pcol) < tol))
 
@@ -251,7 +251,7 @@ stopifnot(all(1 - abs(cor_raw_coords$arow_v_pcol) < tol))
 #   that the distance between spots on the new grid matches the Visium standard
 #-------------------------------------------------------------------------------
 
-sr_json = fromJSON(
+sr_json <- fromJSON(
     file = file.path(
         sample_info$spaceranger_dir[1], "scalefactors_json.json"
     )
@@ -260,25 +260,25 @@ sr_json = fromJSON(
 #   Since we have the spot diameter both in pixels and meters, compute the
 #   image's pixel/m ratio. Then use that to compute the distance between spots
 #   in pixels
-PX_PER_M = sr_json$spot_diameter_fullres / SPOT_DIAMETER_JSON_M
-INTER_SPOT_DIST_PX = INTER_SPOT_DIST_M * PX_PER_M
+PX_PER_M <- sr_json$spot_diameter_fullres / SPOT_DIAMETER_JSON_M
+INTER_SPOT_DIST_PX <- INTER_SPOT_DIST_M * PX_PER_M
 
 #   Sanity check on existing coordinates: spots should be 100um apart. TODO:
 #   look for pairs of array coordinates that exist; don't hardcode 10, 11
-a = coords |>
+a <- coords |>
     filter(array_row == 10, array_col == 80) |>
     head(1) |>
     select(pxl_row_in_fullres, pxl_col_in_fullres)
 
-b = coords |>
+b <- coords |>
     filter(array_row == 11, array_col == 81) |>
     head(1) |>
     select(pxl_row_in_fullres, pxl_col_in_fullres)
 
-tol = 2
-observed_dist = sqrt(rowSums((a - b) ** 2))
+tol <- 2
+observed_dist <- sqrt(rowSums((a - b)**2))
 if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
-    stop('Transformed spots output from ImageJ/Samui were not close to 100um apart!')
+    stop("Transformed spots output from ImageJ/Samui were not close to 100um apart!")
 }
 
 ################################################################################
@@ -287,11 +287,11 @@ if (abs(observed_dist - INTER_SPOT_DIST_PX) > tol) {
 
 #   Adjust 'array_row' and 'array_col' with values appropriate for the new
 #   coordinate system (a larger Visium grid with equal inter-spot distances)
-coords = fit_to_array(coords, INTER_SPOT_DIST_PX)
+coords <- fit_to_array(coords, INTER_SPOT_DIST_PX)
 
 coords |>
     #   Make barcode compatible with ImageJ outputs
-    mutate(key = paste0(sample_id, ss(key, '_'))) |>
+    mutate(key = paste0(sample_id, ss(key, "_"))) |>
     rename(barcode = key) |>
     #   Drop columns not in spaceranger output
     select(!c(pxl_row_rounded, pxl_col_rounded, sample_id)) |>
@@ -307,7 +307,7 @@ coords |>
 #-------------------------------------------------------------------------------
 
 #   Plot the transformed spots as-is for reference
-p = ggplot(coords) +
+p <- ggplot(coords) +
     geom_point(
         aes(
             x = pxl_col_in_fullres,
@@ -318,17 +318,17 @@ p = ggplot(coords) +
     ) +
     coord_fixed() +
     labs(
-        x = 'Full-res pixels (width)', y = 'Full-res pixels (height)',
-        color = 'Sample ID'
-    ) + 
+        x = "Full-res pixels (width)", y = "Full-res pixels (height)",
+        color = "Sample ID"
+    ) +
     guides(color = guide_legend(override.aes = list(size = 1.5)))
 
-pdf(file.path(plot_dir, 'raw_spots.pdf'))
+pdf(file.path(plot_dir, "raw_spots.pdf"))
 print(p)
 dev.off()
 
 #   Plot the spots aligned to the new Visium grid
-p = ggplot(coords) +
+p <- ggplot(coords) +
     geom_point(
         aes(
             x = pxl_col_rounded,
@@ -339,12 +339,12 @@ p = ggplot(coords) +
     ) +
     coord_fixed() +
     labs(
-        x = 'Full-res pixels (width)', y = 'Full-res pixels (height)',
-        color = 'Sample ID', title = 'Spot Positions (Aligned to Array)'
-    ) + 
+        x = "Full-res pixels (width)", y = "Full-res pixels (height)",
+        color = "Sample ID", title = "Spot Positions (Aligned to Array)"
+    ) +
     guides(color = guide_legend(override.aes = list(size = 1.5)))
 
-pdf(file.path(plot_dir, 'aligned_spots.pdf'))
+pdf(file.path(plot_dir, "aligned_spots.pdf"))
 print(p)
 dev.off()
 
@@ -353,14 +353,15 @@ dev.off()
 #-------------------------------------------------------------------------------
 
 #   Verify that for a single sample, mappings were unique
-dup_coords = coords |>
+dup_coords <- coords |>
     group_by(sample_id, array_col, array_row) |>
     summarize(n = n()) |>
     ungroup()
 
-p1 = ggplot(dup_coords) +
+p1 <- ggplot(dup_coords) +
     geom_histogram(
-        aes(x = n, fill = sample_id), bins = length(unique(dup_coords$n)),
+        aes(x = n, fill = sample_id),
+        bins = length(unique(dup_coords$n)),
         color = "black"
     ) +
     facet_wrap(~sample_id, nrow = 1) +
@@ -371,23 +372,23 @@ p1 = ggplot(dup_coords) +
 
 #   Then check how many spots mapped to the same array coordinates, agnostic
 #   to sample
-dup_coords = coords |>
+dup_coords <- coords |>
     group_by(array_col, array_row) |>
     summarize(n = n()) |>
     ungroup()
 
-p2 = ggplot(dup_coords) +
+p2 <- ggplot(dup_coords) +
     geom_histogram(aes(x = n), bins = length(unique(dup_coords$n))) +
     labs(
         x = "Num spots per array coordinate",
         title = "Overall duplication of spot mappings"
     )
 
-pdf(file.path(plot_dir, 'spot_duplication.pdf'))
+pdf(file.path(plot_dir, "spot_duplication.pdf"))
 plot_grid(p1, p2, nrow = 2)
 dev.off()
 
-p = coords |>
+p <- coords |>
     #   Clean tibble into a nice format for ggplot
     pivot_longer(
         cols = c(
@@ -410,14 +411,14 @@ p = coords |>
     #   Plot the original spot coordiates on top of their alignments,
     #   faceted by sample
     ggplot() +
-        geom_point(
-            aes(x = pxl_col, y = max(pxl_row) - pxl_row, color = position),
-            size = 0.1
-        ) +
-        facet_wrap(~sample_id) +
-        coord_fixed()
+    geom_point(
+        aes(x = pxl_col, y = max(pxl_row) - pxl_row, color = position),
+        size = 0.1
+    ) +
+    facet_wrap(~sample_id) +
+    coord_fixed()
 
-pdf(file.path(plot_dir, 'alignment_by_sample.pdf'), width = 14, height = 14)
+pdf(file.path(plot_dir, "alignment_by_sample.pdf"), width = 14, height = 14)
 print(p)
 dev.off()
 
@@ -430,9 +431,9 @@ print("Mean alignment error in spot diameters:")
 coords |>
     summarize(
         d = mean(
-            (pxl_row_in_fullres - pxl_row_rounded) ** 2 +
-            (pxl_col_in_fullres - pxl_col_rounded) ** 2
-        ) ** 0.5 / sr_json$spot_diameter_fullres
+            (pxl_row_in_fullres - pxl_row_rounded)**2 +
+                (pxl_col_in_fullres - pxl_col_rounded)**2
+        )**0.5 / sr_json$spot_diameter_fullres
     ) |>
     pull(d) |>
     round(2) |>
@@ -443,7 +444,7 @@ coords |>
 #-------------------------------------------------------------------------------
 
 #   Take only duplicated mappings
-dup_df_orig = coords |>
+dup_df_orig <- coords |>
     group_by(array_row, array_col, sample_id) |>
     mutate(num_members = n()) |>
     filter(num_members > 1)
@@ -451,17 +452,17 @@ dup_df_orig = coords |>
 #   If duplicated sites exist, plot some examples
 if (nrow(dup_df_orig) > 0) {
     #   Take 4 random duplicated mappings from each sample ID
-    dup_df_orig = dup_df_orig |>
+    dup_df_orig <- dup_df_orig |>
         slice_head(n = 1) |>
         group_by(sample_id) |>
         sample_n(size = 4, replace = TRUE) |>
         select(!num_members)
 
-    plot_list = list()
+    plot_list <- list()
     for (i in 1:nrow(dup_df_orig)) {
         #   Grab the set of source spots mapping to the same destination spot,
         #   mark them as duplicates, and use their original pixel coordinates
-        dup_df = coords |>
+        dup_df <- coords |>
             filter(
                 sample_id == dup_df_orig$sample_id[i],
                 array_row == dup_df_orig$array_row[i],
@@ -472,10 +473,10 @@ if (nrow(dup_df_orig) > 0) {
                 pxl_row = pxl_row_in_fullres,
                 pxl_col = pxl_col_in_fullres
             )
-        
+
         #   Grab the set of nearby source spots surrounding the duplicate
         #   mapping, and use the rounded pixel coordinates from them
-        dup_df = coords |>
+        dup_df <- coords |>
             filter(
                 sample_id == dup_df_orig$sample_id[i],
                 abs(array_row - dup_df_orig$array_row[i]) <= 4,
@@ -487,18 +488,18 @@ if (nrow(dup_df_orig) > 0) {
                 pxl_col = pxl_col_rounded
             ) |>
             rbind(dup_df)
-        
-        plot_list[[i]] = ggplot(dup_df) +
+
+        plot_list[[i]] <- ggplot(dup_df) +
             geom_point(aes(x = pxl_col, y = pxl_row, color = coord_type)) +
             coord_fixed()
 
         #   Grab the legend from the first plot (which matches all other
         #   legends)
         if (i == 1) {
-            legend = get_legend(plot_list[[i]])
+            legend <- get_legend(plot_list[[i]])
         }
-        
-        plot_list[[i]] = plot_list[[i]] +
+
+        plot_list[[i]] <- plot_list[[i]] +
             theme(
                 axis.text.x = element_blank(),
                 axis.text.y = element_blank(),
@@ -510,8 +511,8 @@ if (nrow(dup_df_orig) > 0) {
             )
     }
 
-    plot_list[['legend']] = legend
-    pdf(file.path(plot_dir, 'duplicated_sites.pdf'))
+    plot_list[["legend"]] <- legend
+    pdf(file.path(plot_dir, "duplicated_sites.pdf"))
     grid.arrange(
         grobs = plot_list, bottom = "pixel col", left = "pixel row", ncol = 4
     )

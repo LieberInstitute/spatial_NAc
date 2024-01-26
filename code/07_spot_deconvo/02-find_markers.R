@@ -63,10 +63,8 @@ write_markers <- function(marker_stats, n_markers, out_path) {
     writeLines(marker_stats_temp$gene, con = out_path)
 }
 
-my_plot_expression <- function(
-        sce, genes, assay = "logcounts", ct = "cellType", title = NULL,
-        marker_stats
-    ) {
+my_plot_expression <- function(sce, genes, assay = "logcounts", ct = "cellType", title = NULL,
+    marker_stats) {
     stopifnot(length(unique(colnames(sce))) == ncol(sce))
 
     cat_df <- as.data.frame(colData(sce))[, ct, drop = FALSE]

@@ -2,8 +2,8 @@ library("spatialLIBD")
 library("HDF5Array")
 library("markdown")
 
-spe_dir = here("code", "06_deploy_app", "spe_shiny")
-docs_dir = here("code", "06_deploy_app", "www")
+spe_dir <- here("code", "06_deploy_app", "spe_shiny")
+docs_dir <- here("code", "06_deploy_app", "www")
 
 ## spatialLIBD uses golem
 options("golem.app.prod" = TRUE)

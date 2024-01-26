@@ -6,14 +6,14 @@ library("sessioninfo")
 library("Matrix")
 
 spe_dir_in <- here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
+    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
 )
 spe_dir_out <- here("code", "06_deploy_app", "spe_shiny")
 
 spe <- loadHDF5SummarizedExperiment(spe_dir_in)
 spe
-# class: SpatialExperiment 
-# dim: 31333 177804 
+# class: SpatialExperiment
+# dim: 31333 177804
 # metadata(0):
 # assays(3): counts logcounts binomial_deviance_residuals
 # rownames(31333): ENSG00000243485 ENSG00000238009 ... ENSG00000278817
@@ -73,13 +73,13 @@ obj_size(spe)
 
 # ## 1000 spots?
 # table(gene_expr > 1000)
-# # FALSE  TRUE 
+# # FALSE  TRUE
 # # 16018 14836
 
 # ## 10000 spots?
 # table(gene_expr > 10000)
-# # FALSE  TRUE 
-# # 23085  7769 
+# # FALSE  TRUE
+# # 23085  7769
 
 # obj_size(logcounts(spe))
 # # 3.38 GB
@@ -96,8 +96,8 @@ obj_size(spe)
 # # 3.52 GB
 
 # spe
-# # class: SpatialExperiment 
-# # dim: 30854 135597 
+# # class: SpatialExperiment
+# # dim: 30854 135597
 # # metadata(0):
 # # assays(1): logcounts
 # # rownames(30854): ENSG00000243485 ENSG00000238009 ... ENSG00000278817 ENSG00000277196
@@ -116,7 +116,7 @@ saveHDF5SummarizedExperiment(spe, spe_dir_out, replace = TRUE)
 print("Reproducibility information:")
 Sys.time() # "2023-12-01 10:13:02 EST"
 proc.time()
-#     user   system  elapsed 
+#     user   system  elapsed
 # 1568.030   13.879 5401.584
 options(width = 120)
 sessioninfo::session_info()

@@ -12,8 +12,8 @@ library("sessioninfo")
 library("here")
 library("tidyverse")
 
-cell_type_var = "TODO"
-donor_formula = "TODO"
+cell_type_var <- "TODO"
+donor_formula <- "TODO"
 
 #  Paths
 sce_in <- "TODO"

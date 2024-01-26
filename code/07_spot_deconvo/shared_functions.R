@@ -30,39 +30,37 @@
 #   minCount:       passed to 'minCount' for 'vis_gene' if not [is_discrete]
 #
 #   Returns a ggplot object
-spot_plot <- function(
-        spe, sample_id, title, var_name, include_legend, is_discrete,
-        colors = NULL, assayname = "logcounts", minCount = 0.5
-    ) {
+spot_plot <- function(spe, sample_id, title, var_name, include_legend, is_discrete,
+    colors = NULL, assayname = "logcounts", minCount = 0.5) {
     IDEAL_POINT_SIZE <- 200
     IMAGE_ID <- "lowres"
 
     #   Subset to specific sample ID, and ensure overlapping spots are dropped
-    spe_small = spe[
+    spe_small <- spe[
         ,
         (spe$sample_id == sample_id) &
-        (is.na(spe$exclude_overlapping) | !spe$exclude_overlapping)
+            (is.na(spe$exclude_overlapping) | !spe$exclude_overlapping)
     ]
-    
+
     #   Determine some pixel values for the horizontal bounds of the spots
-    MIN_COL = min(spatialCoords(spe_small)[, 'pxl_row_in_fullres'])
-    MAX_COL = max(spatialCoords(spe_small)[, 'pxl_row_in_fullres'])
+    MIN_COL <- min(spatialCoords(spe_small)[, "pxl_row_in_fullres"])
+    MAX_COL <- max(spatialCoords(spe_small)[, "pxl_row_in_fullres"])
 
     #   The distance between spots (in pixels) is double the average distance
-    #   between array columns 
-    INTER_SPOT_DIST_PX = 2 * (MAX_COL - MIN_COL) /
+    #   between array columns
+    INTER_SPOT_DIST_PX <- 2 * (MAX_COL - MIN_COL) /
         (max(spe_small$array_col) - min(spe_small$array_col))
-    
+
     #   Find the appropriate spot size for this donor. This can vary because
     #   ggplot downscales a plot the fit desired output dimensions (in this
     #   case presumably a square region on a PDF), and stitched images can vary
     #   in aspect ratio. Also, lowres images always have a larger image
     #   dimension of 1200, no matter how many spots fit in either dimension.
-    small_image_data = imgData(spe_small)[
+    small_image_data <- imgData(spe_small)[
         imgData(spe_small)$image_id == IMAGE_ID,
     ]
-    spot_size = IDEAL_POINT_SIZE * INTER_SPOT_DIST_PX *
-       small_image_data$scaleFactor / max(dim(small_image_data$data[[1]]))
+    spot_size <- IDEAL_POINT_SIZE * INTER_SPOT_DIST_PX *
+        small_image_data$scaleFactor / max(dim(small_image_data$data[[1]]))
 
     #   If the quantity to plot is discrete, use 'vis_clus'. Otherwise use
     #   'vis_gene'.

@@ -7,49 +7,49 @@ library(tidyverse)
 library(Matrix)
 library(SpatialExperiment)
 
-k = as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+k <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
 
-spe_dir = here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
+spe_dir <- here(
+    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
 )
-svg_path = here(
-    'processed-data', '05_harmony_BayesSpace', 'nnSVG_out',
-    'summary_across_samples.csv'
+svg_path <- here(
+    "processed-data", "05_harmony_BayesSpace", "nnSVG_out",
+    "summary_across_samples.csv"
 )
-out_path = here('processed-data', '10_precast', paste0('PRECAST_k', k, '.csv'))
-num_genes = 2000
+out_path <- here("processed-data", "10_precast", paste0("PRECAST_k", k, ".csv"))
+num_genes <- 2000
 
 set.seed(1)
 dir.create(dirname(out_path), showWarnings = FALSE)
 
-spe = loadHDF5SummarizedExperiment(spe_dir)
+spe <- loadHDF5SummarizedExperiment(spe_dir)
 
 #   PRECAST expects array coordinates in 'row' and 'col' columns
-spe$row = spe$array_row_transformed
-spe$col = spe$array_col_transformed
+spe$row <- spe$array_row_transformed
+spe$col <- spe$array_col_transformed
 
 #   Create a list of Seurat objects: one per donor
-seu_list = lapply(
+seu_list <- lapply(
     unique(spe$donor),
     function(donor) {
-        small_spe = spe[, spe$donor == donor]
+        small_spe <- spe[, spe$donor == donor]
 
         CreateSeuratObject(
             #   Bring into memory to greatly improve speed
             counts = as(assays(small_spe)$counts, "dgCMatrix"),
             meta.data = as.data.frame(colData(small_spe)),
-            project = 'spatialNAc'
+            project = "spatialNAc"
         )
     }
 )
 
-svgs = read.csv(svg_path) |>
+svgs <- read.csv(svg_path) |>
     as_tibble() |>
     arrange(nnsvg_avg_rank_rank) |>
     slice_head(n = num_genes) |>
     pull(gene_id)
 
-pre_obj = CreatePRECASTObject(
+pre_obj <- CreatePRECASTObject(
     seuList = seu_list,
     selectGenesMethod = NULL,
     customGenelist = svgs
@@ -70,20 +70,21 @@ pre_obj <- AddAdjList(pre_obj, platform = "Visium")
 #   which involves overriding some default values, though the implications are not
 #   documented
 pre_obj <- AddParSetting(
-    pre_obj, Sigma_equal = FALSE, verbose = TRUE, maxIter = 30
+    pre_obj,
+    Sigma_equal = FALSE, verbose = TRUE, maxIter = 30
 )
 
 #   Fit model
 pre_obj <- PRECAST(pre_obj, K = k)
 pre_obj <- SelectModel(pre_obj)
-pre_obj = IntegrateSpaData(pre_obj, species = "Human")
+pre_obj <- IntegrateSpaData(pre_obj, species = "Human")
 
 #   Extract PRECAST results, clean up column names, and export to CSV
 pre_obj@meta.data |>
     rownames_to_column("key") |>
     as_tibble() |>
     select(-orig.ident) |>
-    rename_with(~ sub('_PRE_CAST', '', .x)) |>
+    rename_with(~ sub("_PRE_CAST", "", .x)) |>
     write_csv(out_path)
 
 session_info()
