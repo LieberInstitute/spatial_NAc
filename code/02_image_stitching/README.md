@@ -8,3 +8,5 @@ Scripts are run in the following order:
 - `01-samui_test.*`: Create the Samui-compatible directory for the adjusted-transformed samples as a visual check of quality. Export transformed spot coordinates, scale factors, and the high-res merged image. Set `mode="adjusted"` in `01-samui_test.sh`
 - `04-export_adjustments.*`: Export adjusted transformations in high resolution, for use in Visium Stitcher downstream
 - `06-spatial_coords.*`: Compute the `array_row` and `array_col` pieces of the adjusted spot coordinates and export as a CSV (with pixel coordinates as well)
+
+On the side, `05-understand_array.*` was run to understand unexpected behavior when computing `array_row` and `array_col` in `06-spatial_coords.*` (there was a sort of "aliasing" effect which is likely unavaoidable due to the fact the pixel coordinates start out as integers, despite representing continuous data that can theoretically hold decimal values).
