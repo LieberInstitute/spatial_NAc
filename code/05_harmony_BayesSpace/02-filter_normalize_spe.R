@@ -28,18 +28,89 @@ num_cores = Sys.getenv('SLURM_CPUS_ON_NODE')
 set.seed(0)
 
 ################################################################################
-#   Compute log-normalized counts
+#   Read in the data and add additional QC metrics, followed by filtering data
 ################################################################################
-
 spe = readRDS(raw_in_path)
-
-#   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
-#   genes, and drop genes with 0 counts in every spot
+cat("Initial number of spots:", dim(spe)[2], "\n")
+# Preliminary QC
 spe <- spe[
     rowSums(assays(spe)$counts) > 0,
     (colSums(assays(spe)$counts) > 0) & spe$in_tissue
 ]
 
+cat("Number of spots after preliminary QC:", dim(spe)[2], "\n")
+## Metrics QC
+metrics_qc <- function(spe) {
+
+    qc_df <- data.frame(
+        log2sum = log2(spe$sum_umi),
+        log2detected = log2(spe$sum_gene),
+        subsets_Mito_percent = spe$expr_chrM_ratio*100,
+        sample_id = spe$sample_id_original
+    )
+
+    qcfilter <- DataFrame(
+        low_lib_size = isOutlier(qc_df$log2sum, type = "lower", log = TRUE, batch = qc_df$sample_id),
+        low_n_features = isOutlier(qc_df$log2detected, type = "lower", log = TRUE, batch = qc_df$sample_id),
+        high_subsets_Mito_percent = isOutlier(qc_df$subsets_Mito_percent, type = "higher", batch = qc_df$sample_id)
+    )
+    qcfilter$discard <- (qcfilter$low_lib_size | qcfilter$low_n_features) | qcfilter$high_subsets_Mito_percent
+
+
+    spe$scran_low_lib_size_low_mito <- factor(qcfilter$low_lib_size & qc_df$subsets_Mito_percent < 0.5, levels = c("TRUE", "FALSE"))
+
+
+    spe$scran_discard <-
+        factor(qcfilter$discard, levels = c("TRUE", "FALSE"))
+    spe$scran_low_lib_size <-
+        factor(qcfilter$low_lib_size, levels = c("TRUE", "FALSE"))
+    spe$scran_low_n_features <-
+        factor(qcfilter$low_n_features, levels = c("TRUE", "FALSE"))
+    spe$scran_high_subsets_Mito_percent <-
+        factor(qcfilter$high_subsets_Mito_percent, levels = c("TRUE", "FALSE"))
+
+    ## Find edge spots
+    spots <- data.frame(
+        row = spe$array_row,
+        col = spe$array_col,
+        sample_id = spe$sample_id_original
+    )
+
+    edge_spots_row <- group_by(spots, sample_id, row) %>% summarize(min_col = min(col), max_col = max(col))
+    edge_spots_col <- group_by(spots, sample_id, col) %>% summarize(min_row = min(row), max_row = max(row))
+
+    spots <- left_join(spots, edge_spots_row) %>% left_join(edge_spots_col)
+    spots$edge_spots <- with(spots, row == min_row | row == max_row | col == min_col | col == max_col)
+
+    spots$row_distance <- with(spots, pmin(abs(row - min_row), abs(row - max_row)))
+    spots$col_distance <- with(spots, pmin(abs(col - min_col), abs(col - max_col)))
+    ## spots$edge_distance <- with(spots, sqrt(row_distance^2 + col_distance^2))
+    ## The above is from:
+    ## sqrt((x_1 - x_2)^2 + (y_1 - y_2)^2)
+    ## but it was wrong, here's a case the the smallest distance is on the column:
+    ## sqrt(0^2 + col_distance^2) = col_distance
+    spots$edge_distance <- with(spots, pmin(row_distance, col_distance))
+
+
+    spe$edge_spots <- factor(spots$edge_spots, levels = c("TRUE", "FALSE"))
+    spe$edge_distance <- spots$edge_distance
+
+
+    spe$scran_low_lib_size_edge <- factor(qcfilter$low_lib_size & spots$edge_distance < 1, levels = c("TRUE", "FALSE"))
+
+    return(spe)
+}
+
+spe <- metrics_qc(spe)
+
+################################################################################
+#   Compute log-normalized counts
+################################################################################
+
+
+
+#   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
+#   genes, and drop genes with 0 counts in every spot
 message(Sys.time(), " - Running quickCluster()")
 
 Sys.time()
@@ -107,7 +178,9 @@ mapply(function(block, blockname) {
 dev.off()
 
 message(Sys.time(), " - Running getTopHVGs()")
-top.hvgs <- getTopHVGs(dec, prop = 0.1)
+top.hvgs.p1 <- getTopHVGs(dec, prop = 0.1)
+top.hvgs.p2 <- getTopHVGs(dec, prop = 0.2)
+top.hvgs.p5 <- getTopHVGs(dec, prop = 0.5)
 
 top.hvgs.fdr5 <- getTopHVGs(dec, fdr.threshold = 0.05)
 print(paste("Num HVGs at FDR = 0.05:", length(top.hvgs.fdr5)))
@@ -116,20 +189,34 @@ top.hvgs.fdr1 <- getTopHVGs(dec, fdr.threshold = 0.01)
 print(paste("Num HVGs at FDR = 0.01:", length(top.hvgs.fdr1)))
 
 save(
-    top.hvgs, top.hvgs.fdr5, top.hvgs.fdr1,
+    top.hvgs.p1, top.hvgs.p2, top.hvgs.p5, top.hvgs.fdr5, top.hvgs.fdr1,
     file = file.path(processed_dir, "top.hvgs.Rdata")
 )
 
 message(Sys.time(), " - Running runPCA()")
 Sys.time()
-spe <- runPCA(spe, subset_row = top.hvgs, ncomponents = num_red_dims)
+spe <- runPCA(spe, subset_row = top.hvgs.fdr5, ncomponents = num_red_dims, name = "PCA")
+spe <- runPCA(spe, subset_row = top.hvgs.p1, ncomponents = num_red_dims, name = "PCA_p1")
+spe <- runPCA(spe, subset_row = top.hvgs.p2, ncomponents = num_red_dims, name = "PCA_p2")
+spe <- runPCA(spe, subset_row = top.hvgs.p5, ncomponents = num_red_dims, name = "PCA_p5")
 Sys.time()
 
 #   Plot variance explained
-percent.var <- attr(reducedDim(spe, "PCA"), "percentVar")
-pdf(file.path(plot_dir, "pca_elbow.pdf"), useDingbats = FALSE)
-plot(percent.var, xlab = "PC", ylab = "Variance explained (%)")
+percent.var <- attr(reducedDim(spe, "PCA_p1"), "percentVar")
+pdf(file.path(plot_dir, "pca_elbow_p1.pdf"), useDingbats = FALSE)
+plot(percent.var, xlab = "PC_p1", ylab = "Variance explained (%)")
 dev.off()
+
+percent.var <- attr(reducedDim(spe, "PCA_p2"), "percentVar")
+pdf(file.path(plot_dir, "pca_elbow_p2.pdf"), useDingbats = FALSE)
+plot(percent.var, xlab = "PC_p2", ylab = "Variance explained (%)")
+dev.off()
+
+percent.var <- attr(reducedDim(spe, "PCA_p5"), "percentVar")
+pdf(file.path(plot_dir, "pca_elbow_p5.pdf"), useDingbats = FALSE)
+plot(percent.var, xlab = "PC_p5", ylab = "Variance explained (%)")
+dev.off()
+
 
 ################################################################################
 #   Compute GLM-PCA
@@ -156,16 +243,57 @@ spe <- nullResiduals(
 )
 
 
-hdgs.hb <- rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:2000]
+hdgs.hb.2000 <- rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:2000]
+hdgs.hb.5000 <- rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:5000]
+hdgs.hb.10000 <- rownames(spe)[order(rowData(spe)$binomial_deviance, decreasing = TRUE)][1:10000]
+
+save(
+    hdgs.hb.2000, hdgs.hb.5000, hdgs.hb.10000,
+    file = file.path(processed_dir, "hdgs.hb.Rdata")
+)
 
 message(Sys.time(), " - Running GLM-PCA")
 spe <- runPCA(
     spe,
     exprs_values = "binomial_deviance_residuals",
-    subset_row = hdgs.hb, ncomponents = num_red_dims,
+    subset_row = hdgs.hb.2000, ncomponents = num_red_dims,
     name = "GLMPCA_approx",
     BSPARAM = BiocSingular::IrlbaParam()
 )
+
+spe <- runPCA(
+    spe,
+    exprs_values = "binomial_deviance_residuals",
+    subset_row = hdgs.hb.5000, ncomponents = num_red_dims,
+    name = "GLMPCA_approx_5000",
+    BSPARAM = BiocSingular::IrlbaParam()
+)
+
+spe <- runPCA(
+    spe,
+    exprs_values = "binomial_deviance_residuals",
+    subset_row = hdgs.hb.10000, ncomponents = num_red_dims,
+    name = "GLMPCA_approx_10000",
+    BSPARAM = BiocSingular::IrlbaParam()
+)
+
+################################################################################
+#   Obtain preliminary clusters based on default GLM-PCA and PCA settings
+################################################################################
+spe$leiden20_PCA <- clusterCells(spe, 
+                           use.dimred = "PCA", 
+                           BLUSPARAM = SNNGraphParam(k = 20, 
+                                                     cluster.fun = "leiden"))
+
+spe$leiden20_GLMPCA <- clusterCells(spe, 
+                           use.dimred = "GLMPCA_approx", 
+                           BLUSPARAM = SNNGraphParam(k = 20, 
+                                                     cluster.fun = "leiden"))
+
+
+################################################################################
+#   Save the processed SPE object
+################################################################################
 
 message(Sys.time(), " - Saving HDF5-backed filtered spe")
 spe = saveHDF5SummarizedExperiment(
