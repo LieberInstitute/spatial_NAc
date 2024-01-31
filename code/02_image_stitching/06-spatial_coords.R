@@ -7,6 +7,8 @@ library(grid)
 library(gridExtra)
 library(getopt)
 library(sessioninfo)
+library(Polychrome)
+data(palette36)
 
 spec <- matrix(
     c("donor", "d", 1, "character", "Donor"),
@@ -323,6 +325,14 @@ p <- ggplot(coords) +
     ) +
     guides(color = guide_legend(override.aes = list(size = 1.5)))
 
+#   'Br8492' will be used for a manuscript figure, where we have stricter
+#   aesthetic preferences tailored to this donor
+if (opt$donor == "Br8492") {
+    sample_colors = c(palette36[c(7, 6)], "#45200D", palette36[8])
+    names(sample_colors) = unique(sample_info$sample_id)
+    p = p + scale_color_manual(values = sample_colors)
+}
+
 pdf(file.path(plot_dir, "raw_spots.pdf"))
 print(p)
 dev.off()
@@ -359,6 +369,12 @@ p <- ggplot(coords_plotting) +
         color = guide_legend(override.aes = list(size = 1.5)),
         alpha = "none"
     )
+
+#   'Br8492' will be used for a manuscript figure, where we have stricter
+#   aesthetic preferences tailored to this donor
+if (opt$donor == "Br8492") {
+    p = p + scale_color_manual(values = sample_colors)
+}
 
 pdf(file.path(plot_dir, "aligned_spots.pdf"))
 print(p)
