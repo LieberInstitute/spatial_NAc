@@ -327,13 +327,26 @@ pdf(file.path(plot_dir, "raw_spots.pdf"))
 print(p)
 dev.off()
 
+#   To avoid overplotting, we'll scale alpha to always be 1, no matter how many
+#   spots belong to a particular pair of array coordinates. This also makes
+#   the overlap of spots look visually intuitive
+coords_plotting = coords |>
+    #   Drop duplicated array coordinates within each sample
+    group_by(sample_id, array_row, array_col) |>
+    filter(row_number() == 1) |>
+    #   Scale alpha such that the sum of alphas across spots at a unique
+    #   array location is always 1
+    group_by(array_row, array_col) |>
+    mutate(alpha_val = 1 / n())
+
 #   Plot the spots aligned to the new Visium grid
-p <- ggplot(coords) +
+p <- ggplot(coords_plotting) +
     geom_point(
         aes(
             x = pxl_col_rounded,
             y = max(pxl_row_rounded) - pxl_row_rounded,
-            color = sample_id
+            color = sample_id,
+            alpha = alpha_val
         ),
         size = 0.1
     ) +
@@ -342,7 +355,10 @@ p <- ggplot(coords) +
         x = "Full-res pixels (width)", y = "Full-res pixels (height)",
         color = "Sample ID", title = "Spot Positions (Aligned to Array)"
     ) +
-    guides(color = guide_legend(override.aes = list(size = 1.5)))
+    guides(
+        color = guide_legend(override.aes = list(size = 1.5)),
+        alpha = "none"
+    )
 
 pdf(file.path(plot_dir, "aligned_spots.pdf"))
 print(p)
