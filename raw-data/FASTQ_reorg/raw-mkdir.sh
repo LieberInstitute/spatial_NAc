@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --array=1-3
+#SBATCH --array=1-20
 
 SAMPLE=$(awk "NR==${SLURM_ARRAY_TASK_ID}" raw-mkdir.txt)
 
