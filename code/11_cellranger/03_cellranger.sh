@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --mem=80G
+#SBATCH --mem=64G
 #SBATCH -n 8
 #SBATCH --job-name=NAc-cellranger
 #SBATCH -o logs/NAc_cellranger.txt
-#SBATCH --array=1-20%4
+#SBATCH --array=1-6
 
 # Files to process
-# 1c_NAc_SVB - 20c_NAc_SVB 
+# 15c_NAc_SVB - 20c_NAc_SVB 
 
 echo "**** Job starts ****"
 date
