@@ -14,7 +14,11 @@ here()
 #Load the sce object 
 load(here("processed-data","sce_raw.rda"),verbose = TRUE)
 
+print("object loaded")
+
+
 for(i in unique(sce$Sample)){
+    print(i)
     #First subset the sample
     print(paste("Subsetting for sample",i))
     sce_sub <- sce[,sce$Sample == i]
