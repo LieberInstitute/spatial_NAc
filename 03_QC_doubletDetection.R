@@ -375,6 +375,7 @@ ggsave(filename = here("plots","12_snRNA","nuclei_QC","mito_vs_detected_bySample
 
 #Now samples separately.
 for(i in unique(sce$Sample)){
+    print(i)
     x <- plotColData(object = sce[,sce$Sample == i],
                      y = "subsets_Mito_percent",
                      x = "detected",
@@ -383,5 +384,109 @@ for(i in unique(sce$Sample)){
                            paste0("mito_vs_detected_",i,"_only.png")),
            plot = x)
 }
+
+#########################################
+############### High mito ###############
+#########################################
+sce$high_mito <- isOutlier(sce$subsets_Mito_percent, nmads = 3, type = "higher", batch = sce$Sample)
+table(sce$Sample,sce$high_mito)
+#             FALSE TRUE
+# 10c_NAc_SVB  6063  423
+# 11c_NAc_SVB  2951  208
+# 12c_NAc_SVB  4637  489
+# 13c_NAc_SVB  4336  492
+# 14c_NAc_SVB  6361  530
+# 15c_Nac_SVB  4132  384
+# 16c_Nac_SVB  7027  413
+# 17c_Nac_SVB  4189  470
+# 18c_Nac_SVB  8960  695
+# 19c_Nac_SVB  6937  584
+# 1c_NAc_SVB   5555  603
+# 20c_Nac_SVB  6313  837
+# 2c_NAc_SVB   8265  715
+# 3c_NAc_SVB   5462  634
+# 4c_NAc_SVB   6489  541
+# 5c_NAc_SVB   4875  498
+# 6c_NAc_SVB   3630  368
+# 7c_NAc_SVB   5140  900
+# 8c_NAc_SVB   7055  252
+# 9c_NAc_SVB   3506  152
+
+nMAD3_vln <- plotColData(sce,x = "Sample",y= "subsets_Mito_percent",colour_by = "high_mito") +
+    ggtitle(paste0("Mito Percent\n3 MADs")) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    geom_hline(yintercept = 5,lty = 2) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = nMAD3_vln,filename = here("plots","12_snRNA","nuclei_QC","nMAD3_Mito_Pct_violin.png"))
+
+#Simialr to the Comment in https://github.com/LieberInstitute/10xPilot_snRNAseq-human/blob/51d15ef9f5f2c4c53f55e22e3fe467de1a724668/10x_all-FACS-n10_2021rev_step01_processing-QC_MNT.R#L4
+#MAD approach is unnecessarily throwing out cells because the distribution is centered around 0
+
+#Check the number of nuclei 
+sce$high_mito_pct <- ifelse(sce$subsets_Mito_percent > 5.0,
+                            TRUE,
+                            FALSE)
+
+table(sce$high_mito_pct)
+#  FALSE   TRUE 
+# 121825    246
+#would only remove 246 nuclei by percentage but distribution is centered around 0, so many high quality nuclei
+
+mito_pct_vln <- plotColData(sce,x = "Sample",y= "subsets_Mito_percent",colour_by = "high_mito_pct") +
+    ggtitle(paste0("Mito Percent\n5% cutoff")) +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    geom_hline(yintercept = 5,lty = 2) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = mito_pct_vln,filename = here("plots","12_snRNA","nuclei_QC","FivePct_Mito_Pct_violin.png"))
+
+
+#########################################
+########## Low Library Size #############
+#########################################
+# ## low library size
+#Plot library size per sample to look at distributions. 
+lib_size_violin <- plotColData(sce, x = "Sample", y = "sum",colour_by = "Sample") +
+    scale_y_log10() +
+    ggtitle("Total UMIs") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = lib_size_violin,filename = here("plots","12_snRNA","nuclei_QC","library_size_violin.png"))
+
+#Some with unimodal and some with bimodal distributions. 
+#Try nMADs=3
+##3
+sce$low_lib_3 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$Sample,nmads = 3)
+table(sce$Sample,sce$low_lib_3)
+#              FALSE TRUE
+# 10c_NAc_SVB  6486    0
+# 11c_NAc_SVB  2859  300
+# 12c_NAc_SVB  5126    0
+# 13c_NAc_SVB  4509  319
+# 14c_NAc_SVB  6891    0
+# 15c_Nac_SVB  4400  116
+# 16c_Nac_SVB  7409   31
+# 17c_Nac_SVB  4327  332
+# 18c_Nac_SVB  9655    0
+# 19c_Nac_SVB  7521    0
+# 1c_NAc_SVB   6158    0
+# 20c_Nac_SVB  7150    0
+# 2c_NAc_SVB   8742  238
+# 3c_NAc_SVB   6068   28
+# 4c_NAc_SVB   6474  556
+# 5c_NAc_SVB   5373    0
+# 6c_NAc_SVB   3798  200
+# 7c_NAc_SVB   5778  262
+# 8c_NAc_SVB   7206  101
+# 9c_NAc_SVB   3165  493
+
+
+nMAD3_lib_vln <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_lib_3") +
+    scale_y_log10() +
+    ggtitle("Total UMIs") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = nMAD3_lib_vln,filename = here("plots","12_snRNA","nuclei_QC","nMAD3_library_size_violin.png"))
+
+save(sce,file = here("processed-data","12_snRNA","sce_hold_020224.rda"))
+
+
 
 
