@@ -1,0 +1,687 @@
+
+R version 4.3.1 Patched (2023-07-19 r84711) -- "Beagle Scouts"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> #cd /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+> 
+> library(SingleCellExperiment)
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+> library(DropletUtils)
+> library(scuttle)
+> library(here)
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+> library(sessioninfo)
+> library(ggplot2)
+> library(tidyverse)
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.3     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ lubridate 1.9.2     ✔ tibble    3.2.1
+✔ purrr     1.0.2     ✔ tidyr     1.3.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ lubridate::%within%() masks IRanges::%within%()
+✖ dplyr::collapse()     masks IRanges::collapse()
+✖ dplyr::combine()      masks Biobase::combine(), BiocGenerics::combine()
+✖ dplyr::count()        masks matrixStats::count()
+✖ dplyr::desc()         masks IRanges::desc()
+✖ tidyr::expand()       masks S4Vectors::expand()
+✖ dplyr::filter()       masks stats::filter()
+✖ dplyr::first()        masks S4Vectors::first()
+✖ dplyr::lag()          masks stats::lag()
+✖ ggplot2::Position()   masks BiocGenerics::Position(), base::Position()
+✖ purrr::reduce()       masks GenomicRanges::reduce(), IRanges::reduce()
+✖ dplyr::rename()       masks S4Vectors::rename()
+✖ lubridate::second()   masks S4Vectors::second()
+✖ lubridate::second<-() masks S4Vectors::second<-()
+✖ dplyr::slice()        masks IRanges::slice()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+> 
+> #Print pwd
+> here()
+[1] "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc"
+> 
+> #Load the sce object 
+> load(here("processed-data","sce_raw.rda"),verbose = TRUE)
+Loading objects:
+  sce
+> 
+> print("object loaded")
+[1] "object loaded"
+> 
+> 
+> for(i in unique(sce$Sample)){
++     print(i)
++     #First subset the sample
++     print(paste("Subsetting for sample",i))
++     sce_sub <- sce[,sce$Sample == i]
++     
++     #Rank barcodes
++     print(paste("Ranking barcodes for sample",i))
++     bcRanks <- barcodeRanks(sce_sub, fit.bounds = c(10,1e3))
++     
++     knee_highest <- metadata(bcRanks)$knee - 200
++     message(
++         "'First knee point' = ", metadata(bcRanks)$knee, "\n",
++         "knee_highest =", knee_highest
++     )
++     
++     knee_higher <- metadata(bcRanks)$knee - 100
++     message(
++         "'Second knee point' = ", metadata(bcRanks)$knee, "\n",
++         "knee_higher =", knee_higher
++     )
++     
++     message(
++         "'Third knee point' = ", metadata(bcRanks)$knee, "\n",
++         "knee =", metadata(bcRanks)$knee
++     )
++     
++     knee_lower <- metadata(bcRanks)$knee + 100
++     message(
++         "'Fourth knee point' = ", metadata(bcRanks)$knee, "\n",
++         "knee_lower =", knee_lower
++     )
++     
++     knee_lowest <- metadata(bcRanks)$knee + 200
++     message(
++         "'Fifth knee point' = ", metadata(bcRanks)$knee, "\n",
++         "knee_lowest =", knee_lowest
++     )
++     
++     #Run emptyDrops with knee + 100 first
++     set.seed(1234)
++     print("Starting emptyDrops")
++     Sys.time()
++     e.out <- DropletUtils::emptyDrops(sce_sub,
++                                       niters = 30000,
++                                       lower = knee_lower)
++     print("Done - saving data")
++     Sys.time()
++     #save the droplet data. 
++     save(e.out,file = paste0("processed-data/12_snRNA/droplet_scores/",i,"_droplet_scores.Rdata"))
++     
++     #Generate plots to check the cutoff value. 
++     FDR_cutoff <- 0.001
++     addmargins(table(Signif = e.out$FDR <= FDR_cutoff, Limited = e.out$Limited, useNA = "ifany"))
++     
++     n_cell_anno <- paste("Non-empty:", sum(e.out$FDR < FDR_cutoff, na.rm = TRUE))
++     message(n_cell_anno)
++     
++     my_theme <- theme_bw() +
++         theme(text = element_text(size = 15))
++     
++     droplet_elbow_plot <- as.data.frame(bcRanks) %>%
++         add_column(FDR = e.out$FDR) %>%
++         ggplot(aes(x = rank, y = total, color = FDR < FDR_cutoff)) +
++         geom_point(alpha = 0.5, size = 1) +
++         geom_hline(yintercept = metadata(bcRanks)$knee, linetype = "dotted", color = "gray") +
++         annotate("text", x = 10, y = metadata(bcRanks)$knee, label = "Knee", vjust = -1, color = "gray") +
++         geom_hline(yintercept = knee_highest, linetype = "dashed") +
++         annotate("text", x = 10, y = knee_highest, label = "Knee est 'highest'") +
++         geom_hline(yintercept = knee_higher, linetype = "dashed") +
++         annotate("text", x = 10, y = knee_higher, label = "Knee est 'higher'") +
++         geom_hline(yintercept = knee_lower, linetype = "dashed") +
++         annotate("text", x = 10, y = knee_lower, label = "Knee est 'lower'") +
++         geom_hline(yintercept = knee_lowest, linetype = "dashed") +
++         annotate("text", x = 10, y = knee_lowest, label = "Knee est 'lowest'") +
++         scale_x_continuous(trans = "log10") +
++         scale_y_continuous(trans = "log10") +
++         labs(
++             x = "Barcode Rank",
++             y = "Total UMIs",
++             title = paste("Sample", i),
++             subtitle = n_cell_anno,
++             color = paste("FDR <", FDR_cutoff)
++         ) +
++         my_theme +
++         theme(legend.position = "bottom")
++     
++     ggsave(droplet_elbow_plot, 
++            filename = paste0("plots/12_snRNA/droplet_scores/",i,"_droplet_qc.png"))
++ }
+[1] "10c_NAc_SVB"
+[1] "Subsetting for sample 10c_NAc_SVB"
+[1] "Ranking barcodes for sample 10c_NAc_SVB"
+'First knee point' = 154
+knee_highest =-46
+'Second knee point' = 154
+knee_higher =54
+'Third knee point' = 154
+knee =154
+'Fourth knee point' = 154
+knee_lower =254
+'Fifth knee point' = 154
+knee_lowest =354
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 6486
+Saving 7 x 7 in image
+[1] "11c_NAc_SVB"
+[1] "Subsetting for sample 11c_NAc_SVB"
+[1] "Ranking barcodes for sample 11c_NAc_SVB"
+'First knee point' = 152
+knee_highest =-48
+'Second knee point' = 152
+knee_higher =52
+'Third knee point' = 152
+knee =152
+'Fourth knee point' = 152
+knee_lower =252
+'Fifth knee point' = 152
+knee_lowest =352
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 3159
+Saving 7 x 7 in image
+[1] "12c_NAc_SVB"
+[1] "Subsetting for sample 12c_NAc_SVB"
+[1] "Ranking barcodes for sample 12c_NAc_SVB"
+'First knee point' = 114
+knee_highest =-86
+'Second knee point' = 114
+knee_higher =14
+'Third knee point' = 114
+knee =114
+'Fourth knee point' = 114
+knee_lower =214
+'Fifth knee point' = 114
+knee_lowest =314
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 5126
+Saving 7 x 7 in image
+[1] "13c_NAc_SVB"
+[1] "Subsetting for sample 13c_NAc_SVB"
+[1] "Ranking barcodes for sample 13c_NAc_SVB"
+'First knee point' = 115
+knee_highest =-85
+'Second knee point' = 115
+knee_higher =15
+'Third knee point' = 115
+knee =115
+'Fourth knee point' = 115
+knee_lower =215
+'Fifth knee point' = 115
+knee_lowest =315
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 4828
+Saving 7 x 7 in image
+[1] "14c_NAc_SVB"
+[1] "Subsetting for sample 14c_NAc_SVB"
+[1] "Ranking barcodes for sample 14c_NAc_SVB"
+'First knee point' = 125
+knee_highest =-75.0000000000001
+'Second knee point' = 125
+knee_higher =24.9999999999999
+'Third knee point' = 125
+knee =125
+'Fourth knee point' = 125
+knee_lower =225
+'Fifth knee point' = 125
+knee_lowest =325
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 6891
+Saving 7 x 7 in image
+[1] "15c_Nac_SVB"
+[1] "Subsetting for sample 15c_Nac_SVB"
+[1] "Ranking barcodes for sample 15c_Nac_SVB"
+'First knee point' = 134
+knee_highest =-66
+'Second knee point' = 134
+knee_higher =34
+'Third knee point' = 134
+knee =134
+'Fourth knee point' = 134
+knee_lower =234
+'Fifth knee point' = 134
+knee_lowest =334
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 4516
+Saving 7 x 7 in image
+[1] "16c_Nac_SVB"
+[1] "Subsetting for sample 16c_Nac_SVB"
+[1] "Ranking barcodes for sample 16c_Nac_SVB"
+'First knee point' = 121
+knee_highest =-79.0000000000001
+'Second knee point' = 121
+knee_higher =20.9999999999999
+'Third knee point' = 121
+knee =121
+'Fourth knee point' = 121
+knee_lower =221
+'Fifth knee point' = 121
+knee_lowest =321
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 7440
+Saving 7 x 7 in image
+[1] "17c_Nac_SVB"
+[1] "Subsetting for sample 17c_Nac_SVB"
+[1] "Ranking barcodes for sample 17c_Nac_SVB"
+'First knee point' = 143
+knee_highest =-57
+'Second knee point' = 143
+knee_higher =43
+'Third knee point' = 143
+knee =143
+'Fourth knee point' = 143
+knee_lower =243
+'Fifth knee point' = 143
+knee_lowest =343
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 4659
+Saving 7 x 7 in image
+[1] "18c_Nac_SVB"
+[1] "Subsetting for sample 18c_Nac_SVB"
+[1] "Ranking barcodes for sample 18c_Nac_SVB"
+'First knee point' = 194
+knee_highest =-6.00000000000003
+'Second knee point' = 194
+knee_higher =94
+'Third knee point' = 194
+knee =194
+'Fourth knee point' = 194
+knee_lower =294
+'Fifth knee point' = 194
+knee_lowest =394
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 9655
+Saving 7 x 7 in image
+[1] "19c_Nac_SVB"
+[1] "Subsetting for sample 19c_Nac_SVB"
+[1] "Ranking barcodes for sample 19c_Nac_SVB"
+'First knee point' = 187
+knee_highest =-13
+'Second knee point' = 187
+knee_higher =87
+'Third knee point' = 187
+knee =187
+'Fourth knee point' = 187
+knee_lower =287
+'Fifth knee point' = 187
+knee_lowest =387
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 7521
+Saving 7 x 7 in image
+[1] "1c_NAc_SVB"
+[1] "Subsetting for sample 1c_NAc_SVB"
+[1] "Ranking barcodes for sample 1c_NAc_SVB"
+'First knee point' = 160
+knee_highest =-39.9999999999999
+'Second knee point' = 160
+knee_higher =60.0000000000001
+'Third knee point' = 160
+knee =160
+'Fourth knee point' = 160
+knee_lower =260
+'Fifth knee point' = 160
+knee_lowest =360
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 6158
+Saving 7 x 7 in image
+[1] "20c_Nac_SVB"
+[1] "Subsetting for sample 20c_Nac_SVB"
+[1] "Ranking barcodes for sample 20c_Nac_SVB"
+'First knee point' = 156
+knee_highest =-44
+'Second knee point' = 156
+knee_higher =56
+'Third knee point' = 156
+knee =156
+'Fourth knee point' = 156
+knee_lower =256
+'Fifth knee point' = 156
+knee_lowest =356
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 7150
+Saving 7 x 7 in image
+[1] "2c_NAc_SVB"
+[1] "Subsetting for sample 2c_NAc_SVB"
+[1] "Ranking barcodes for sample 2c_NAc_SVB"
+'First knee point' = 156
+knee_highest =-44
+'Second knee point' = 156
+knee_higher =56
+'Third knee point' = 156
+knee =156
+'Fourth knee point' = 156
+knee_lower =256
+'Fifth knee point' = 156
+knee_lowest =356
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 8980
+Saving 7 x 7 in image
+[1] "3c_NAc_SVB"
+[1] "Subsetting for sample 3c_NAc_SVB"
+[1] "Ranking barcodes for sample 3c_NAc_SVB"
+'First knee point' = 146
+knee_highest =-54
+'Second knee point' = 146
+knee_higher =46
+'Third knee point' = 146
+knee =146
+'Fourth knee point' = 146
+knee_lower =246
+'Fifth knee point' = 146
+knee_lowest =346
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 6096
+Saving 7 x 7 in image
+[1] "4c_NAc_SVB"
+[1] "Subsetting for sample 4c_NAc_SVB"
+[1] "Ranking barcodes for sample 4c_NAc_SVB"
+'First knee point' = 166
+knee_highest =-34
+'Second knee point' = 166
+knee_higher =66
+'Third knee point' = 166
+knee =166
+'Fourth knee point' = 166
+knee_lower =266
+'Fifth knee point' = 166
+knee_lowest =366
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 7030
+Saving 7 x 7 in image
+[1] "5c_NAc_SVB"
+[1] "Subsetting for sample 5c_NAc_SVB"
+[1] "Ranking barcodes for sample 5c_NAc_SVB"
+'First knee point' = 136
+knee_highest =-64
+'Second knee point' = 136
+knee_higher =36
+'Third knee point' = 136
+knee =136
+'Fourth knee point' = 136
+knee_lower =236
+'Fifth knee point' = 136
+knee_lowest =336
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 5373
+Saving 7 x 7 in image
+[1] "6c_NAc_SVB"
+[1] "Subsetting for sample 6c_NAc_SVB"
+[1] "Ranking barcodes for sample 6c_NAc_SVB"
+'First knee point' = 146
+knee_highest =-54
+'Second knee point' = 146
+knee_higher =46
+'Third knee point' = 146
+knee =146
+'Fourth knee point' = 146
+knee_lower =246
+'Fifth knee point' = 146
+knee_lowest =346
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 3998
+Saving 7 x 7 in image
+[1] "7c_NAc_SVB"
+[1] "Subsetting for sample 7c_NAc_SVB"
+[1] "Ranking barcodes for sample 7c_NAc_SVB"
+'First knee point' = 171
+knee_highest =-29.0000000000001
+'Second knee point' = 171
+knee_higher =70.9999999999999
+'Third knee point' = 171
+knee =171
+'Fourth knee point' = 171
+knee_lower =271
+'Fifth knee point' = 171
+knee_lowest =371
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 6040
+Saving 7 x 7 in image
+[1] "8c_NAc_SVB"
+[1] "Subsetting for sample 8c_NAc_SVB"
+[1] "Ranking barcodes for sample 8c_NAc_SVB"
+'First knee point' = 165
+knee_highest =-35
+'Second knee point' = 165
+knee_higher =65
+'Third knee point' = 165
+knee =165
+'Fourth knee point' = 165
+knee_lower =265
+'Fifth knee point' = 165
+knee_lowest =365
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 7307
+Saving 7 x 7 in image
+[1] "9c_NAc_SVB"
+[1] "Subsetting for sample 9c_NAc_SVB"
+[1] "Ranking barcodes for sample 9c_NAc_SVB"
+'First knee point' = 234
+knee_highest =34.0000000000001
+'Second knee point' = 234
+knee_higher =134
+'Third knee point' = 234
+knee =234
+'Fourth knee point' = 234
+knee_lower =334
+'Fifth knee point' = 234
+knee_lowest =434
+[1] "Starting emptyDrops"
+[1] "Done - saving data"
+Non-empty: 3658
+Saving 7 x 7 in image
+There were 50 or more warnings (use warnings() to see the first 50)
+> 
+> 
+> #session info
+> print("Reproducibility information:")
+[1] "Reproducibility information:"
+> Sys.time()
+[1] "2024-02-02 02:21:03 EST"
+> proc.time()
+    user   system  elapsed 
+8972.368  155.007 9158.517 
+> options(width = 120)
+> session_info()
+─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.1 Patched (2023-07-19 r84711)
+ os       Rocky Linux 9.2 (Blue Onyx)
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       US/Eastern
+ date     2024-02-02
+ pandoc   3.1.3 @ /jhpce/shared/community/core/conda_R/4.3/bin/pandoc
+
+─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+ package              * version   date (UTC) lib source
+ abind                  1.4-5     2016-07-21 [2] CRAN (R 4.3.1)
+ beachmat               2.16.0    2023-04-25 [2] Bioconductor
+ Biobase              * 2.60.0    2023-04-25 [2] Bioconductor
+ BiocGenerics         * 0.46.0    2023-04-25 [2] Bioconductor
+ BiocParallel           1.34.2    2023-05-22 [2] Bioconductor
+ bitops                 1.0-7     2021-04-24 [2] CRAN (R 4.3.1)
+ cli                    3.6.1     2023-03-23 [2] CRAN (R 4.3.1)
+ codetools              0.2-19    2023-02-01 [3] CRAN (R 4.3.1)
+ colorspace             2.1-0     2023-01-23 [2] CRAN (R 4.3.1)
+ crayon                 1.5.2     2022-09-29 [2] CRAN (R 4.3.1)
+ DelayedArray           0.26.7    2023-07-28 [2] Bioconductor
+ DelayedMatrixStats     1.22.6    2023-08-28 [2] Bioconductor
+ dplyr                * 1.1.3     2023-09-03 [2] CRAN (R 4.3.1)
+ dqrng                  0.3.1     2023-08-30 [2] CRAN (R 4.3.1)
+ DropletUtils         * 1.20.0    2023-04-25 [2] Bioconductor
+ edgeR                  3.42.4    2023-05-31 [2] Bioconductor
+ fansi                  1.0.4     2023-01-22 [2] CRAN (R 4.3.1)
+ farver                 2.1.1     2022-07-06 [2] CRAN (R 4.3.1)
+ forcats              * 1.0.0     2023-01-29 [2] CRAN (R 4.3.1)
+ generics               0.1.3     2022-07-05 [2] CRAN (R 4.3.1)
+ GenomeInfoDb         * 1.36.3    2023-09-07 [2] Bioconductor
+ GenomeInfoDbData       1.2.10    2023-07-20 [2] Bioconductor
+ GenomicRanges        * 1.52.0    2023-04-25 [2] Bioconductor
+ ggplot2              * 3.4.3     2023-08-14 [2] CRAN (R 4.3.1)
+ glue                   1.6.2     2022-02-24 [2] CRAN (R 4.3.1)
+ gtable                 0.3.4     2023-08-21 [2] CRAN (R 4.3.1)
+ HDF5Array              1.28.1    2023-05-01 [2] Bioconductor
+ here                 * 1.0.1     2020-12-13 [2] CRAN (R 4.3.1)
+ hms                    1.1.3     2023-03-21 [2] CRAN (R 4.3.1)
+ IRanges              * 2.34.1    2023-06-22 [2] Bioconductor
+ lattice                0.21-8    2023-04-05 [3] CRAN (R 4.3.1)
+ lifecycle              1.0.3     2022-10-07 [2] CRAN (R 4.3.1)
+ limma                  3.56.2    2023-06-04 [2] Bioconductor
+ locfit                 1.5-9.8   2023-06-11 [2] CRAN (R 4.3.1)
+ lubridate            * 1.9.2     2023-02-10 [2] CRAN (R 4.3.1)
+ magrittr               2.0.3     2022-03-30 [2] CRAN (R 4.3.1)
+ Matrix                 1.6-1.1   2023-09-18 [3] CRAN (R 4.3.1)
+ MatrixGenerics       * 1.12.3    2023-07-30 [2] Bioconductor
+ matrixStats          * 1.0.0     2023-06-02 [2] CRAN (R 4.3.1)
+ munsell                0.5.0     2018-06-12 [2] CRAN (R 4.3.1)
+ pillar                 1.9.0     2023-03-22 [2] CRAN (R 4.3.1)
+ pkgconfig              2.0.3     2019-09-22 [2] CRAN (R 4.3.1)
+ purrr                * 1.0.2     2023-08-10 [2] CRAN (R 4.3.1)
+ R.methodsS3            1.8.2     2022-06-13 [2] CRAN (R 4.3.1)
+ R.oo                   1.25.0    2022-06-12 [2] CRAN (R 4.3.1)
+ R.utils                2.12.2    2022-11-11 [2] CRAN (R 4.3.1)
+ R6                     2.5.1     2021-08-19 [2] CRAN (R 4.3.1)
+ ragg                   1.2.5     2023-01-12 [2] CRAN (R 4.3.1)
+ Rcpp                   1.0.11    2023-07-06 [2] CRAN (R 4.3.1)
+ RCurl                  1.98-1.12 2023-03-27 [2] CRAN (R 4.3.1)
+ readr                * 2.1.4     2023-02-10 [2] CRAN (R 4.3.1)
+ rhdf5                  2.44.0    2023-04-25 [2] Bioconductor
+ rhdf5filters           1.12.1    2023-04-30 [2] Bioconductor
+ Rhdf5lib               1.22.1    2023-09-10 [2] Bioconductor
+ rlang                  1.1.1     2023-04-28 [2] CRAN (R 4.3.1)
+ rprojroot              2.0.3     2022-04-02 [2] CRAN (R 4.3.1)
+ S4Arrays               1.0.6     2023-08-30 [2] Bioconductor
+ S4Vectors            * 0.38.1    2023-05-02 [2] Bioconductor
+ scales                 1.2.1     2022-08-20 [2] CRAN (R 4.3.1)
+ scuttle              * 1.10.2    2023-08-03 [2] Bioconductor
+ sessioninfo          * 1.2.2     2021-12-06 [2] CRAN (R 4.3.1)
+ SingleCellExperiment * 1.22.0    2023-04-25 [2] Bioconductor
+ sparseMatrixStats      1.12.2    2023-07-02 [2] Bioconductor
+ stringi                1.7.12    2023-01-11 [2] CRAN (R 4.3.1)
+ stringr              * 1.5.0     2022-12-02 [2] CRAN (R 4.3.1)
+ SummarizedExperiment * 1.30.2    2023-06-06 [2] Bioconductor
+ systemfonts            1.0.4     2022-02-11 [2] CRAN (R 4.3.1)
+ textshaping            0.3.6     2021-10-13 [2] CRAN (R 4.3.1)
+ tibble               * 3.2.1     2023-03-20 [2] CRAN (R 4.3.1)
+ tidyr                * 1.3.0     2023-01-24 [2] CRAN (R 4.3.1)
+ tidyselect             1.2.0     2022-10-10 [2] CRAN (R 4.3.1)
+ tidyverse            * 2.0.0     2023-02-22 [2] CRAN (R 4.3.1)
+ timechange             0.2.0     2023-01-11 [2] CRAN (R 4.3.1)
+ tzdb                   0.4.0     2023-05-12 [2] CRAN (R 4.3.1)
+ utf8                   1.2.3     2023-01-31 [2] CRAN (R 4.3.1)
+ vctrs                  0.6.3     2023-06-14 [2] CRAN (R 4.3.1)
+ withr                  2.5.0     2022-03-03 [2] CRAN (R 4.3.1)
+ XVector                0.40.0    2023-04-25 [2] Bioconductor
+ zlibbioc               1.46.0    2023-04-25 [2] Bioconductor
+
+ [1] /users/rphillip/R/4.3
+ [2] /jhpce/shared/community/core/conda_R/4.3/R/lib64/R/site-library
+ [3] /jhpce/shared/community/core/conda_R/4.3/R/lib64/R/library
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+> 
+> proc.time()
+    user   system  elapsed 
+8972.544  155.089 9159.690 
