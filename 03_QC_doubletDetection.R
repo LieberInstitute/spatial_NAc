@@ -5,6 +5,8 @@ library(SingleCellExperiment)
 library(DropletUtils)
 library(ggplot2)
 library(purrr)
+library(dplyr)
+library(tidyr)
 library(here)
 
 #Compile droplet qc information
@@ -267,11 +269,75 @@ map(e.out, ~ addmargins(table(Signif = .x$FDR <= 0.001, Limited = .x$Limited)))
 # TRUE    181 3477 3658
 # Sum    5842 3477 9319
 
+#Not losing any droplets due to number of iterations.
 
-#Not losing any droplets due to number of iterations. Can move on to QC plots and metrics. 
+#Pull knee lower values
+#Knee_lowest would work for most but there are a few where we would lose some cells. 
+std_out <- readLines(here("code","12_build_sce","02_calculate_droplet_scores.Rout"))
+knee_lowers <- std_out[grep("knee_lower =",std_out)][2:21]
+knee_lowers <- as.numeric(lapply(strsplit(knee_lowers,split = "="),"[",2))
+names(knee_lowers) <- names(e.out)
+knee_lowers
+# 10c_NAc_SVB 11c_NAc_SVB 12c_NAc_SVB 13c_NAc_SVB 14c_NAc_SVB 15c_Nac_SVB 
+# 254         252         214         215         225         234 
+# 16c_Nac_SVB 17c_Nac_SVB 18c_Nac_SVB 19c_Nac_SVB  1c_NAc_SVB 20c_Nac_SVB 
+# 221         243         294         287         260         256 
+# 2c_NAc_SVB  3c_NAc_SVB  4c_NAc_SVB  5c_NAc_SVB  6c_NAc_SVB  7c_NAc_SVB 
+# 256         246         266         236         246         271 
+# 8c_NAc_SVB  9c_NAc_SVB 
+# 265         334 
 
+#Create droplet summary table
+droplet_summary <- stack(map_int(e.out,nrow)) %>% 
+    rename(total_drops=values) %>% 
+    left_join(stack(map_int(e.out, ~ sum(.x$FDR < 0.001, na.rm = TRUE)))) %>%
+    rename(non_empty=values) %>%
+    left_join(stack(knee_lowers)) %>%
+    rename(Sample=ind) %>%
+    select(Sample,total_drops,non_empty,knee_lower=values)
+droplet_summary
+#         Sample total_drops non_empty knee_lower
+# 1  10c_NAc_SVB     1516737      6486        254
+# 2  11c_NAc_SVB     1126739      3159        252
+# 3  12c_NAc_SVB     1674120      5126        214
+# 4  13c_NAc_SVB     1301086      4828        215
+# 5  14c_NAc_SVB     1432070      6891        225
+# 6  15c_Nac_SVB     1322506      4516        234
+# 7  16c_Nac_SVB     1680971      7440        221
+# 8  17c_Nac_SVB     1313466      4659        243
+# 9  18c_Nac_SVB     1623409      9655        294
+# 10 19c_Nac_SVB     1375605      7521        287
+# 11  1c_NAc_SVB     1284650      6158        260
+# 12 20c_Nac_SVB     1631708      7150        256
+# 13  2c_NAc_SVB     1903528      8980        256
+# 14  3c_NAc_SVB     1368854      6096        246
+# 15  4c_NAc_SVB     1568789      7030        266
+# 16  5c_NAc_SVB     1219215      5373        236
+# 17  6c_NAc_SVB      984751      3998        246
+# 18  7c_NAc_SVB     1371545      6040        271
+# 19  8c_NAc_SVB     1693619      7307        265
+# 20  9c_NAc_SVB      876588      3658        334
 
+#Write out file. 
+write.csv(x = droplet_summary,
+          file = here("processed-data","12_snRNA","NAc_snRNA_droplet_summary.csv"),
+          row.names = FALSE,
+          quote = FALSE)
 
+#Make a barplot summarizing the number of empty and non-empty droplets. 
+droplet_barplot <- droplet_summary %>%
+    mutate(empty = total_drops - non_empty) %>%
+    select(-total_drops) %>%
+    select(-knee_lower) %>%
+    pivot_longer(!Sample,names_to = "drop_type",values_to = "number_drops") %>%
+    ggplot(aes(x = Sample,y=number_drops,fill = drop_type)) +
+    geom_col() +
+    scale_y_continuous(trans = "log10") +
+    labs(x = "Sample",
+         y = "Number of Droplets",
+         fill = "Droplet Status") +
+    theme(axis.text.x = element_text(angle = 45,hjust = 1))
 
+ggsave(plot = droplet_barplot,filename = here("plots","12_snRNA","droplet_barplot_per_sample.png"))
 
 
