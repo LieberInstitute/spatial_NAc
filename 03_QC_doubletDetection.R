@@ -4,6 +4,8 @@
 library(SingleCellExperiment)
 library(DropletUtils)
 library(ggplot2)
+library(scuttle)
+library(scater)
 library(purrr)
 library(dplyr)
 library(tidyr)
@@ -339,5 +341,47 @@ droplet_barplot <- droplet_summary %>%
     theme(axis.text.x = element_text(angle = 45,hjust = 1))
 
 ggsave(plot = droplet_barplot,filename = here("plots","12_snRNA","droplet_barplot_per_sample.png"))
+
+#Load in the sce object
+load(here("processed-data","sce_raw.rda"),verbose = TRUE)
+# Loading objects:
+#     sce
+
+dim(sce)
+#[1]    36601 28269956
+
+#### Eliminate empty droplets ####
+e.out.all <- do.call("rbind", e.out)[colnames(sce), ]
+sce <- sce[, which(e.out.all$FDR <= 0.001)]
+
+dim(sce)
+#[1]  36601 122071
+#122071 droplets that contain cells. 
+
+#Save object
+save(sce,file = here("processed-data","12_snRNA","sce_emptyDrops_removed.rda"))
+
+####Begin QC
+sce <- scuttle::addPerCellQC(sce,subsets = list(Mito=which(seqnames(sce) == "chrM")))
+
+#Plot mitochondria vs detected
+#All samples together
+mito_vs_detected <- plotColData(object = sce,
+                                y = "subsets_Mito_percent",
+                                x = "detected",
+                                colour_by = "Sample")
+ggsave(filename = here("plots","12_snRNA","nuclei_QC","mito_vs_detected_bySample.png"),
+       plot = mito_vs_detected)
+
+#Now samples separately.
+for(i in unique(sce$Sample)){
+    x <- plotColData(object = sce[,sce$Sample == i],
+                     y = "subsets_Mito_percent",
+                     x = "detected",
+                     colour_by = "Sample")
+    ggsave(filename = here("plots","12_snRNA","nuclei_QC",
+                           paste0("mito_vs_detected_",i,"_only.png")),
+           plot = x)
+}
 
 
