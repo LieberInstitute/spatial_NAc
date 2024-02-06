@@ -12,6 +12,7 @@ library(scran)
 library(scater)
 library(scry)
 library(HDF5Array)
+library(bluster)
 
 processed_dir = here("processed-data", "05_harmony_BayesSpace")
 raw_in_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
