@@ -2,6 +2,7 @@
 library(here)
 library(SpatialExperiment)
 library(spatialLIBD)
+library(tidyverse)
 library(sessioninfo)
 library(scran) ## requires uwot for UMAP
 library(uwot)
@@ -13,6 +14,7 @@ library(ggplot2)
 library(Polychrome)
 library(harmony)
 library(HDF5Array)
+library(spatialNAcUtils)
 
 
 # Define harmony function that would allow us to specify which reduction to use with SingleCellExperiment object
@@ -90,12 +92,32 @@ set.seed(20230712)
 ## Load the data
 spe = loadHDF5SummarizedExperiment(filtered_hdf5_dir)
 
+## Plot initial low-dimensional representations prior to batch correction
+plotReducedDim(spe, dimred = "PCA", ncomponents = 3, colour_by = "donor")
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 3, colour_by = "donor")
+plotReducedDim(spe, dimred = "PCA", ncomponents = 3, colour_by = "scran_discard")
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 3, colour_by = "scran_discard")
+
+ggcells(spe, aes(x = GLMPCA_approx.1, y = GLMPCA_approx.2, colour = scran_discard)) +
+  geom_point(size = 0.5) +
+  facet_wrap(~ slide_num) +
+  labs(x = "GLMPC1", y = "GLMPC2", colour = "Discard") + theme_classic()
+
+ggcells(spe, aes(x = GLMPCA_approx.1, y = GLMPCA_approx.2, colour = scran_discard)) +
+  geom_point(size = 0.5) +
+  facet_wrap(~ sample_id_original) +
+  labs(x = "GLMPC1", y = "GLMPC2", colour = "Discard") + theme_classic()
+
+
+
 ## Perform harmony batch correction
 message("Running RunHarmony()")
 Sys.time()
-spe <- RunHarmony_mod(spe, "donor", verbose = FALSE, reduction.use = "PCA", reduction.save = "harmony_donor")
+spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "slide_num"), verbose = TRUE, plot_convergence = TRUE, kmeans_init_nstart=100, kmeans_init_iter_max=1000)
+
+spe <- RunHarmony_mod(spe, "donor", verbose = TRUE, plot_convergence = TRUE, reduction.use = "PCA", reduction.save = "harmony_donor", kmeans_init_nstart=100, kmeans_init_iter_max=1000)
 spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "slide_num"), verbose = TRUE, reduction.save = "harmony_donor_slide")
-spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "sample_id_original"), verbose = TRUE, reduction.save = "harmony_donor_captureArea")
+#spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "sample_id_original"), verbose = TRUE, reduction.save = "HARMONY", plot_convergence = TRUE, lambda = NULL, max_iter = 30)
 Sys.time()
 
 #   Perform dimensionality reduction using both PCA and harmony's reduced
