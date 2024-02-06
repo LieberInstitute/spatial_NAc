@@ -561,6 +561,7 @@ sce$discard_basic <- qc_lib_600 | qc_genes_500 | qc_mito_5
 # 118358   3713 
 
 qc_t <- addmargins(table(sce$Sample, sce$discard_basic))
+
 qc_t
 #             FALSE   TRUE    Sum
 # 1c_NAc_SVB    5868    290   6158
