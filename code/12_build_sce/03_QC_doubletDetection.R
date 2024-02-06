@@ -385,12 +385,36 @@ for(i in unique(sce$Sample)){
            plot = x)
 }
 
+##For QC plots, factorize the sample name. 
+load(here("processed-data","12_snRNA","sce_hold_020224.rda"))
+sce$Sample <- factor(x = sce$Sample,
+                     levels = c("1c_NAc_SVB","2c_NAc_SVB",
+                                "3c_NAc_SVB","4c_NAc_SVB",
+                                "5c_NAc_SVB","6c_NAc_SVB",
+                                "7c_NAc_SVB","8c_NAc_SVB",
+                                "9c_NAc_SVB","10c_NAc_SVB",
+                                "11c_NAc_SVB","12c_NAc_SVB",
+                                "13c_NAc_SVB","14c_NAc_SVB",
+                                "15c_Nac_SVB","16c_Nac_SVB",
+                                "17c_Nac_SVB","18c_Nac_SVB",
+                                "19c_Nac_SVB","20c_Nac_SVB"))
+
+
 #########################################
 ############### High mito ###############
 #########################################
 sce$high_mito <- isOutlier(sce$subsets_Mito_percent, nmads = 3, type = "higher", batch = sce$Sample)
 table(sce$Sample,sce$high_mito)
 #             FALSE TRUE
+# 1c_NAc_SVB   5555  603
+# 2c_NAc_SVB   8265  715
+# 3c_NAc_SVB   5462  634
+# 4c_NAc_SVB   6489  541
+# 5c_NAc_SVB   4875  498
+# 6c_NAc_SVB   3630  368
+# 7c_NAc_SVB   5140  900
+# 8c_NAc_SVB   7055  252
+# 9c_NAc_SVB   3506  152
 # 10c_NAc_SVB  6063  423
 # 11c_NAc_SVB  2951  208
 # 12c_NAc_SVB  4637  489
@@ -401,16 +425,7 @@ table(sce$Sample,sce$high_mito)
 # 17c_Nac_SVB  4189  470
 # 18c_Nac_SVB  8960  695
 # 19c_Nac_SVB  6937  584
-# 1c_NAc_SVB   5555  603
 # 20c_Nac_SVB  6313  837
-# 2c_NAc_SVB   8265  715
-# 3c_NAc_SVB   5462  634
-# 4c_NAc_SVB   6489  541
-# 5c_NAc_SVB   4875  498
-# 6c_NAc_SVB   3630  368
-# 7c_NAc_SVB   5140  900
-# 8c_NAc_SVB   7055  252
-# 9c_NAc_SVB   3506  152
 
 nMAD3_vln <- plotColData(sce,x = "Sample",y= "subsets_Mito_percent",colour_by = "high_mito") +
     ggtitle(paste0("Mito Percent\n3 MADs")) +
@@ -456,7 +471,16 @@ ggsave(plot = lib_size_violin,filename = here("plots","12_snRNA","nuclei_QC","li
 ##3
 sce$low_lib_3 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$Sample,nmads = 3)
 table(sce$Sample,sce$low_lib_3)
-#              FALSE TRUE
+#             FALSE TRUE
+# 1c_NAc_SVB   6158    0
+# 2c_NAc_SVB   8742  238
+# 3c_NAc_SVB   6068   28
+# 4c_NAc_SVB   6474  556
+# 5c_NAc_SVB   5373    0
+# 6c_NAc_SVB   3798  200
+# 7c_NAc_SVB   5778  262
+# 8c_NAc_SVB   7206  101
+# 9c_NAc_SVB   3165  493
 # 10c_NAc_SVB  6486    0
 # 11c_NAc_SVB  2859  300
 # 12c_NAc_SVB  5126    0
@@ -467,17 +491,7 @@ table(sce$Sample,sce$low_lib_3)
 # 17c_Nac_SVB  4327  332
 # 18c_Nac_SVB  9655    0
 # 19c_Nac_SVB  7521    0
-# 1c_NAc_SVB   6158    0
 # 20c_Nac_SVB  7150    0
-# 2c_NAc_SVB   8742  238
-# 3c_NAc_SVB   6068   28
-# 4c_NAc_SVB   6474  556
-# 5c_NAc_SVB   5373    0
-# 6c_NAc_SVB   3798  200
-# 7c_NAc_SVB   5778  262
-# 8c_NAc_SVB   7206  101
-# 9c_NAc_SVB   3165  493
-
 
 nMAD3_lib_vln <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_lib_3") +
     scale_y_log10() +
@@ -485,8 +499,88 @@ nMAD3_lib_vln <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_lib_3
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggsave(plot = nMAD3_lib_vln,filename = here("plots","12_snRNA","nuclei_QC","nMAD3_library_size_violin.png"))
 
-save(sce,file = here("processed-data","12_snRNA","sce_hold_020224.rda"))
+#Some are bimodal. Some are unimodal. Doesn't track with sort type. 
+#PI sort should have both neurons and glia, while PI_NeuN should have primarily neurons. 
+#For some sort days it seems to track, for others it doesn't. Is it due to the staining success from each data?
+#snRNA_data should actually be snRNA_data. 
+lib_size_violin <- plotColData(sce, x = "Sample", y = "sum",colour_by = "snRNA_data") +
+    scale_y_log10() +
+    ggtitle("Total UMIs") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = lib_size_violin,filename = here("plots","12_snRNA","nuclei_QC","library_size_violin_coloredbydate.png"))
+
+#While a totally different metric, we expect that neurons and glia should have different numbers of genes/nucleus.
+#Plotting the genes might make it easier to see any sort of pattern. 
+detected_violin <- plotColData(sce, x = "Sample", y = "detected",colour_by = "Sort") +
+    scale_y_log10() +
+    ggtitle("Total UMIs") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = detected_violin,filename = here("plots","12_snRNA","nuclei_QC","number_of_genes_violin_coloredbySort.png"))
+
+#Date as well 
+detected_violin <- plotColData(sce, x = "Sample", y = "detected",colour_by = "snRNA_data") +
+    scale_y_log10() +
+    ggtitle("Total UMIs") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = detected_violin,filename = here("plots","12_snRNA","nuclei_QC","number_of_genes_violin_coloredbySortDate.png"))
 
 
+#calculate nMAD by sort date. 
+#Reasoning here is that staining success could change by batch date. 
+#First change the sort name. 
+colnames(colData(sce))[6] <- "snRNA_date"
 
+# sce$low_lib_date_2 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$snRNA_date,nmads = 2)
+# sce$low_lib_date_3 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$snRNA_date,nmads = 3)
+# 
+# plotColData(sce, x = "Sample", y = "detected",colour_by = "low_lib_date_2") +
+#     scale_y_log10() +
+#     ggtitle("Total UMIs") +
+#     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# plotColData(sce, x = "Sample", y = "detected",colour_by = "low_lib_date_3") +
+#     scale_y_log10() +
+#     ggtitle("Total UMIs") +
+#     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# 
+# sce$low_lib_sort <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$Sort,nmads = 2)
+# plotColData(sce, x = "Sample", y = "detected",colour_by = "low_lib_sort") +
+#     scale_y_log10() +
+#     ggtitle("Total UMIs") +
+#     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+###make some basic QC cutoffs and move on to see if any PI_NeuN samples have a substantial amount of glia 
+#Will do total umis < 600,detected genes > 300, and mitochondrial percentage > 50
+qc_lib_600 <- sce$sum < 600
+qc_genes_500 <- sce$detected < 500
+qc_mito_5 <- sce$subsets_Mito_percent > 5
+
+sce$discard_basic <- qc_lib_600 | qc_genes_500 | qc_mito_5
+# FALSE   TRUE 
+# 118358   3713 
+
+qc_t <- addmargins(table(sce$Sample, sce$discard_basic))
+qc_t
+#             FALSE   TRUE    Sum
+# 1c_NAc_SVB    5868    290   6158
+# 2c_NAc_SVB    8732    248   8980
+# 3c_NAc_SVB    6036     60   6096
+# 4c_NAc_SVB    6970     60   7030
+# 5c_NAc_SVB    5276     97   5373
+# 6c_NAc_SVB    3950     48   3998
+# 7c_NAc_SVB    5838    202   6040
+# 8c_NAc_SVB    6859    448   7307
+# 9c_NAc_SVB    3417    241   3658
+# 10c_NAc_SVB   6413     73   6486
+# 11c_NAc_SVB   3129     30   3159
+# 12c_NAc_SVB   4953    173   5126
+# 13c_NAc_SVB   4723    105   4828
+# 14c_NAc_SVB   6721    170   6891
+# 15c_Nac_SVB   4398    118   4516
+# 16c_Nac_SVB   7255    185   7440
+# 17c_Nac_SVB   4573     86   4659
+# 18c_Nac_SVB   9190    465   9655
+# 19c_Nac_SVB   7202    319   7521
+# 20c_Nac_SVB   6855    295   7150
+# Sum         118358   3713 122071
