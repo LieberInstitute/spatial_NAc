@@ -185,7 +185,10 @@ results_df <- col_data_small |>
         names_from = "capture_area", values_from = "cluster_assignment"
     ) |>
     #   Fix a data type
-    mutate(k = factor(as.integer(k)))
+    mutate(k = factor(as.integer(k))) |>
+    #   Rarely, an overlapping spot but not the original may have been dropped
+    #   as input to PRECAST; simply drop rows with this situation
+    na.omit()
 
 #   Plot the proportion of (unique) spots that match their overlapping spot.
 #   Each boxplot contains all donors, and we split by value of k
@@ -203,6 +206,43 @@ pdf(
     file.path(plot_dir, "cluster_assignment_at_overlaps.pdf"),
     width = 15, height = 7
 )
+print(p)
+dev.off()
+
+#   After some interactive exploration, the proportion of overlapping spots
+#   belonging to white matter seems to be the best predictor I found of
+#   cluster-assignment mismatches at overlap
+
+#   First, prove the relationship exists at the spot level
+message("Among overlapping spots, correlation between matching cluster assignment at")
+message("k = 2 and at least one spot in the pair belonging to white matter:")
+results_df |>
+    filter(k == 2) |>
+    summarize(
+        wm_vs_match = cor(original == overlap, (original == 2) | (overlap == 2))
+    ) |>
+    pull(wm_vs_match) |>
+    round(2) |>
+    message()
+
+#   Next, visually show how the effect manifests at the donor level
+p = results_df |>
+    filter(k == 2) |>
+    group_by(sample_id) |>
+    summarize(
+        match_rate = mean(original == overlap),
+        prop_white = mean((original == 2) | (overlap == 2))
+    ) |>
+    ungroup() |>
+    ggplot() +
+        geom_point(aes(x = prop_white, y = match_rate, color = sample_id)) +
+        labs(
+            x = 'Prop. Pairs w/ at Least 1 WM Spot',
+            y = 'Prop. Pairs w/ Matching k = 2 Assignment',
+            color = 'Donor'
+        ) +
+        theme_bw(base_size = 15)
+pdf(file.path(plot_dir, "WM_vs_match_rate.pdf"), width = 8, height = 6)
 print(p)
 dev.off()
 

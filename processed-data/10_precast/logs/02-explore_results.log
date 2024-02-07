@@ -1,10 +1,10 @@
 **** Job starts ****
-Tue Jan 23 02:46:42 PM EST 2024
+Wed Feb  7 02:56:19 PM EST 2024
 **** JHPCE info ****
 User: neagles
-Job id: 1693260
+Job id: 1943485
 Job name: 02-explore_results
-Node name: compute-057
+Node name: compute-065
 Loading conda_R/4.3
 here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 Loading required package: parallel
@@ -704,11 +704,20 @@ $Br8667
 
 `summarise()` has grouped output by 'sample_id'. You can override using the
 `.groups` argument.
-Warning messages:
-1: Removed 27 rows containing non-finite values (`stat_boxplot()`). 
-2: Removed 27 rows containing missing values (`geom_point()`). 
 null device 
           1 
+Among overlapping spots, correlation between matching cluster assignment at
+k = 2 and at least one spot in the pair belonging to white matter:
+-0.73
+null device 
+          1 
+Time difference of 2.371205 mins
+Correlation of subregion markers with clusters in k=4:
+                     [,1]        [,2]        [,3]        [,4]
+shell         0.007519151 -0.22774460  0.15522668  0.05663661
+core          0.249592540 -0.60159079  0.25153347 -0.08192961
+white_matter -0.084645381  0.57161557 -0.37922266  0.01495821
+D1_islands   -0.027789877 -0.06460692  0.06189427  0.05345343
 ─ Session info ───────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.1 Patched (2023-07-19 r84711)
@@ -719,7 +728,7 @@ null device
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-01-23
+ date     2024-02-07
  pandoc   3.1.3 @ /jhpce/shared/community/core/conda_R/4.3/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -954,4 +963,4 @@ null device
 
 ──────────────────────────────────────────────────────────────────────────────
 **** Job ends ****
-Tue Jan 23 03:10:05 PM EST 2024
+Wed Feb  7 03:21:56 PM EST 2024
