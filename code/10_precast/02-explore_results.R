@@ -241,8 +241,8 @@ p = results_df |>
             y = 'Prop. Pairs w/ Matching k = 2 Assignment',
             color = 'Donor'
         ) +
-        theme_bw(base_size = 15)
-pdf(file.path(plot_dir, "WM_vs_match_rate.pdf"), width = 8, height = 6)
+        theme_bw(base_size = 20)
+pdf(file.path(plot_dir, "WM_vs_match_rate.pdf"))
 print(p)
 dev.off()
 
