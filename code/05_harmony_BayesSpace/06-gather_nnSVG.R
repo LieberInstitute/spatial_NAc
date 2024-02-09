@@ -15,7 +15,9 @@ out_dir <- here("processed-data", "05_harmony_BayesSpace")
 plot_dir <- here("plots", "05_harmony_BayesSpace")
 nn_methods = c("default", "precast")
 
-hvg_path <- here("processed-data", "05_harmony_BayesSpace", "top.hvgs.Rdata")
+hvg_scran_path <- here(
+    "processed-data", "05_harmony_BayesSpace", "top.hvgs.Rdata"
+)
 sig_cutoff <- 0.05
 best_sample_id <- "Br8492"
 
@@ -130,23 +132,46 @@ for (method in c("", "_precast")) {
 }
 
 ################################################################################
-#   Compare with HVGs (as ranked by 'getTopHVGs')
+#   Form a tibble of top HVGs (from two methods: scran::getTopHVGs and based on
+#   binomial deviance)
 ################################################################################
 
-#   Load HVGs, add gene symbols, and take just significant (after adjustment),
-#   non-mitochondrial genes
-load(hvg_path, verbose = TRUE)
-top_hvgs <- tibble(
+top_hvgs = list()
+
+#   Load HVGs from scran::getTopHVGs, add gene symbols, and take just
+#   significant (after adjustment) genes
+load(hvg_scran_path, verbose = TRUE)
+top_hvgs[['scran']] <- tibble(
     gene_id = top.hvgs.fdr5,
     gene_name = rowData(spe)[
         match(gene_id, rowData(spe)$gene_id), "gene_name"
-    ]
-) |>
-    filter(!str_detect(gene_name, "^MT-"))
+    ],
+    method_name = 'scran'
+)
 
 if (any(is.na(top_hvgs$gene_name))) {
     stop("Some HVGs not in SpatialExperiment")
 }
+
+#   Prepare highly deviant genes
+top_hvgs[['deviance']] = rowData(spe) |>
+    as_tibble() |>
+    arrange(desc(binomial_deviance)) |>
+    select(gene_id, gene_name) |>
+    mutate(method_name = 'deviance')
+
+#   Drop mitochondrial genes (as was done for SVGs, considering that expression
+#   variation in these genes represents technical noise)
+top_hvgs = do.call(rbind, top_hvgs) |>
+    filter(!str_detect(gene_name, "^MT-"))
+
+
+#   Also just form one tibble of top SVGs, like that for the HVGs
+top_svgs = do.call(rbind, top_svgs)
+
+################################################################################
+#   Compare each combination of SVGs and HVGs (2 methods for each)
+################################################################################
 
 num_points <- 100
 overlap_df <- tibble(
