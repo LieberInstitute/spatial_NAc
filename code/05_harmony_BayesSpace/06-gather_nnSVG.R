@@ -68,7 +68,7 @@ for (method in c("", "_precast")) {
 
     #   Order rank of genes of those where all samples had statistically
     #   significant spatial variability
-    top_genes[[method]] <- nn_out_summary |>
+    top_svgs[[method]] <- nn_out_summary |>
         filter(nnsvg_prop_sig_adj == 1) |>
         arrange(nnsvg_avg_rank_rank) |>
         mutate(
@@ -86,9 +86,9 @@ for (method in c("", "_precast")) {
             spe,
             sample_id = best_sample_id,
             title = paste(
-                best_sample_id, top_genes[[method]]$symbol[i], sep = "_"
+                best_sample_id, top_svgs[[method]]$symbol[i], sep = "_"
             ),
-            var_name = top_genes[[method]]$gene_id[i],
+            var_name = top_svgs[[method]]$gene_id[i],
             is_discrete = FALSE,
             minCount = 0
         )
@@ -110,9 +110,9 @@ for (method in c("", "_precast")) {
                 spe,
                 sample_id = this_sample_id,
                 title = paste(
-                    this_sample_id, top_genes[[method]]$symbol[i], sep = "_"
+                    this_sample_id, top_svgs[[method]]$symbol[i], sep = "_"
                 ),
-                var_name = top_genes[[method]]$gene_id[i],
+                var_name = top_svgs[[method]]$gene_id[i],
                 is_discrete = FALSE,
                 minCount = 0
             )
@@ -136,7 +136,7 @@ for (method in c("", "_precast")) {
 #   Load HVGs, add gene symbols, and take just significant (after adjustment),
 #   non-mitochondrial genes
 load(hvg_path, verbose = TRUE)
-top_genes_hvg <- tibble(
+top_hvgs <- tibble(
     gene_id = top.hvgs.fdr5,
     gene_name = rowData(spe)[
         match(gene_id, rowData(spe)$gene_id), "gene_name"
@@ -144,7 +144,7 @@ top_genes_hvg <- tibble(
 ) |>
     filter(!str_detect(gene_name, "^MT-"))
 
-if (any(is.na(top_genes_hvg$gene_name))) {
+if (any(is.na(top_hvgs$gene_name))) {
     stop("Some HVGs not in SpatialExperiment")
 }
 
@@ -153,7 +153,7 @@ overlap_df <- tibble(
     #   Sample [num_points] different numbers of genes, linearly spaced between
     #   0 and as many top genes are shared
     num_genes = as.integer(
-        1:num_points * min(nrow(top_genes), nrow(top_genes_hvg)) / num_points
+        1:num_points * min(nrow(top_svgs), nrow(top_hvgs)) / num_points
     ),
     prop_overlap = NA
 )
@@ -162,8 +162,8 @@ overlap_df <- tibble(
 #   at the same cutoff
 for (i in 1:num_points) {
     overlap_df[i, "prop_overlap"] <- mean(
-        head(top_genes$gene_id, overlap_df$num_genes[i]) %in%
-            head(top_genes_hvg$gene_id, overlap_df$num_genes[i])
+        head(top_svgs$gene_id, overlap_df$num_genes[i]) %in%
+            head(top_hvgs$gene_id, overlap_df$num_genes[i])
     )
 }
 
@@ -185,7 +185,7 @@ top_genes |>
     write_csv(file.path(nn_out_dir, "top_100_SVGs.csv"))
 
 if (!opt$use_precast) {
-    top_genes_hvg |>
+    top_hvgs |>
         dplyr::rename(symbol = gene_name) |>
         slice_head(n = 100) |>
         write_csv(file.path(dirname(hvg_path), "top_100_HVGs.csv"))
