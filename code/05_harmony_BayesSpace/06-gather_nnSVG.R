@@ -28,9 +28,14 @@ spe <- loadHDF5SummarizedExperiment(spe_dir)
 
 top_svgs = list()
 
-for (method in c("", "_precast")) {
-    nn_out_dir = file.path(out_dir, sprintf('nnSVG%s_out', method))
-    nn_plot_dir = file.path(plot_dir, sprintf('nnSVG%s', method))
+for (method in c("default", "precast")) {
+    if (method == "default") {
+        nn_out_dir = file.path(out_dir, 'nnSVG_out')
+        nn_plot_dir = file.path(plot_dir, 'nnSVG')
+    } else {
+        nn_out_dir = file.path(out_dir, 'nnSVG_precast_out', method)
+        nn_plot_dir = file.path(plot_dir, 'nnSVG_precast', method)
+    }
 
     ############################################################################
     #   Gather nnSVG results across samples and compute summary metrics
