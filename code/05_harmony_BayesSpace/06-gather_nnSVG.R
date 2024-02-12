@@ -212,7 +212,8 @@ p <- ggplot(overlap_df) +
     geom_line(aes(x = num_genes, y = prop_overlap)) +
     facet_wrap(~method_name) +
     scale_y_continuous(limits = c(0, max(overlap_df$prop_overlap))) +
-    labs(x = 'Top N genes', y = 'Prop. Shared Genes')
+    labs(x = 'Top N Genes', y = 'Prop. Shared Genes') +
+    theme_bw(base_size = 20)
 pdf(file.path(plot_dir, "HVG_SVG_prop_overlap.pdf"))
 print(p)
 dev.off()
