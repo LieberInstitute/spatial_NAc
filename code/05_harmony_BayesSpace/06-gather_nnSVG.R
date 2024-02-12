@@ -26,20 +26,18 @@ dir.create(plot_dir, showWarnings = FALSE)
 
 spe <- loadHDF5SummarizedExperiment(spe_dir)
 
-top_svgs = list()
+################################################################################
+#   For each method of running nnSVG, gather results across samples and
+#   compute summary metrics
+################################################################################
 
+top_svgs = list()
 for (method in c("default", "precast")) {
     if (method == "default") {
         nn_out_dir = file.path(out_dir, 'nnSVG_out')
-        nn_plot_dir = file.path(plot_dir, 'nnSVG')
     } else {
         nn_out_dir = file.path(out_dir, 'nnSVG_precast_out')
-        nn_plot_dir = file.path(plot_dir, 'nnSVG_precast')
     }
-
-    ############################################################################
-    #   Gather nnSVG results across samples and compute summary metrics
-    ############################################################################
 
     nn_out_list <- list()
     for (sample_id in unique(spe$sample_id)) {
@@ -67,11 +65,9 @@ for (method in c("default", "precast")) {
             nnsvg_avg_rank_rank = match(nnsvg_avg_rank, sort(nnsvg_avg_rank))
         )
 
+    #   Export the raw summary, not dropping any results according to rank
+    #   or statistical significance
     write_csv(nn_out_summary, file.path(nn_out_dir, "summary_across_samples.csv"))
-
-    ############################################################################
-    #   Visually examine top-ranked SVGs
-    ############################################################################
 
     #   Order rank of genes of those where all samples had statistically
     #   significant spatial variability
@@ -84,62 +80,6 @@ for (method in c("default", "precast")) {
             ],
             method_name = method
         )
-    
-    #   Export top 100 SVGs for this method
-    top_svgs[[method]] |>
-        select(gene_id, symbol) |>
-        slice_head(n = 100) |>
-        write_csv(file.path(nn_out_dir, "top_100_SVGs.csv"))
-
-    #   Plot the top 50 genes for one sample
-    num_genes <- 50
-    plot_list <- list()
-    for (i in 1:num_genes) {
-        plot_list[[i]] <- spot_plot(
-            spe,
-            sample_id = best_sample_id,
-            title = paste(
-                best_sample_id, top_svgs[[method]]$symbol[i], sep = "_"
-            ),
-            var_name = top_svgs[[method]]$gene_id[i],
-            is_discrete = FALSE,
-            minCount = 0
-        )
-    }
-
-    pdf(file.path(nn_plot_dir, sprintf("nnSVG_top_SVGs_%s.pdf", best_sample_id)))
-    print(plot_list)
-    dev.off()
-
-    #   Plot a grid of several samples and several top-ranked genes
-    num_genes <- 5
-    num_samples <- 5
-    plot_list <- list()
-    counter <- 1
-    for (i in 1:num_genes) {
-        for (j in 1:num_samples) {
-            this_sample_id <- unique(spe$sample_id)[j]
-            plot_list[[counter]] <- spot_plot(
-                spe,
-                sample_id = this_sample_id,
-                title = paste(
-                    this_sample_id, top_svgs[[method]]$symbol[i], sep = "_"
-                ),
-                var_name = top_svgs[[method]]$gene_id[i],
-                is_discrete = FALSE,
-                minCount = 0
-            )
-            counter <- counter + 1
-        }
-    }
-
-    pdf(
-        file.path(nn_plot_dir, "nnSVG_grid.pdf"),
-        width = 7 * num_samples,
-        height = 7 * num_genes
-    )
-    print(plot_grid(plotlist = plot_list, ncol = num_samples))
-    dev.off()
 }
 
 ################################################################################
@@ -170,6 +110,10 @@ top_hvgs[['deviance']] = rowData(spe) |>
 top_hvgs = do.call(rbind, top_hvgs) |>
     mutate(variation_type = 'HVG')
 
+################################################################################
+#   Compute both methods of HVGs and SVGs into one tibble, 'top_genes'
+################################################################################
+
 #   Also just form one tibble of top SVGs, like that for the HVGs
 top_svgs = do.call(rbind, top_svgs) |>
     group_by(method_name) |>
@@ -195,11 +139,14 @@ top_genes = rbind(top_hvgs, top_svgs) |>
     #   Re-rank genes after dropping
     group_by(method_name, variation_type) |>
     arrange(rank) |>
-    mutate(rank = row_number())
+    mutate(rank = row_number()) |>
+    ungroup()
 
 if (any(is.na(top_genes$gene_name))) {
     stop("Some top genes not in SpatialExperiment")
 }
+
+write_csv(top_genes, file.path(out_dir, 'top_variable_genes.csv'))
 
 ################################################################################
 #   Compare each combination of SVGs and HVGs (2 methods for each)
@@ -270,10 +217,79 @@ pdf(file.path(plot_dir, "HVG_SVG_prop_overlap.pdf"))
 print(p)
 dev.off()
 
-#   Export top 100 HVGs for this method
-top_hvgs |>
-    dplyr::rename(symbol = gene_name) |>
-    slice_head(n = 100) |>
-    write_csv(file.path(dirname(hvg_path), "top_100_HVGs.csv"))
+################################################################################
+#   Plot and export top variable genes for each method of HVGs and SVGs
+################################################################################
+
+for (this_method in unique(top_genes$method_name)) {
+    these_genes = top_genes |>
+        filter(method_name == this_method)
+    
+    method_title = sprintf(
+        '%s_%ss', this_method, unique(these_genes$variation_type)
+    )
+
+    #   Export top 100 genes for this method
+    these_genes |>
+        select(gene_id, gene_name, rank) |>
+        dplyr::rename(symbol = gene_name) |>
+        slice_head(n = 100) |>
+        write_csv(file.path(out_dir, sprintf("top_100_%s.csv", method_title)))
+    
+    #   Plot the top 50 genes for one sample
+    num_genes <- 50
+    plot_list <- list()
+    for (i in 1:num_genes) {
+        plot_list[[i]] <- spot_plot(
+            spe,
+            sample_id = best_sample_id,
+            title = paste(
+                best_sample_id, these_genes$gene_name[i], sep = "_"
+            ),
+            var_name = these_genes$gene_id[i],
+            is_discrete = FALSE,
+            minCount = 0
+        )
+    }
+
+    pdf(
+        file.path(
+            plot_dir,
+            sprintf("top_50_%s_%s.pdf", method_title, best_sample_id)
+        )
+    )
+    print(plot_list)
+    dev.off()
+
+    #   Plot a grid of several samples and several top-ranked genes
+    num_genes <- 5
+    num_samples <- 5
+    plot_list <- list()
+    counter <- 1
+    for (i in 1:num_genes) {
+        for (j in 1:num_samples) {
+            this_sample_id <- unique(spe$sample_id)[j]
+            plot_list[[counter]] <- spot_plot(
+                spe,
+                sample_id = this_sample_id,
+                title = paste(
+                    this_sample_id, these_genes$gene_name[i], sep = "_"
+                ),
+                var_name = these_genes$gene_id[i],
+                is_discrete = FALSE,
+                minCount = 0
+            )
+            counter <- counter + 1
+        }
+    }
+
+    pdf(
+        file.path(plot_dir, paste(method_title, "grid.pdf", sep = '_')),
+        width = 7 * num_samples,
+        height = 7 * num_genes
+    )
+    print(plot_grid(plotlist = plot_list, ncol = num_samples))
+    dev.off()
+}
 
 session_info()
