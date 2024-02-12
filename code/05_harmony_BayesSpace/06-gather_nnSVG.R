@@ -149,64 +149,123 @@ for (method in c("default", "precast")) {
 
 top_hvgs = list()
 
-#   Load HVGs from scran::getTopHVGs, add gene symbols, and take just
-#   significant (after adjustment) genes
+#   Load significant (after adjustment) HVGs from scran::getTopHVGs
 load(hvg_scran_path, verbose = TRUE)
 top_hvgs[['scran']] <- tibble(
     gene_id = top.hvgs.fdr5,
-    gene_name = rowData(spe)[
-        match(gene_id, rowData(spe)$gene_id), "gene_name"
-    ],
     method_name = 'scran'
-)
-
-if (any(is.na(top_hvgs$gene_name))) {
-    stop("Some HVGs not in SpatialExperiment")
-}
+) |>
+    mutate(rank = row_number())
 
 #   Prepare highly deviant genes
 top_hvgs[['deviance']] = rowData(spe) |>
     as_tibble() |>
     arrange(desc(binomial_deviance)) |>
-    select(gene_id, gene_name) |>
-    mutate(method_name = 'deviance')
+    select(gene_id) |>
+    mutate(
+        method_name = 'deviance',
+        rank = row_number()
+    )
 
-#   Drop mitochondrial genes (as was done for SVGs, considering that expression
-#   variation in these genes represents technical noise)
 top_hvgs = do.call(rbind, top_hvgs) |>
-    filter(!str_detect(gene_name, "^MT-"))
-
+    mutate(variation_type = 'HVG')
 
 #   Also just form one tibble of top SVGs, like that for the HVGs
-top_svgs = do.call(rbind, top_svgs)
+top_svgs = do.call(rbind, top_svgs) |>
+    group_by(method_name) |>
+    arrange(nnsvg_avg_rank_rank) |>
+    mutate(
+        variation_type = 'SVG',
+        #   Re-rank, since not-significant SVGs were dropped earlier
+        rank = row_number()
+    ) |>
+    ungroup() |>
+    select(colnames(top_hvgs))
+    
+top_genes = rbind(top_hvgs, top_svgs) |>
+    #   Add gene symbol
+    mutate(
+        gene_name = rowData(spe)[
+            match(gene_id, rowData(spe)$gene_id), "gene_name"
+        ]
+    ) |>
+    #   Drop mitochondrial genes (already done for SVGs), considering that
+    #   expression variation in these genes represents technical noise
+    filter(!str_detect(gene_name, "^MT-")) |>
+    #   Re-rank genes after dropping
+    group_by(method_name, variation_type) |>
+    arrange(rank) |>
+    mutate(rank = row_number())
+
+if (any(is.na(top_genes$gene_name))) {
+    stop("Some top genes not in SpatialExperiment")
+}
 
 ################################################################################
 #   Compare each combination of SVGs and HVGs (2 methods for each)
 ################################################################################
 
-num_points <- 100
-overlap_df <- tibble(
-    #   Sample [num_points] different numbers of genes, linearly spaced between
-    #   0 and as many top genes are shared
-    num_genes = as.integer(
-        1:num_points * min(nrow(top_svgs), nrow(top_hvgs)) / num_points
-    ),
-    prop_overlap = NA
-)
+svg_methods = top_genes |>
+    filter(variation_type == 'SVG') |>
+    pull(method_name) |>
+    unique()
+hvg_methods = top_genes |>
+    filter(variation_type == 'HVG') |>
+    pull(method_name) |>
+    unique()
 
-#   At each number of genes, compute the proportion of SVGs that are also HVGs
-#   at the same cutoff
-for (i in 1:num_points) {
-    overlap_df[i, "prop_overlap"] <- mean(
-        head(top_svgs$gene_id, overlap_df$num_genes[i]) %in%
-            head(top_hvgs$gene_id, overlap_df$num_genes[i])
-    )
+#   Get the minimum number of top genes from any method
+most_shared = top_genes |>
+    group_by(method_name, variation_type) |>
+    summarize(total_genes = max(rank)) |>
+    pull(total_genes) |>
+    min()
+
+overlap_df_list = list()
+for (svg_method in svg_methods) {
+    for (hvg_method in hvg_methods) {
+        these_svgs = top_genes |>
+            filter(method_name == svg_method, variation_type == 'SVG')
+        these_hvgs = top_genes |>
+            filter(method_name == hvg_method, variation_type == 'HVG')
+        combined_method = paste(svg_method, hvg_method, sep = '_')
+
+        num_points <- 100
+        overlap_df_list[[combined_method]] <- tibble(
+            #   Sample [num_points] different numbers of genes, linearly spaced
+            #   between 0 and as many top genes are shared
+            num_genes = as.integer(
+                1:num_points * most_shared / num_points
+            ),
+            prop_overlap = NA,
+            method_name = combined_method
+        )
+
+        #   At each number of genes, compute the proportion of SVGs that are
+        #   also HVGs at the same cutoff
+        for (i in 1:num_points) {
+            overlap_df_list[[combined_method]][i, "prop_overlap"] <- mean(
+                head(
+                    these_svgs$gene_id,
+                    overlap_df_list[[combined_method]]$num_genes[i]
+                ) %in%
+                head(
+                    these_hvgs$gene_id,
+                    overlap_df_list[[combined_method]]$num_genes[i]
+                )
+            )
+        }
+    }
 }
+
+overlap_df = do.call(rbind, overlap_df_list)
 
 #   Plot how this proportion changes with number of genes
 p <- ggplot(overlap_df) +
     geom_line(aes(x = num_genes, y = prop_overlap)) +
-    scale_y_continuous(limits = c(0, max(overlap_df$prop_overlap)))
+    facet_wrap(~method_name) +
+    scale_y_continuous(limits = c(0, max(overlap_df$prop_overlap))) +
+    labs(x = 'Top N genes', y = 'Prop. Shared Genes')
 pdf(file.path(plot_dir, "HVG_SVG_prop_overlap.pdf"))
 print(p)
 dev.off()
