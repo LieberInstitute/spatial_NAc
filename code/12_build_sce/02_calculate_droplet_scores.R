@@ -12,7 +12,7 @@ library(tidyverse)
 here()
 
 #Load the sce object 
-load(here("processed-data","sce_raw.rda"),verbose = TRUE)
+load(here("processed-data","12_snRNA","sce_raw.rds"),verbose = TRUE)
 
 print("object loaded")
 

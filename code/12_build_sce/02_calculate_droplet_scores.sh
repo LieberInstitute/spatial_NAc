@@ -5,7 +5,7 @@
 #SBATCH --error=emptyDrops_dropletQC.err
 #
 # Number of CPUs allocated to each task.
-#SBATCH --cpus-per-task=5
+#SBATCH --cpus-per-task=2
 #
 # Mimimum memory required per allocated  CPU
 #SBATCH --mem-per-cpu=20G
@@ -20,7 +20,7 @@ echo "********* Job Starts *********"
 date
 
 #load R
-module load conda_R/4.3
+module load r_nac
 
 #list modules for reproducibility purposes
 module list
