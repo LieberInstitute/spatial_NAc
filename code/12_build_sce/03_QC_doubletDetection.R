@@ -1,5 +1,6 @@
 #Goal: droplet QC + nuclei QC + doublet detection
 #cd /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+#module load r_nac
 
 library(SingleCellExperiment)
 library(DropletUtils)
@@ -130,7 +131,6 @@ lapply(e.out,function(x){
 #Also, 
 #Another way to look at this
 map(e.out, ~ addmargins(table(Signif = .x$FDR <= 0.001, Limited = .x$Limited)))
-
 # $`10c_NAc_SVB`
 # Limited
 # Signif  FALSE TRUE  Sum
@@ -287,7 +287,7 @@ knee_lowers
 # 2c_NAc_SVB  3c_NAc_SVB  4c_NAc_SVB  5c_NAc_SVB  6c_NAc_SVB  7c_NAc_SVB 
 # 256         246         266         236         246         271 
 # 8c_NAc_SVB  9c_NAc_SVB 
-# 265         334 
+# 265         334
 
 #Create droplet summary table
 droplet_summary <- stack(map_int(e.out,nrow)) %>% 
@@ -297,8 +297,22 @@ droplet_summary <- stack(map_int(e.out,nrow)) %>%
     left_join(stack(knee_lowers)) %>%
     rename(Sample=ind) %>%
     select(Sample,total_drops,non_empty,knee_lower=values)
+
+#Refactor the Sample column so that it is 1-20
+droplet_summary$Sample <- factor(x = droplet_summary$Sample,
+                                 levels = c("1c_NAc_SVB","2c_NAc_SVB",
+                                            "3c_NAc_SVB","4c_NAc_SVB",
+                                            "5c_NAc_SVB","6c_NAc_SVB",
+                                            "7c_NAc_SVB","8c_NAc_SVB",
+                                            "9c_NAc_SVB","10c_NAc_SVB",
+                                            "11c_NAc_SVB","12c_NAc_SVB",
+                                            "13c_NAc_SVB","14c_NAc_SVB",
+                                            "15c_Nac_SVB","16c_Nac_SVB",
+                                            "17c_Nac_SVB","18c_Nac_SVB",
+                                            "19c_Nac_SVB","20c_Nac_SVB"))
+
 droplet_summary
-#         Sample total_drops non_empty knee_lower
+# Sample total_drops non_empty knee_lower
 # 1  10c_NAc_SVB     1516737      6486        254
 # 2  11c_NAc_SVB     1126739      3159        252
 # 3  12c_NAc_SVB     1674120      5126        214
@@ -342,51 +356,16 @@ droplet_barplot <- droplet_summary %>%
 
 ggsave(plot = droplet_barplot,filename = here("plots","12_snRNA","droplet_barplot_per_sample.png"))
 
+
 #Load in the sce object
-load(here("processed-data","sce_raw.rda"),verbose = TRUE)
+load(here("processed-data","12_snRNA","sce_raw.rds"),verbose = TRUE)
 # Loading objects:
 #     sce
 
 dim(sce)
 #[1]    36601 28269956
 
-#### Eliminate empty droplets ####
-e.out.all <- do.call("rbind", e.out)[colnames(sce), ]
-sce <- sce[, which(e.out.all$FDR <= 0.001)]
-
-dim(sce)
-#[1]  36601 122071
-#122071 droplets that contain cells. 
-
-#Save object
-save(sce,file = here("processed-data","12_snRNA","sce_emptyDrops_removed.rda"))
-
-####Begin QC
-sce <- scuttle::addPerCellQC(sce,subsets = list(Mito=which(seqnames(sce) == "chrM")))
-
-#Plot mitochondria vs detected
-#All samples together
-mito_vs_detected <- plotColData(object = sce,
-                                y = "subsets_Mito_percent",
-                                x = "detected",
-                                colour_by = "Sample")
-ggsave(filename = here("plots","12_snRNA","nuclei_QC","mito_vs_detected_bySample.png"),
-       plot = mito_vs_detected)
-
-#Now samples separately.
-for(i in unique(sce$Sample)){
-    print(i)
-    x <- plotColData(object = sce[,sce$Sample == i],
-                     y = "subsets_Mito_percent",
-                     x = "detected",
-                     colour_by = "Sample")
-    ggsave(filename = here("plots","12_snRNA","nuclei_QC",
-                           paste0("mito_vs_detected_",i,"_only.png")),
-           plot = x)
-}
-
-##For QC plots, factorize the sample name. 
-load(here("processed-data","12_snRNA","sce_hold_020224.rda"))
+#Refactor the sample names so QC plot x-axes are in correct order. 
 sce$Sample <- factor(x = sce$Sample,
                      levels = c("1c_NAc_SVB","2c_NAc_SVB",
                                 "3c_NAc_SVB","4c_NAc_SVB",
@@ -399,13 +378,47 @@ sce$Sample <- factor(x = sce$Sample,
                                 "17c_Nac_SVB","18c_Nac_SVB",
                                 "19c_Nac_SVB","20c_Nac_SVB"))
 
+#### Eliminate empty droplets ####
+e.out.all <- do.call("rbind", e.out)[colnames(sce), ]
+sce <- sce[, which(e.out.all$FDR <= 0.001)]
+
+dim(sce)
+#[1]  36601 122071
+
+#Save object
+save(sce,file = here("processed-data","12_snRNA","sce_emptyDrops_removed.rds"))
+
+####Begin QC
+sce <- scuttle::addPerCellQC(sce,subsets = list(Mito=which(seqnames(sce) == "chrM")))
+
+#Plot mitochondria vs detected
+#All samples together
+mito_vs_detected <- plotColData(object = sce,
+                                y = "subsets_Mito_percent",
+                                x = "detected",
+                                colour_by = "Sample")
+
+ggsave(filename = here("plots","12_snRNA","nuclei_QC","mito","mito_vs_detected_bySample.png"),
+       plot = mito_vs_detected)
+
+#Now samples separately.
+for(i in unique(sce$Sample)){
+    print(i)
+    x <- plotColData(object = sce[,sce$Sample == i],
+                     y = "subsets_Mito_percent",
+                     x = "detected",
+                     colour_by = "Sample")
+    ggsave(filename = here("plots","12_snRNA","nuclei_QC","mito",
+                           paste0("mito_vs_detected_",i,"_only.png")),
+           plot = x)
+}
 
 #########################################
 ############### High mito ###############
 #########################################
 sce$high_mito <- isOutlier(sce$subsets_Mito_percent, nmads = 3, type = "higher", batch = sce$Sample)
 table(sce$Sample,sce$high_mito)
-#             FALSE TRUE
+# FALSE TRUE
 # 1c_NAc_SVB   5555  603
 # 2c_NAc_SVB   8265  715
 # 3c_NAc_SVB   5462  634
@@ -432,7 +445,9 @@ nMAD3_vln <- plotColData(sce,x = "Sample",y= "subsets_Mito_percent",colour_by = 
     theme(plot.title = element_text(hjust = 0.5)) +
     geom_hline(yintercept = 5,lty = 2) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave(plot = nMAD3_vln,filename = here("plots","12_snRNA","nuclei_QC","nMAD3_Mito_Pct_violin.png"))
+ggsave(plot = nMAD3_vln,filename = here("plots","12_snRNA",
+                                        "nuclei_QC","mito",
+                                        "nMAD3_Mito_Pct_violin.png"))
 
 #Simialr to the Comment in https://github.com/LieberInstitute/10xPilot_snRNAseq-human/blob/51d15ef9f5f2c4c53f55e22e3fe467de1a724668/10x_all-FACS-n10_2021rev_step01_processing-QC_MNT.R#L4
 #MAD approach is unnecessarily throwing out cells because the distribution is centered around 0
@@ -443,16 +458,15 @@ sce$high_mito_pct <- ifelse(sce$subsets_Mito_percent > 5.0,
                             FALSE)
 
 table(sce$high_mito_pct)
-#  FALSE   TRUE 
-# 121825    246
-#would only remove 246 nuclei by percentage but distribution is centered around 0, so many high quality nuclei
+# FALSE   TRUE 
+# 121825    246 
 
 mito_pct_vln <- plotColData(sce,x = "Sample",y= "subsets_Mito_percent",colour_by = "high_mito_pct") +
     ggtitle(paste0("Mito Percent\n5% cutoff")) +
     theme(plot.title = element_text(hjust = 0.5)) +
     geom_hline(yintercept = 5,lty = 2) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave(plot = mito_pct_vln,filename = here("plots","12_snRNA","nuclei_QC","FivePct_Mito_Pct_violin.png"))
+ggsave(plot = mito_pct_vln,filename = here("plots","12_snRNA","nuclei_QC","mito","FivePct_Mito_Pct_violin.png"))
 
 
 #########################################
@@ -464,34 +478,14 @@ lib_size_violin <- plotColData(sce, x = "Sample", y = "sum",colour_by = "Sample"
     scale_y_log10() +
     ggtitle("Total UMIs") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave(plot = lib_size_violin,filename = here("plots","12_snRNA","nuclei_QC","library_size_violin.png"))
+ggsave(plot = lib_size_violin,filename = here("plots","12_snRNA","nuclei_QC","library_size","library_size_violin.png"))
 
 #Some with unimodal and some with bimodal distributions. 
 #Try nMADs=3
 ##3
 sce$low_lib_3 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$Sample,nmads = 3)
 table(sce$Sample,sce$low_lib_3)
-#             FALSE TRUE
-# 1c_NAc_SVB   6158    0
-# 2c_NAc_SVB   8742  238
-# 3c_NAc_SVB   6068   28
-# 4c_NAc_SVB   6474  556
-# 5c_NAc_SVB   5373    0
-# 6c_NAc_SVB   3798  200
-# 7c_NAc_SVB   5778  262
-# 8c_NAc_SVB   7206  101
-# 9c_NAc_SVB   3165  493
-# 10c_NAc_SVB  6486    0
-# 11c_NAc_SVB  2859  300
-# 12c_NAc_SVB  5126    0
-# 13c_NAc_SVB  4509  319
-# 14c_NAc_SVB  6891    0
-# 15c_Nac_SVB  4400  116
-# 16c_Nac_SVB  7409   31
-# 17c_Nac_SVB  4327  332
-# 18c_Nac_SVB  9655    0
-# 19c_Nac_SVB  7521    0
-# 20c_Nac_SVB  7150    0
+
 
 nMAD3_lib_vln <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_lib_3") +
     scale_y_log10() +
@@ -563,25 +557,11 @@ sce$discard_basic <- qc_lib_600 | qc_genes_500 | qc_mito_5
 qc_t <- addmargins(table(sce$Sample, sce$discard_basic))
 
 qc_t
-#             FALSE   TRUE    Sum
-# 1c_NAc_SVB    5868    290   6158
-# 2c_NAc_SVB    8732    248   8980
-# 3c_NAc_SVB    6036     60   6096
-# 4c_NAc_SVB    6970     60   7030
-# 5c_NAc_SVB    5276     97   5373
-# 6c_NAc_SVB    3950     48   3998
-# 7c_NAc_SVB    5838    202   6040
-# 8c_NAc_SVB    6859    448   7307
-# 9c_NAc_SVB    3417    241   3658
-# 10c_NAc_SVB   6413     73   6486
-# 11c_NAc_SVB   3129     30   3159
-# 12c_NAc_SVB   4953    173   5126
-# 13c_NAc_SVB   4723    105   4828
-# 14c_NAc_SVB   6721    170   6891
-# 15c_Nac_SVB   4398    118   4516
-# 16c_Nac_SVB   7255    185   7440
-# 17c_Nac_SVB   4573     86   4659
-# 18c_Nac_SVB   9190    465   9655
-# 19c_Nac_SVB   7202    319   7521
-# 20c_Nac_SVB   6855    295   7150
-# Sum         118358   3713 122071
+
+
+
+
+
+
+
+
