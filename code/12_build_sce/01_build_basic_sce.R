@@ -1,5 +1,6 @@
 #Concatenate samples and build basic sce
 #cd /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+#module load r_nac
 
 library(SingleCellExperiment)
 library(sessioninfo)
@@ -23,13 +24,13 @@ for(i in 1:20){
 
 ## Build basic SCE
 message("Read 10x data and create sce - ", Sys.time())
-#Read 10x data and create sce - 2024-02-01 22:27:13.350234
+#Read 10x data and create sce - 2024-02-13 12:10:41.408777
 sce <- read10xCounts(samples = sample_data$Raw_data_path,
                      sample.names = sample_data$Sample,
                      type = "sparse",
                      col.names = TRUE)
 message("RDone - ", Sys.time())
-#RDone - 2024-02-01 22:35:33.506057
+#RDone - 2024-02-13 12:22:34.73507
 
 ######colData
 #merging removes the rownames that are unique to each sample/cell. 
@@ -77,12 +78,11 @@ sce
 #     mainExpName: NULL
 # altExpNames(0):
 
-
 #Empty droplets have not been removed. Will be the next step of the analysis. 
 
 #Save object. 
 save(sce,
-     file = here("processed-data","sce_raw.rda"))
+     file = here("processed-data","12_snRNA","sce_raw.rds"))
 
 
 ## Reproducibility information
@@ -92,12 +92,12 @@ proc.time()
 options(width = 120)
 session_info()
 # [1] "Reproducibility information:"
-# [1] "2024-02-01 23:13:54 EST"
-# user   system  elapsed 
-# 1420.613   36.826 4680.702 
-# ─ Session info ───────────────────────────────────────────────────────
+# [1] "2024-02-13 13:22:39 EST"
+#     user   system  elapsed 
+# 1848.925   59.797 4351.390 
+# ─ Session info ────────────────────────────────────────────────────────────────────────────────────────────
 # setting  value
-# version  R version 4.3.1 Patched (2023-07-19 r84711)
+# version  R version 4.3.2 (2023-10-31)
 # os       Rocky Linux 9.2 (Blue Onyx)
 # system   x86_64, linux-gnu
 # ui       X11
@@ -105,68 +105,67 @@ session_info()
 # collate  en_US.UTF-8
 # ctype    en_US.UTF-8
 # tz       US/Eastern
-# date     2024-02-01
-# pandoc   3.1.3 @ /jhpce/shared/community/core/conda_R/4.3/bin/pandoc
+# date     2024-02-13
+# pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 # 
-# ─ Packages ───────────────────────────────────────────────────────────
+# ─ Packages ────────────────────────────────────────────────────────────────────────────────────────────────
 # package              * version   date (UTC) lib source
-# abind                  1.4-5     2016-07-21 [2] CRAN (R 4.3.1)
-# beachmat               2.16.0    2023-04-25 [2] Bioconductor
-# Biobase              * 2.60.0    2023-04-25 [2] Bioconductor
-# BiocGenerics         * 0.46.0    2023-04-25 [2] Bioconductor
-# BiocIO                 1.10.0    2023-04-25 [2] Bioconductor
-# BiocParallel           1.34.2    2023-05-22 [2] Bioconductor
-# Biostrings             2.68.1    2023-05-16 [2] Bioconductor
-# bitops                 1.0-7     2021-04-24 [2] CRAN (R 4.3.1)
-# cli                    3.6.1     2023-03-23 [2] CRAN (R 4.3.1)
-# codetools              0.2-19    2023-02-01 [3] CRAN (R 4.3.1)
-# colorout             * 1.3-0.1   2023-12-01 [1] Github (jalvesaq/colorout@deda341)
-# crayon                 1.5.2     2022-09-29 [2] CRAN (R 4.3.1)
-# DelayedArray           0.26.7    2023-07-28 [2] Bioconductor
-# DelayedMatrixStats     1.22.6    2023-08-28 [2] Bioconductor
-# dqrng                  0.3.1     2023-08-30 [2] CRAN (R 4.3.1)
-# DropletUtils         * 1.20.0    2023-04-25 [2] Bioconductor
-# edgeR                  3.42.4    2023-05-31 [2] Bioconductor
-# GenomeInfoDb         * 1.36.3    2023-09-07 [2] Bioconductor
-# GenomeInfoDbData       1.2.10    2023-07-20 [2] Bioconductor
-# GenomicAlignments      1.36.0    2023-04-25 [2] Bioconductor
-# GenomicRanges        * 1.52.0    2023-04-25 [2] Bioconductor
-# HDF5Array              1.28.1    2023-05-01 [2] Bioconductor
-# here                 * 1.0.1     2020-12-13 [2] CRAN (R 4.3.1)
-# IRanges              * 2.34.1    2023-06-22 [2] Bioconductor
-# lattice                0.21-8    2023-04-05 [3] CRAN (R 4.3.1)
-# limma                  3.56.2    2023-06-04 [2] Bioconductor
-# locfit                 1.5-9.8   2023-06-11 [2] CRAN (R 4.3.1)
-# Matrix                 1.6-1.1   2023-09-18 [3] CRAN (R 4.3.1)
-# MatrixGenerics       * 1.12.3    2023-07-30 [2] Bioconductor
-# matrixStats          * 1.0.0     2023-06-02 [2] CRAN (R 4.3.1)
-# R.methodsS3            1.8.2     2022-06-13 [2] CRAN (R 4.3.1)
-# R.oo                   1.25.0    2022-06-12 [2] CRAN (R 4.3.1)
-# R.utils                2.12.2    2022-11-11 [2] CRAN (R 4.3.1)
-# Rcpp                   1.0.11    2023-07-06 [2] CRAN (R 4.3.1)
-# RCurl                  1.98-1.12 2023-03-27 [2] CRAN (R 4.3.1)
-# restfulr               0.0.15    2022-06-16 [2] CRAN (R 4.3.1)
-# rhdf5                  2.44.0    2023-04-25 [2] Bioconductor
-# rhdf5filters           1.12.1    2023-04-30 [2] Bioconductor
-# Rhdf5lib               1.22.1    2023-09-10 [2] Bioconductor
-# rjson                  0.2.21    2022-01-09 [2] CRAN (R 4.3.1)
-# rprojroot              2.0.3     2022-04-02 [2] CRAN (R 4.3.1)
-# Rsamtools              2.16.0    2023-04-25 [2] Bioconductor
-# rtracklayer          * 1.60.1    2023-08-15 [2] Bioconductor
-# S4Arrays               1.0.6     2023-08-30 [2] Bioconductor
-# S4Vectors            * 0.38.1    2023-05-02 [2] Bioconductor
-# scuttle                1.10.2    2023-08-03 [2] Bioconductor
-# sessioninfo          * 1.2.2     2021-12-06 [2] CRAN (R 4.3.1)
-# SingleCellExperiment * 1.22.0    2023-04-25 [2] Bioconductor
-# sparseMatrixStats      1.12.2    2023-07-02 [2] Bioconductor
-# SummarizedExperiment * 1.30.2    2023-06-06 [2] Bioconductor
-# XML                    3.99-0.14 2023-03-19 [2] CRAN (R 4.3.1)
-# XVector                0.40.0    2023-04-25 [2] Bioconductor
-# yaml                   2.3.7     2023-01-23 [2] CRAN (R 4.3.1)
-# zlibbioc               1.46.0    2023-04-25 [2] Bioconductor
+# abind                  1.4-5     2016-07-21 [1] CRAN (R 4.3.2)
+# beachmat               2.18.0    2023-10-24 [1] Bioconductor
+# Biobase              * 2.62.0    2023-10-24 [1] Bioconductor
+# BiocGenerics         * 0.48.1    2023-11-01 [1] Bioconductor
+# BiocIO                 1.12.0    2023-10-24 [1] Bioconductor
+# BiocParallel           1.36.0    2023-10-24 [1] Bioconductor
+# Biostrings             2.70.1    2023-10-25 [1] Bioconductor
+# bitops                 1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
+# cli                    3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
+# codetools              0.2-19    2023-02-01 [1] CRAN (R 4.3.0)
+# crayon                 1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
+# DelayedArray           0.28.0    2023-10-24 [1] Bioconductor
+# DelayedMatrixStats     1.24.0    2023-10-24 [1] Bioconductor
+# dqrng                  0.3.2     2023-11-29 [1] CRAN (R 4.3.2)
+# DropletUtils         * 1.22.0    2023-10-24 [1] Bioconductor
+# edgeR                  4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
+# GenomeInfoDb         * 1.38.1    2023-11-08 [1] Bioconductor
+# GenomeInfoDbData       1.2.11    2023-12-12 [1] Bioconductor
+# GenomicAlignments      1.38.0    2023-10-24 [1] Bioconductor
+# GenomicRanges        * 1.54.1    2023-10-29 [1] Bioconductor
+# HDF5Array              1.30.0    2023-10-24 [1] Bioconductor
+# here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
+# IRanges              * 2.36.0    2023-10-24 [1] Bioconductor
+# lattice                0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
+# limma                  3.58.1    2023-10-31 [1] Bioconductor
+# locfit                 1.5-9.8   2023-06-11 [1] CRAN (R 4.3.2)
+# Matrix                 1.6-4     2023-11-30 [1] CRAN (R 4.3.2)
+# MatrixGenerics       * 1.14.0    2023-10-24 [1] Bioconductor
+# matrixStats          * 1.2.0     2023-12-11 [1] CRAN (R 4.3.2)
+# R.methodsS3            1.8.2     2022-06-13 [1] CRAN (R 4.3.2)
+# R.oo                   1.26.0    2024-01-24 [1] CRAN (R 4.3.2)
+# R.utils                2.12.3    2023-11-18 [1] CRAN (R 4.3.2)
+# Rcpp                   1.0.12    2024-01-09 [1] CRAN (R 4.3.2)
+# RCurl                  1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
+# restfulr               0.0.15    2022-06-16 [1] CRAN (R 4.3.2)
+# rhdf5                  2.46.1    2023-11-29 [1] Bioconductor 3.18 (R 4.3.2)
+# rhdf5filters           1.14.1    2023-11-06 [1] Bioconductor
+# Rhdf5lib               1.24.1    2023-12-11 [1] Bioconductor 3.18 (R 4.3.2)
+# rjson                  0.2.21    2022-01-09 [1] CRAN (R 4.3.2)
+# rprojroot              2.0.4     2023-11-05 [1] CRAN (R 4.3.2)
+# Rsamtools              2.18.0    2023-10-24 [1] Bioconductor
+# rtracklayer          * 1.62.0    2023-10-24 [1] Bioconductor
+# S4Arrays               1.2.0     2023-10-24 [1] Bioconductor
+# S4Vectors            * 0.40.2    2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+# scuttle                1.12.0    2023-10-24 [1] Bioconductor
+# sessioninfo          * 1.2.2     2021-12-06 [1] CRAN (R 4.3.2)
+# SingleCellExperiment * 1.24.0    2023-10-24 [1] Bioconductor
+# SparseArray            1.2.2     2023-11-07 [1] Bioconductor
+# sparseMatrixStats      1.14.0    2023-10-24 [1] Bioconductor
+# statmod                1.5.0     2023-01-06 [1] CRAN (R 4.3.2)
+# SummarizedExperiment * 1.32.0    2023-10-24 [1] Bioconductor
+# XML                    3.99-0.16 2023-11-29 [1] CRAN (R 4.3.2)
+# XVector                0.42.0    2023-10-24 [1] Bioconductor
+# yaml                   2.3.8     2023-12-11 [1] CRAN (R 4.3.2)
+# zlibbioc               1.48.0    2023-10-24 [1] Bioconductor
 # 
-# [1] /users/rphillip/R/4.3
-# [2] /jhpce/shared/community/core/conda_R/4.3/R/lib64/R/site-library
-# [3] /jhpce/shared/community/core/conda_R/4.3/R/lib64/R/library
+# [1] /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/R/library
 # 
-# ──────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────────────────────────────────
