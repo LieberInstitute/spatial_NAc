@@ -12,17 +12,21 @@ spec <- matrix(
 )
 opt <- getopt(spec = spec)
 
+cluster_col = paste0('precast_k', opt$k)
+
 spe_dir <- here(
     "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
 )
 precast_path = here(
     'processed-data', '10_precast', sprintf('PRECAST_k%s.csv', opt$k)
 )
+spe_pseudo_path = here(
+    'processed-data', '10_precast', sprintf('spe_pseudo_%s.rds', cluster_col)
+)
 
 spe <- loadHDF5SummarizedExperiment(spe_dir)
 
 #   Add a colData column for PRECAST results at this k value
-cluster_col = paste0('precast_k', opt$k)
 spe[[cluster_col]] = colData(spe) |>
     as_tibble() |>
     left_join(read.csv(precast_path), by = 'key') |>
@@ -41,9 +45,6 @@ colData(spe_pseudo) = colData(spe_pseudo)[
     , sort(c("Age", "Sex", "sample_id", cluster_col, "Diagnosis"))
 ]
 
-saveRDS(
-    spe_pseudo,
-    file.path(dirname(precast_path), sprintf('spe_pseudo_%s.rds', cluster_col))
-)
+saveRDS(spe_pseudo, spe_pseudo_path)
 
 session_info()
