@@ -68,6 +68,30 @@ modeling_results <- list(
     "pairwise" = results_pairwise
 )
 
+sce_pseudo$spatialLIBD <- sce_pseudo$path_groups
+sig_genes <- sig_genes_extract_all(
+    n = nrow(sce_pseudo),
+    modeling_results = modeling_results,
+    sce_layer = sce_pseudo
+)
+
+fix_csv <- function(df) {
+    for (i in seq_len(ncol(df))) {
+        if (any(grepl(",", df[, i]))) {
+            message(paste(Sys.time(), "fixing column", colnames(df)[i]))
+            df[, i] <- gsub(",", ";", df[, i])
+        }
+    }
+    return(df)
+}
+z <- fix_csv(as.data.frame(subset(sig_genes, fdr < 0.05)))
+write.csv(z[, !grepl("^in_rows", colnames(z))],
+    file = file.path(
+        dir_rdata,
+        "Visium_SPG_AD_wholegenome_model_results_FDR5perc.csv"
+    )
+)
+
 save(modeling_results, modeling_path)
 
 session_info()
