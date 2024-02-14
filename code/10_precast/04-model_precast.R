@@ -26,38 +26,38 @@ modeling_path = here(
 
 spe_pseudo = readRDS(spe_pseudo_path)
 
-registration_mod <-
-    registration_model(sce_pseudo, covars = covars)
+registration_mod <- registration_model(spe_pseudo, covars = covars)
 
-block_cor <-
-    registration_block_cor(sce_pseudo, registration_model = registration_mod)
+block_cor <- registration_block_cor(
+    spe_pseudo, registration_model = registration_mod
+)
 
-results_enrichment <-
-    registration_stats_enrichment(
-        sce_pseudo,
+results_enrichment <- registration_stats_enrichment(
+    spe_pseudo,
+    block_cor = block_cor,
+    covars = covars,
+    gene_ensembl = ensembl_col,
+    gene_name = symbol_col
+)
+
+results_pairwise <- registration_stats_pairwise(
+    spe_pseudo,
+    registration_model = registration_mod,
+    block_cor = block_cor,
+    gene_ensembl = ensembl_col,
+    gene_name = symbol_col
+)
+
+#   ANOVA is only defined and meaningful for 3 or more groups
+if (opt$k >= 3) {
+    results_anova <- registration_stats_anova(
+        spe_pseudo,
         block_cor = block_cor,
         covars = covars,
-        gene_ensembl = gene_ensembl,
-        gene_name = gene_name
+        gene_ensembl = ensembl_col,
+        gene_name = symbol_col
+        suffix = "all"
     )
-results_pairwise <-
-    registration_stats_pairwise(
-        sce_pseudo,
-        registration_model = registration_mod,
-        block_cor = block_cor,
-        gene_ensembl = gene_ensembl,
-        gene_name = gene_name
-    )
-if (k >= 3) {
-    results_anova <-
-        registration_stats_anova(
-            sce_pseudo,
-            block_cor = block_cor,
-            covars = covars,
-            gene_ensembl = gene_ensembl,
-            gene_name = gene_name,
-            suffix = suffix
-        )
 } else {
     results_anova <- NULL
 }
