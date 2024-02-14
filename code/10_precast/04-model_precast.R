@@ -19,12 +19,22 @@ symbol_col = 'gene_name'
 spe_pseudo_path = here(
     'processed-data', '10_precast', sprintf('spe_pseudo_%s.rds', cluster_col)
 )
-modeling_path = here(
+modeling_rdata_path = here(
     'processed-data', '10_precast',
-    sprintf('modeling_results_%s.Rdata', cluster_col)
+    sprintf('model_results_%s.Rdata', cluster_col)
+)
+modeling_genes_path = here(
+    'processed-data', '10_precast',
+    sprintf('model_results_%s_FDR5perc.csv', cluster_col)
 )
 
 spe_pseudo = readRDS(spe_pseudo_path)
+
+################################################################################
+#   Use spatialLIBD registration functions to find interesting genes WRT
+#   pairwise comparisons, enrichment, and ANOVA for gene expression
+#   pseudobulked by PRECAST clusters
+################################################################################
 
 registration_mod <- registration_model(spe_pseudo, covars = covars)
 
@@ -68,11 +78,17 @@ modeling_results <- list(
     "pairwise" = results_pairwise
 )
 
-sce_pseudo$spatialLIBD <- sce_pseudo$path_groups
+save(modeling_results, modeling_rdata_path)
+
+################################################################################
+#   Export CSV of significant genes
+################################################################################
+
+spe_pseudo$spatialLIBD <- spe_pseudo[[cluster_col]]
 sig_genes <- sig_genes_extract_all(
-    n = nrow(sce_pseudo),
+    n = nrow(spe_pseudo),
     modeling_results = modeling_results,
-    sce_layer = sce_pseudo
+    sce_layer = spe_pseudo
 )
 
 fix_csv <- function(df) {
@@ -85,13 +101,6 @@ fix_csv <- function(df) {
     return(df)
 }
 z <- fix_csv(as.data.frame(subset(sig_genes, fdr < 0.05)))
-write.csv(z[, !grepl("^in_rows", colnames(z))],
-    file = file.path(
-        dir_rdata,
-        "Visium_SPG_AD_wholegenome_model_results_FDR5perc.csv"
-    )
-)
-
-save(modeling_results, modeling_path)
+write.csv(z[, !grepl("^in_rows", colnames(z))], file = modeling_genes_path)
 
 session_info()
