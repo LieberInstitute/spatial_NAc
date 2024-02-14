@@ -4,8 +4,12 @@
 
 library(SingleCellExperiment)
 library(DropletUtils)
+library(scDblFinder)
+library(HDF5Array)
+library(rafalib)
 library(ggplot2)
 library(scuttle)
+library(scran)
 library(scater)
 library(purrr)
 library(dplyr)
@@ -577,8 +581,237 @@ qc_t
 # Sum         118358   3713 122071
 
 
+#### Doublet detection ####
+## To speed up, run on sample-level top-HVGs - just take top 1000
+set.seed(1234)
+
+colData(sce)$doubletScore <- NA
+
+for (i in splitit(sce$Sample)) {
+    sce_temp <- sce[, i]
+    ## To speed up, run on sample-level top-HVGs - just take top 1000
+    normd <- logNormCounts(sce_temp)
+    geneVar <- modelGeneVar(normd)
+    topHVGs <- getTopHVGs(geneVar, n = 1000)
+    
+    dbl_dens <- computeDoubletDensity(normd, subset.row = topHVGs)
+    colData(sce)$doubletScore[i] <- dbl_dens
+}
+
+summary(sce$doubletScore)
+#    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# 0.00000  0.07522  0.23172  0.53328  0.50616 34.79662 
+
+## Visualize doublet scores ##
+dbl_df <- colData(sce) %>%
+    as.data.frame() %>%
+    select(Sample, doubletScore)
+
+dbl_box_plot <- dbl_df %>%
+    ggplot(aes(x = Sample, y = doubletScore, fill = Sample)) +
+    geom_boxplot() +
+    labs(x = "Sample") +
+    geom_hline(yintercept = 5, color = "red", linetype = "dashed") +
+    coord_flip() +
+    theme_bw()
+
+ggsave(dbl_box_plot, filename = here("plots","12_snRNA",
+                                     "nuclei_QC","doublet_score",
+                                     "doublet_scores_boxplot.png"))
+
+dbl_density_plot <- dbl_df %>%
+    ggplot(aes(x = doubletScore,fill = Sample)) +
+    geom_density() +
+    labs(x = "doublet score") +
+    theme_bw()
+
+ggsave(dbl_density_plot, filename = here("plots","12_snRNA",
+                                         "nuclei_QC","doublet_score",
+                                         "doublet_scores_desnity.png"))
+
+dbl_df %>%
+    group_by(Sample) %>%
+    summarize(
+        median = median(doubletScore),
+        q95 = quantile(doubletScore, .95),
+        drop = sum(doubletScore >= 5),
+        drop_precent = 100 * drop / n()
+    )
+# # A tibble: 20 × 5
+# Sample      median   q95  drop drop_precent
+# <fct>        <dbl> <dbl> <int>        <dbl>
+#     1 1c_NAc_SVB   0.209 1.21     70        1.14 
+# 2 2c_NAc_SVB   0.198 1.20    154        1.71 
+# 3 3c_NAc_SVB   0.158 1.39    119        1.95 
+# 4 4c_NAc_SVB   0.211 2.28    182        2.59 
+# 5 5c_NAc_SVB   0.204 1.10     70        1.30 
+# 6 6c_NAc_SVB   0.280 1.25     64        1.60 
+# 7 7c_NAc_SVB   0.230 1.24    101        1.67 
+# 8 8c_NAc_SVB   0.234 0.935    92        1.26 
+# 9 9c_NAc_SVB   0.490 1.51     35        0.957
+# 10 10c_NAc_SVB  0.195 1.71    149        2.30 
+# 11 11c_NAc_SVB  0.461 1.85     51        1.61 
+# 12 12c_NAc_SVB  0.267 1.31     54        1.05 
+# 13 13c_NAc_SVB  0.338 1.59     57        1.18 
+# 14 14c_NAc_SVB  0.179 1.35    117        1.70 
+# 15 15c_Nac_SVB  0.280 1.16     30        0.664
+# 16 16c_Nac_SVB  0.164 1.47    143        1.92 
+# 17 17c_Nac_SVB  0.298 1.71     78        1.67 
+# 18 18c_Nac_SVB  0.212 1.47    184        1.91 
+# 19 19c_Nac_SVB  0.211 1.55     79        1.05 
+# 20 20c_Nac_SVB  0.229 1.20     85        1.19
+
+table(sce$discard_basic, sce$doubletScore >= 5)
+#        FALSE   TRUE
+# FALSE 116444   1914
+# TRUE    3713      0
+#No cells that are discarded by basic QC are also discarded by doubletscore
+
+#Save object
+saveHDF5SummarizedExperiment(sce,
+                             here("processed-data","12_snRNA",
+                                  "sce_emptyDrops_removed_withQC"),
+                             replace = TRUE)
+
+#Remove the cells that don't meet the basic QC cutoffs 
+sce <- sce[,!sce$discard_basic]
+dim(sce)
+#[1]  36601 118358
+
+#Save object
+saveHDF5SummarizedExperiment(sce,
+                             here("processed-data","12_snRNA",
+                                  "sce_clean"),
+                             replace = TRUE)
 
 
-
-
-
+print("Reproducibility information:")
+Sys.time()
+proc.time()
+options(width = 120)
+sessioninfo::session_info()
+# [1] "Reproducibility information:"
+# [1] "2024-02-13 19:46:41 EST"
+# user   system  elapsed 
+# 744.133    4.288 1407.265 
+# ─ Session info ─────────────────────────────────────────────────────────────────────────────────────────────
+# setting  value
+# version  R version 4.3.2 (2023-10-31)
+# os       Rocky Linux 9.2 (Blue Onyx)
+# system   x86_64, linux-gnu
+# ui       X11
+# language (EN)
+# collate  en_US.UTF-8
+# ctype    en_US.UTF-8
+# tz       US/Eastern
+# date     2024-02-13
+# pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
+# 
+# ─ Packages ─────────────────────────────────────────────────────────────────────────────────────────────────
+# package              * version   date (UTC) lib source
+# abind                * 1.4-5     2016-07-21 [1] CRAN (R 4.3.2)
+# beachmat               2.18.0    2023-10-24 [1] Bioconductor
+# beeswarm               0.4.0     2021-06-01 [1] CRAN (R 4.3.2)
+# Biobase              * 2.62.0    2023-10-24 [1] Bioconductor
+# BiocGenerics         * 0.48.1    2023-11-01 [1] Bioconductor
+# BiocIO                 1.12.0    2023-10-24 [1] Bioconductor
+# BiocNeighbors          1.20.2    2024-01-07 [1] Bioconductor 3.18 (R 4.3.2)
+# BiocParallel           1.36.0    2023-10-24 [1] Bioconductor
+# BiocSingular           1.18.0    2023-10-24 [1] Bioconductor
+# Biostrings             2.70.1    2023-10-25 [1] Bioconductor
+# bitops                 1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
+# bluster                1.11.4    2024-02-02 [1] Github (LTLA/bluster@17dd9c8)
+# cli                    3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
+# cluster                2.1.6     2023-12-01 [1] CRAN (R 4.3.2)
+# codetools              0.2-19    2023-02-01 [1] CRAN (R 4.3.0)
+# colorspace             2.1-0     2023-01-23 [1] CRAN (R 4.3.0)
+# crayon                 1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
+# data.table             1.14.10   2023-12-08 [1] CRAN (R 4.3.2)
+# DelayedArray         * 0.28.0    2023-10-24 [1] Bioconductor
+# DelayedMatrixStats     1.24.0    2023-10-24 [1] Bioconductor
+# dplyr                * 1.1.4     2023-11-17 [1] CRAN (R 4.3.2)
+# dqrng                  0.3.2     2023-11-29 [1] CRAN (R 4.3.2)
+# DropletUtils         * 1.22.0    2023-10-24 [1] Bioconductor
+# edgeR                  4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
+# fansi                  1.0.6     2023-12-08 [1] CRAN (R 4.3.2)
+# generics               0.1.3     2022-07-05 [1] CRAN (R 4.3.0)
+# GenomeInfoDb         * 1.38.1    2023-11-08 [1] Bioconductor
+# GenomeInfoDbData       1.2.11    2023-12-12 [1] Bioconductor
+# GenomicAlignments      1.38.0    2023-10-24 [1] Bioconductor
+# GenomicRanges        * 1.54.1    2023-10-29 [1] Bioconductor
+# ggbeeswarm             0.7.2     2023-04-29 [1] CRAN (R 4.3.2)
+# ggplot2              * 3.4.4     2023-10-12 [1] CRAN (R 4.3.1)
+# ggrepel                0.9.4     2023-10-13 [1] CRAN (R 4.3.2)
+# glue                   1.7.0     2024-01-09 [1] CRAN (R 4.3.2)
+# gridExtra              2.3       2017-09-09 [1] CRAN (R 4.3.2)
+# gtable                 0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
+# HDF5Array            * 1.30.0    2023-10-24 [1] Bioconductor
+# here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
+# igraph                 1.6.0     2023-12-11 [1] CRAN (R 4.3.2)
+# IRanges              * 2.36.0    2023-10-24 [1] Bioconductor
+# irlba                  2.3.5.1   2022-10-03 [1] CRAN (R 4.3.2)
+# jsonlite               1.8.8     2023-12-04 [1] CRAN (R 4.3.2)
+# lattice                0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
+# lifecycle              1.0.4     2023-11-07 [1] CRAN (R 4.3.2)
+# limma                  3.58.1    2023-10-31 [1] Bioconductor
+# locfit                 1.5-9.8   2023-06-11 [1] CRAN (R 4.3.2)
+# magrittr               2.0.3     2022-03-30 [1] CRAN (R 4.3.0)
+# MASS                   7.3-60    2023-05-04 [1] CRAN (R 4.3.0)
+# Matrix               * 1.6-4     2023-11-30 [1] CRAN (R 4.3.2)
+# MatrixGenerics       * 1.14.0    2023-10-24 [1] Bioconductor
+# matrixStats          * 1.2.0     2023-12-11 [1] CRAN (R 4.3.2)
+# metapod                1.10.0    2023-10-24 [1] Bioconductor
+# munsell                0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
+# pillar                 1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
+# pkgconfig              2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
+# purrr                * 1.0.2     2023-08-10 [1] CRAN (R 4.3.1)
+# R.methodsS3            1.8.2     2022-06-13 [1] CRAN (R 4.3.2)
+# R.oo                   1.26.0    2024-01-24 [1] CRAN (R 4.3.2)
+# R.utils                2.12.3    2023-11-18 [1] CRAN (R 4.3.2)
+# R6                     2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
+# rafalib              * 1.0.0     2015-08-09 [1] CRAN (R 4.3.2)
+# RColorBrewer           1.1-3     2022-04-03 [1] CRAN (R 4.3.0)
+# Rcpp                   1.0.12    2024-01-09 [1] CRAN (R 4.3.2)
+# RCurl                  1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
+# restfulr               0.0.15    2022-06-16 [1] CRAN (R 4.3.2)
+# rhdf5                * 2.46.1    2023-11-29 [1] Bioconductor 3.18 (R 4.3.2)
+# rhdf5filters           1.14.1    2023-11-06 [1] Bioconductor
+# Rhdf5lib               1.24.1    2023-12-11 [1] Bioconductor 3.18 (R 4.3.2)
+# rjson                  0.2.21    2022-01-09 [1] CRAN (R 4.3.2)
+# rlang                  1.1.3     2024-01-10 [1] CRAN (R 4.3.2)
+# rprojroot              2.0.4     2023-11-05 [1] CRAN (R 4.3.2)
+# Rsamtools              2.18.0    2023-10-24 [1] Bioconductor
+# rsvd                   1.0.5     2021-04-16 [1] CRAN (R 4.3.2)
+# rtracklayer            1.62.0    2023-10-24 [1] Bioconductor
+# S4Arrays             * 1.2.0     2023-10-24 [1] Bioconductor
+# S4Vectors            * 0.40.2    2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+# ScaledMatrix           1.10.0    2023-10-24 [1] Bioconductor
+# scales                 1.3.0     2023-11-28 [1] CRAN (R 4.3.2)
+# scater               * 1.30.1    2023-11-16 [1] Bioconductor
+# scDblFinder          * 1.16.0    2023-10-24 [1] Bioconductor
+# scran                * 1.30.0    2023-10-24 [1] Bioconductor
+# scuttle              * 1.12.0    2023-10-24 [1] Bioconductor
+# sessioninfo            1.2.2     2021-12-06 [1] CRAN (R 4.3.2)
+# SingleCellExperiment * 1.24.0    2023-10-24 [1] Bioconductor
+# SparseArray          * 1.2.2     2023-11-07 [1] Bioconductor
+# sparseMatrixStats      1.14.0    2023-10-24 [1] Bioconductor
+# statmod                1.5.0     2023-01-06 [1] CRAN (R 4.3.2)
+# SummarizedExperiment * 1.32.0    2023-10-24 [1] Bioconductor
+# tibble                 3.2.1     2023-03-20 [1] CRAN (R 4.3.0)
+# tidyr                * 1.3.0     2023-01-24 [1] CRAN (R 4.3.0)
+# tidyselect             1.2.0     2022-10-10 [1] CRAN (R 4.3.0)
+# utf8                   1.2.4     2023-10-22 [1] CRAN (R 4.3.1)
+# vctrs                  0.6.5     2023-12-01 [1] CRAN (R 4.3.2)
+# vipor                  0.4.5     2017-03-22 [1] CRAN (R 4.3.2)
+# viridis                0.6.4     2023-07-22 [1] CRAN (R 4.3.2)
+# viridisLite            0.4.2     2023-05-02 [1] CRAN (R 4.3.0)
+# withr                  2.5.2     2023-10-30 [1] CRAN (R 4.3.1)
+# xgboost                1.7.6.1   2023-12-06 [1] CRAN (R 4.3.2)
+# XML                    3.99-0.16 2023-11-29 [1] CRAN (R 4.3.2)
+# XVector                0.42.0    2023-10-24 [1] Bioconductor
+# yaml                   2.3.8     2023-12-11 [1] CRAN (R 4.3.2)
+# zlibbioc               1.48.0    2023-10-24 [1] Bioconductor
+# 
+# [1] /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/R/library
+# 
+# ────────────────────────────────────────────────────────────────────────────────────────────────────────────
