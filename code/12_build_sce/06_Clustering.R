@@ -93,3 +93,33 @@ k_10_tSNE <- plotReducedDim(object = sce,
   theme(plot.title = element_text(hjust = 0.5))
 ggsave(plot = k_10_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_10_louvain_tSNE.png"))
 
+
+#Goal right now is to identify if any non-neuronal cells are present within NeuN sorted samples. 
+#We expect that some non-neuronal cells may get sorted but if a significant proportion of a NeuN 
+#sorted sample is glia, then there could be an issue with staining. Either way, it will inform QC
+for(i in unique(sce$Sample)){
+  print(i)
+  tSNE_sample <- plotReducedDim(object = sce[,sce$Sample == i],
+                                dimred = "tSNE_mnn",
+                                colour_by = "k_10_louvain") +
+    ggtitle(unique(colData(sce[,sce$Sample == i])[,"Sort"])) +
+    theme(plot.title = element_text(hjust = 0.5))
+  ggsave(plot = tSNE_sample, filename = here("plots","12_snRNA",
+                                             "Dim_Red","tSNE_Sample_Specific",
+                                             paste0(i,".png")))
+}
+
+#Classify each population as neuron or non-neuron. 
+for(i in genes){
+  print(i)
+  x <- plotExpression(object = sce,
+                      features = i,
+                      x = "k_10_louvain",
+                      colour_by = "k_10_louvain",
+                      swap_rownames = "gene_name",ncol = 1) +
+    theme(legend.position = "none")
+  ggsave(filename = here("plots","12_snRNA",
+                         "Expression","Known_Marker_Genes","Violin_Plots",
+                         paste0(i,"_violin.png")),height = 4,width = 8)
+}
+
