@@ -92,7 +92,6 @@ k_10_tSNE <- plotReducedDim(object = sce,
   theme(plot.title = element_text(hjust = 0.5))
 ggsave(plot = k_10_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_10_louvain_tSNE.png"))
 
-
 #Goal right now is to identify if any non-neuronal cells are present within NeuN sorted samples. 
 #We expect that some non-neuronal cells may get sorted but if a significant proportion of a NeuN 
 #sorted sample is glia, then there could be an issue with staining. Either way, it will inform QC
@@ -162,21 +161,59 @@ for(i in genes){
 #Neuron - 5,8,9,11,13,14,15,16,17,21,23,24,26,27,28,30,32,33,34,35,36
 sce$Binary_Classification <- ifelse(sce$k_10_louvain %in% c(5,8,9,11,13,14,15,16,17,21,23,
                                                             24,26,27,28,30,32,33,34,35,36),
-                                    "Non-Neuron",
-                                    "Neuron")
+                                    "Neuron",
+                                    "Non-Neuron")
 
 table(sce$Binary_Classification)
 # Neuron Non-Neuron 
-# 47049      71309
+# 71309      47049 
+
+#Color tSNE by Binary Classification
+tSNE_bin <- plotReducedDim(object = sce,
+                            dimred = "tSNE_mnn",
+                            colour_by = "Binary_Classification") 
+ggsave(plot = tSNE_bin, filename = here("plots","12_snRNA","Dim_Red","Binary_Classification_tSNE.png"))
+
+#Plot # of genes per cluster and binary classification
+genes_per_cluster   <- plotColData(object = sce,
+                                   x = "k_10_louvain",
+                                   y = "detected",
+                                   colour_by = "k_10_louvain") +
+    theme(legend.position = "none")
+ggsave(filename = here("plots","12_snRNA","genes_per_cluster_violin.png"))
+genes_per_bin_class <- plotColData(object = sce,
+                                   x = "Binary_Classification",
+                                   y = "detected",
+                                   colour_by = "Binary_Classification") +
+    theme(legend.position = "none")
+ggsave(filename = here("plots","12_snRNA","genes_per_binary_classification_violin.png"))
 
 #MAke a dataframe consisting of sample and binary classification information.
-x <- as.data.frame(table(sce$Sample,sce$Binary_Classification))
-#Change column names
-colnames(x) <- c("Sample","Type","Freq")
+#as.data.frame.matrix maintains table structure 
+x <- as.data.frame.matrix(table(sce$Sample,sce$Binary_Classification))
+x$Sample <- row.names(x)
 
-#Add Sort information. 
-x <- as.data.frame(merge(x,unique(colData(sce)[,c("Sample","Sort")]),by = "Sample"))
+#Calculate the percentage of each sample that is 
+x$Pct_Neuron <- (x$Neuron/(x$Neuron+x$`Non-Neuron`))*100
+x$Pct_Non_Neuron <- (x$`Non-Neuron`/(x$Neuron+x$`Non-Neuron`))*100
 
-ggplot(data = x,aes(x = Sample,y = Freq, fill = Type)) +
-    geom_bar(position="stack", stat="identity")
+#Factorize sample so that it is neuron first and non-neuron second
+x$Sample <- factor(x = x$Sample,
+                   levels = c("1c_NAc_SVB","3c_NAc_SVB","5c_NAc_SVB","7c_NAc_SVB",
+                              "9c_NAc_SVB","11c_NAc_SVB","13c_NAc_SVB","15c_Nac_SVB",
+                              "17c_Nac_SVB","19c_Nac_SVB","2c_NAc_SVB","4c_NAc_SVB",
+                              "6c_NAc_SVB","8c_NAc_SVB","10c_NAc_SVB","12c_NAc_SVB",
+                              "14c_NAc_SVB","16c_Nac_SVB","18c_Nac_SVB","20c_Nac_SVB"))
+
+x_melt <- reshape2::melt(x[,c("Sample","Pct_Neuron","Pct_Non_Neuron")])
+
+Pct_cell_bar <- ggplot(data = x_melt,aes(x = Sample,y = value, fill = variable)) +
+    geom_bar(position="stack", stat="identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    geom_segment(aes(x = 1, y = 102.5, xend = 10, yend = 102.5)) +
+    geom_segment(aes(x = 11, y = 102.5, xend = 20, yend = 102.5)) +
+    annotate(geom = "text",x = 5,y = 104,label = "PI+ Only") +
+    annotate(geom = "text",x = 15,y = 104, label = "PI+NeuN+ Only")
+
+ggsave(plot = Pct_cell_bar,filename = here("plots","12_snRNA","Pct_CellType_Barplot.png"))
 
