@@ -217,3 +217,6 @@ Pct_cell_bar <- ggplot(data = x_melt,aes(x = Sample,y = value, fill = variable))
 
 ggsave(plot = Pct_cell_bar,filename = here("plots","12_snRNA","Pct_CellType_Barplot.png"))
 
+#Several PI Only samples have a large percentage of neurons (75% or more)
+#This suggests that the best way to calculate QC cutoffs is by sort date. 
+
