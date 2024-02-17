@@ -21,7 +21,6 @@ sce <- loadHDF5SummarizedExperiment(dir = here("processed-data",
 #Comoute log counts to plot expression
 sce <- batchelor::multiBatchNorm(sce, batch = sce$Sample)
 
-
 sce
 # class: SingleCellExperiment 
 # dim: 36601 118358 
@@ -122,4 +121,62 @@ for(i in genes){
                          "Expression","Known_Marker_Genes","Violin_Plots",
                          paste0(i,"_violin.png")),height = 4,width = 8)
 }
+
+# 1 - Non
+# 2 - Non
+# 3 - Non
+# 4 - Non
+# 5 - Neuron
+# 6 - Non
+# 7 - Non
+# 8 - Neuron
+# 9 - Neuron
+# 10 - Non
+# 11 - Neuron
+# 12 - Non
+# 13 - Neuron
+# 14 - NEuron
+# 15 - Neuron
+# 16 - Neuron
+# 17 - NEuron
+# 18 - Non
+# 19 - Non
+# 20 - Non
+# 21 - Neuron
+# 22 - Non
+# 23 - Neuron
+# 24 - Neuron
+# 25 - Non
+# 26 - Neuron
+# 27 - Neuron
+# 28 - Neuron
+# 29 - Non
+# 30 - Neuron
+# 31 - Non 
+# 32 - Neuron
+# 33 - Neuron
+# 34 - Neuron
+# 35 - Neuron
+# 36 - Neuron
+#Non - 1,2,3,4,6,7,10,12,18,19,20,22,25,29,31
+#Neuron - 5,8,9,11,13,14,15,16,17,21,23,24,26,27,28,30,32,33,34,35,36
+sce$Binary_Classification <- ifelse(sce$k_10_louvain %in% c(5,8,9,11,13,14,15,16,17,21,23,
+                                                            24,26,27,28,30,32,33,34,35,36),
+                                    "Non-Neuron",
+                                    "Neuron")
+
+table(sce$Binary_Classification)
+# Neuron Non-Neuron 
+# 47049      71309
+
+#MAke a dataframe consisting of sample and binary classification information.
+x <- as.data.frame(table(sce$Sample,sce$Binary_Classification))
+#Change column names
+colnames(x) <- c("Sample","Type","Freq")
+
+#Add Sort information. 
+x <- as.data.frame(merge(x,unique(colData(sce)[,c("Sample","Sort")]),by = "Sample"))
+
+ggplot(data = x,aes(x = Sample,y = Freq, fill = Type)) +
+    geom_bar(position="stack", stat="identity")
 
