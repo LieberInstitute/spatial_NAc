@@ -485,28 +485,31 @@ lib_size_violin <- plotColData(sce, x = "Sample", y = "sum",colour_by = "Sample"
 ggsave(plot = lib_size_violin,filename = here("plots","12_snRNA","nuclei_QC","library_size","library_size_violin.png"))
 
 #Some with unimodal and some with bimodal distributions. 
+#Batch with snRNA_date
+#name is currently snRNA_data --> Need to change to snRNA_date
+colnames(colData(sce))[6] <- "snRNA_date"
 #Try nMADs=3
 ##3
-sce$low_lib_3 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$Sample,nmads = 3)
+sce$low_lib_3 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$snRNA_date,nmads = 3)
 table(sce$Sample,sce$low_lib_3)
 #             FALSE TRUE
-# 1c_NAc_SVB   6158    0
-# 2c_NAc_SVB   8742  238
-# 3c_NAc_SVB   6068   28
-# 4c_NAc_SVB   6474  556
-# 5c_NAc_SVB   5373    0
-# 6c_NAc_SVB   3798  200
-# 7c_NAc_SVB   5778  262
-# 8c_NAc_SVB   7206  101
-# 9c_NAc_SVB   3165  493
-# 10c_NAc_SVB  6486    0
-# 11c_NAc_SVB  2859  300
-# 12c_NAc_SVB  5126    0
-# 13c_NAc_SVB  4509  319
-# 14c_NAc_SVB  6891    0
-# 15c_Nac_SVB  4400  116
-# 16c_Nac_SVB  7409   31
-# 17c_Nac_SVB  4327  332
+# 1c_NAc_SVB   6024  134
+# 2c_NAc_SVB   8830  150
+# 3c_NAc_SVB   6070   26
+# 4c_NAc_SVB   6995   35
+# 5c_NAc_SVB   5306   67
+# 6c_NAc_SVB   3971   27
+# 7c_NAc_SVB   5904  136
+# 8c_NAc_SVB   7017  290
+# 9c_NAc_SVB   3658    0
+# 10c_NAc_SVB  6474   12
+# 11c_NAc_SVB  3151    8
+# 12c_NAc_SVB  5093   33
+# 13c_NAc_SVB  4800   28
+# 14c_NAc_SVB  6855   36
+# 15c_Nac_SVB  4516    0
+# 16c_Nac_SVB  7440    0
+# 17c_Nac_SVB  4659    0
 # 18c_Nac_SVB  9655    0
 # 19c_Nac_SVB  7521    0
 # 20c_Nac_SVB  7150    0
@@ -516,6 +519,42 @@ nMAD3_lib_vln <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_lib_3
     ggtitle("Total UMIs") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggsave(plot = nMAD3_lib_vln,filename = here("plots","12_snRNA","nuclei_QC","library_size","nMAD3_library_size_violin.png"))
+
+#nMAD3 is not removing enough low quality cells. Cells with <1000 UMIs being kept and no cells from last batch being kept. 
+sce$low_lib_2 <- isOutlier(sce$sum, log = TRUE, type = "lower", batch = sce$snRNA_date,nmads = 2)
+table(sce$Sample,sce$low_lib_2)
+#             FALSE TRUE
+# 1c_NAc_SVB   5604  554
+# 2c_NAc_SVB   8452  528
+# 3c_NAc_SVB   5929  167
+# 4c_NAc_SVB   6875  155
+# 5c_NAc_SVB   5033  340
+# 6c_NAc_SVB   3846  152
+# 7c_NAc_SVB   5721  319
+# 8c_NAc_SVB   6608  699
+# 9c_NAc_SVB   3326  332
+# 10c_NAc_SVB  6338  148
+# 11c_NAc_SVB  3112   47
+# 12c_NAc_SVB  4803  323
+# 13c_NAc_SVB  4625  203
+# 14c_NAc_SVB  6572  319
+# 15c_Nac_SVB  4399  117
+# 16c_Nac_SVB  7252  188
+# 17c_Nac_SVB  4575   84
+# 18c_Nac_SVB  9173  482
+# 19c_Nac_SVB  7199  322
+# 20c_Nac_SVB  6866  284
+
+#Just how many cells are removed
+table(sce$low_lib_2)
+# FALSE   TRUE 
+# 116308   5763
+
+nMAD2_lib_vln <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_lib_2") +
+    scale_y_log10() +
+    ggtitle("Total UMIs") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave(plot = nMAD3_lib_vln,filename = here("plots","12_snRNA","nuclei_QC","library_size","nMAD2_library_size_violin.png"))
 
 #Some are bimodal. Some are unimodal. Doesn't track with sort type. 
 #PI sort should have both neurons and glia, while PI_NeuN should have primarily neurons. 
