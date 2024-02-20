@@ -220,3 +220,40 @@ ggsave(plot = Pct_cell_bar,filename = here("plots","12_snRNA","Pct_CellType_Barp
 #Several PI Only samples have a large percentage of neurons (75% or more)
 #This suggests that the best way to calculate QC cutoffs is by sort date. 
 
+#Add sort information to x and save the table. 
+x <- merge(x = x,
+           y = unique(colData(sce)[,c("Sample","Sort","Brain_ID")]),
+           by = "Sample")
+
+write.csv(x = x,
+          file = here("processed-data","12_snRNA","Bin_Classification_Table.csv"),
+          quote = FALSE)
+
+
+#Make the bargraph but in the correct order
+x$Sample <- factor(x = x$Sample,
+                   levels = c("1c_NAc_SVB","2c_NAc_SVB","3c_NAc_SVB","4c_NAc_SVB",
+                              "5c_NAc_SVB","6c_NAc_SVB","7c_NAc_SVB","8c_NAc_SVB",
+                              "9c_NAc_SVB","10c_NAc_SVB","11c_NAc_SVB","12c_NAc_SVB",
+                              "13c_NAc_SVB","14c_NAc_SVB","15c_Nac_SVB","16c_Nac_SVB",
+                              "17c_Nac_SVB","18c_Nac_SVB","19c_Nac_SVB","20c_Nac_SVB"))
+
+x_melt <- reshape2::melt(x[,c("Sample","Pct_Neuron","Pct_Non_Neuron")])
+
+Pct_cell_bar <- ggplot(data = x_melt,aes(x = Sample,y = value, fill = variable)) +
+    geom_bar(position="stack", stat="identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(plot = Pct_cell_bar,filename = here("plots","12_snRNA","Pct_CellType_Barplot_inSampleOrder.png"))
+
+#Save object
+saveHDF5SummarizedExperiment(sce,
+                             here("processed-data","12_snRNA",
+                                  "sce_clustered_binclass_021924"),
+                             replace = TRUE)
+
+
+
+
+
+
