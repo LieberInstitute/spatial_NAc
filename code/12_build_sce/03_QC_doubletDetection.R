@@ -556,6 +556,35 @@ nMAD2_lib_vln <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_lib_2
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggsave(plot = nMAD3_lib_vln,filename = here("plots","12_snRNA","nuclei_QC","library_size","nMAD2_library_size_violin.png"))
 
+
+#Test for unimodality with Hartigans’ Dip Test for Unimodality
+#Null hypothesis is that distribution is unimodal
+#empty dataframe to input results into. 
+sum_res_df <- data.frame(Sample = unique(sce$Sample),
+                         p = NA,
+                         row.names = unique(sce$Sample))
+
+for(i in unique(sce$Sample)){
+    x <- subset(colData(sce),subset=(Sample == i))$sum
+    dip.test.results <- dip.test(x)
+    sum_res_df[i,"p"] <- dip.test.results$p
+}
+
+#Adjust the p-value
+sum_res_df$is.unimodal <- ifelse(sum_res_df$p <= 0.05,
+                                 FALSE,
+                                 TRUE)
+
+colData(sce) <- merge(x = colData(sce),
+                      y = sum_res_df,
+                      by = "Sample")
+
+plotColData(sce, x = "Sample", y = "sum",colour_by = "is.unimodal") +
+    scale_y_log10() +
+    ggtitle("Total UMIs") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
 #Some are bimodal. Some are unimodal. Doesn't track with sort type. 
 #PI sort should have both neurons and glia, while PI_NeuN should have primarily neurons. 
 #For some sort days it seems to track, for others it doesn't. Is it due to the staining success from each data?
