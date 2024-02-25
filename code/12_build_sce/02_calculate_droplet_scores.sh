@@ -1,33 +1,25 @@
 #!/bin/bash
-#
-#SBATCH --job-name=emptyDrops
-#SBATCH --output=emptyDrops_dropletQC.out
-#SBATCH --error=emptyDrops_dropletQC.err
-#
-# Number of CPUs allocated to each task.
-#SBATCH --cpus-per-task=2
-#
-# Mimimum memory required per allocated  CPU
-#SBATCH --mem-per-cpu=20G
-#
-# Send mail to the email address when the job fails
-#SBATCH --mail-type=FAIL
-#SBATCH --mail-user=robert.phillips@libd.org
 
-cd /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+#SBATCH -p shared
+#SBATCH --job-name=02_emptyDrops
+#SBATCH --output=logs/emptydrops.%a.log
+#SBATCH --error=logs/emptydrops.%a.log 
+#SBATCH --mem=40G
+#SBATCH --array=1-20
+#SBATCH --mail-type=END
+#SBATCH --mail-user=Robert.Phillips@libd.org
 
 echo "********* Job Starts *********"
 date
+echo "**** SLURM info ****"
+echo "User: ${USER}"
+echo "Job id: ${SLURM_JOB_ID}"
+echo "Job name: ${SLURM_JOB_NAME}"
+echo "Hostname: ${HOSTNAME}"
+echo "Task id: ${SLURM_ARRAY_TASK_ID}"
 
-#load R
 module load r_nac
-
-#list modules for reproducibility purposes
-module list
-
-#run the Rjob
-R CMD BATCH /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/code/12_build_sce/02_calculate_droplet_scores.R
-
+Rscript 02_calculate_droplet_scores.R
 
 echo "********* Job Ends *********"
 date
