@@ -1,0 +1,291 @@
+********* Job Starts *********
+Sun Feb 25 11:28:08 AM EST 2024
+**** SLURM info ****
+User: rphillip
+Job id: 2792148
+Job name: 02_emptyDrops
+Hostname: compute-124
+Task id: 2
+Loading LIBD SLURM module for r_nac/1.0
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ lubridate 1.9.3     ✔ tibble    3.2.1
+✔ purrr     1.0.2     ✔ tidyr     1.3.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ lubridate::%within%() masks IRanges::%within%()
+✖ dplyr::collapse()     masks IRanges::collapse()
+✖ dplyr::combine()      masks Biobase::combine(), BiocGenerics::combine()
+✖ dplyr::count()        masks matrixStats::count()
+✖ dplyr::desc()         masks IRanges::desc()
+✖ tidyr::expand()       masks S4Vectors::expand()
+✖ dplyr::filter()       masks stats::filter()
+✖ dplyr::first()        masks S4Vectors::first()
+✖ dplyr::lag()          masks stats::lag()
+✖ ggplot2::Position()   masks BiocGenerics::Position(), base::Position()
+✖ purrr::reduce()       masks GenomicRanges::reduce(), IRanges::reduce()
+✖ dplyr::rename()       masks S4Vectors::rename()
+✖ lubridate::second()   masks S4Vectors::second()
+✖ lubridate::second<-() masks S4Vectors::second<-()
+✖ dplyr::slice()        masks IRanges::slice()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Loading objects:
+  sce
+                           Sample
+1_AAACCCAAGAAACTGT-1   1c_NAc_SVB
+2_AAACCCAAGAAACACT-1   2c_NAc_SVB
+3_AAACCCAAGAAACCAT-1   3c_NAc_SVB
+4_AAACCCAAGAAACCCA-1   4c_NAc_SVB
+5_AAACCCAAGAAACTAC-1   5c_NAc_SVB
+6_AAACCCAAGAAACACT-1   6c_NAc_SVB
+7_AAACCCAAGAAACACT-1   7c_NAc_SVB
+8_AAACCCAAGAAACTCA-1   8c_NAc_SVB
+9_AAACCCAAGAAACCCA-1   9c_NAc_SVB
+10_AAACCCAAGAAACACT-1 10c_NAc_SVB
+11_AAACCCAAGAAACACT-1 11c_NAc_SVB
+12_AAACCCAAGAAACCCA-1 12c_NAc_SVB
+13_AAACCCAAGAAACCCA-1 13c_NAc_SVB
+14_AAACCCAAGAAACCCA-1 14c_NAc_SVB
+15_AAACCCAAGAAACACT-1 15c_Nac_SVB
+16_AAACCCAAGAAACACT-1 16c_Nac_SVB
+17_AAACCCAAGAAACCAT-1 17c_Nac_SVB
+18_AAACCCAAGAAACCAT-1 18c_Nac_SVB
+19_AAACCCAAGAAACACT-1 19c_Nac_SVB
+20_AAACCCAAGAAACCCA-1 20c_Nac_SVB
+                                                                                                                                    Raw_data_path
+1_AAACCCAAGAAACTGT-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/1c_NAc_SVB/outs/raw_feature_bc_matrix
+2_AAACCCAAGAAACACT-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/2c_NAc_SVB/outs/raw_feature_bc_matrix
+3_AAACCCAAGAAACCAT-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/3c_NAc_SVB/outs/raw_feature_bc_matrix
+4_AAACCCAAGAAACCCA-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/4c_NAc_SVB/outs/raw_feature_bc_matrix
+5_AAACCCAAGAAACTAC-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/5c_NAc_SVB/outs/raw_feature_bc_matrix
+6_AAACCCAAGAAACACT-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/6c_NAc_SVB/outs/raw_feature_bc_matrix
+7_AAACCCAAGAAACACT-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/7c_NAc_SVB/outs/raw_feature_bc_matrix
+8_AAACCCAAGAAACTCA-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/8c_NAc_SVB/outs/raw_feature_bc_matrix
+9_AAACCCAAGAAACCCA-1   /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/9c_NAc_SVB/outs/raw_feature_bc_matrix
+10_AAACCCAAGAAACACT-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/10c_NAc_SVB/outs/raw_feature_bc_matrix
+11_AAACCCAAGAAACACT-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/11c_NAc_SVB/outs/raw_feature_bc_matrix
+12_AAACCCAAGAAACCCA-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/12c_NAc_SVB/outs/raw_feature_bc_matrix
+13_AAACCCAAGAAACCCA-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/13c_NAc_SVB/outs/raw_feature_bc_matrix
+14_AAACCCAAGAAACCCA-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/14c_NAc_SVB/outs/raw_feature_bc_matrix
+15_AAACCCAAGAAACACT-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/15c_NAc_SVB/outs/raw_feature_bc_matrix
+16_AAACCCAAGAAACACT-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/16c_NAc_SVB/outs/raw_feature_bc_matrix
+17_AAACCCAAGAAACCAT-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/17c_NAc_SVB/outs/raw_feature_bc_matrix
+18_AAACCCAAGAAACCAT-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/18c_NAc_SVB/outs/raw_feature_bc_matrix
+19_AAACCCAAGAAACACT-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/19c_NAc_SVB/outs/raw_feature_bc_matrix
+20_AAACCCAAGAAACCCA-1 /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/11_cellranger/20c_NAc_SVB/outs/raw_feature_bc_matrix
+[1] TRUE
+Running Sample: 2c_NAc_SVB (2/20)
+ncol:1903528
+'First knee point' = 152
+knee_highest =-48
+'Second knee point' = 152
+knee_higher =52
+'Third knee point' = 152
+knee =152
+'Fourth knee point' = 152
+knee_lower =252
+'Fifth knee point' = 152
+knee_lowest =352
+Starting emptyDrops
+[1] "2024-02-25 11:42:49 EST"
+Done - saving data
+[1] "2024-02-25 11:47:02 EST"
+QC check
+       Limited
+Signif    FALSE    TRUE    <NA>     Sum
+  FALSE    2742       0       0    2742
+  TRUE       36    5198       0    5234
+  <NA>        0       0 1895552 1895552
+  Sum      2778    5198 1895552 1903528
+Non-empty: 5234
+Saving 7 x 7 in image
+Warning messages:
+1: Transformation introduced infinite values in continuous y-axis 
+2: In log(x, base) : NaNs produced
+3: Transformation introduced infinite values in continuous y-axis 
+4: In log(x, base) : NaNs produced
+5: Transformation introduced infinite values in continuous y-axis 
+6: Removed 1 rows containing missing values (`geom_hline()`). 
+7: Removed 1 rows containing missing values (`geom_text()`). 
+[1] "Reproducibility information:"
+[1] "2024-02-25 11:48:05 EST"
+    user   system  elapsed 
+ 662.964   15.399 1194.024 
+─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.2 (2023-10-31)
+ os       Rocky Linux 9.2 (Blue Onyx)
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       US/Eastern
+ date     2024-02-25
+ pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
+
+─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+ package              * version   date (UTC) lib source
+ abind                  1.4-5     2016-07-21 [1] CRAN (R 4.3.2)
+ beachmat               2.18.0    2023-10-24 [1] Bioconductor
+ Biobase              * 2.62.0    2023-10-24 [1] Bioconductor
+ BiocGenerics         * 0.48.1    2023-11-01 [1] Bioconductor
+ BiocParallel           1.36.0    2023-10-24 [1] Bioconductor
+ bitops                 1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
+ cli                    3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
+ codetools              0.2-19    2023-02-01 [1] CRAN (R 4.3.0)
+ colorspace             2.1-0     2023-01-23 [1] CRAN (R 4.3.0)
+ crayon                 1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
+ DelayedArray           0.28.0    2023-10-24 [1] Bioconductor
+ DelayedMatrixStats     1.24.0    2023-10-24 [1] Bioconductor
+ dplyr                * 1.1.4     2023-11-17 [1] CRAN (R 4.3.2)
+ dqrng                  0.3.2     2023-11-29 [1] CRAN (R 4.3.2)
+ DropletUtils         * 1.22.0    2023-10-24 [1] Bioconductor
+ edgeR                  4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
+ fansi                  1.0.6     2023-12-08 [1] CRAN (R 4.3.2)
+ farver                 2.1.1     2022-07-06 [1] CRAN (R 4.3.0)
+ forcats              * 1.0.0     2023-01-29 [1] CRAN (R 4.3.0)
+ generics               0.1.3     2022-07-05 [1] CRAN (R 4.3.0)
+ GenomeInfoDb         * 1.38.1    2023-11-08 [1] Bioconductor
+ GenomeInfoDbData       1.2.11    2023-12-12 [1] Bioconductor
+ GenomicRanges        * 1.54.1    2023-10-29 [1] Bioconductor
+ ggplot2              * 3.4.4     2023-10-12 [1] CRAN (R 4.3.1)
+ glue                   1.7.0     2024-01-09 [1] CRAN (R 4.3.2)
+ gtable                 0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
+ HDF5Array              1.30.0    2023-10-24 [1] Bioconductor
+ here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
+ hms                    1.1.3     2023-03-21 [1] CRAN (R 4.3.0)
+ IRanges              * 2.36.0    2023-10-24 [1] Bioconductor
+ lattice                0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
+ lifecycle              1.0.4     2023-11-07 [1] CRAN (R 4.3.2)
+ limma                  3.58.1    2023-10-31 [1] Bioconductor
+ locfit                 1.5-9.8   2023-06-11 [1] CRAN (R 4.3.2)
+ lubridate            * 1.9.3     2023-09-27 [1] CRAN (R 4.3.1)
+ magrittr               2.0.3     2022-03-30 [1] CRAN (R 4.3.0)
+ Matrix                 1.6-4     2023-11-30 [1] CRAN (R 4.3.2)
+ MatrixGenerics       * 1.14.0    2023-10-24 [1] Bioconductor
+ matrixStats          * 1.2.0     2023-12-11 [1] CRAN (R 4.3.2)
+ munsell                0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
+ pillar                 1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
+ pkgconfig              2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
+ purrr                * 1.0.2     2023-08-10 [1] CRAN (R 4.3.1)
+ R.methodsS3            1.8.2     2022-06-13 [1] CRAN (R 4.3.2)
+ R.oo                   1.26.0    2024-01-24 [1] CRAN (R 4.3.2)
+ R.utils                2.12.3    2023-11-18 [1] CRAN (R 4.3.2)
+ R6                     2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
+ ragg                   1.2.7     2023-12-11 [1] CRAN (R 4.3.2)
+ Rcpp                   1.0.12    2024-01-09 [1] CRAN (R 4.3.2)
+ RCurl                  1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
+ readr                * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
+ rhdf5                  2.46.1    2023-11-29 [1] Bioconductor 3.18 (R 4.3.2)
+ rhdf5filters           1.14.1    2023-11-06 [1] Bioconductor
+ Rhdf5lib               1.24.1    2023-12-11 [1] Bioconductor 3.18 (R 4.3.2)
+ rlang                  1.1.3     2024-01-10 [1] CRAN (R 4.3.2)
+ rprojroot              2.0.4     2023-11-05 [1] CRAN (R 4.3.2)
+ S4Arrays               1.2.0     2023-10-24 [1] Bioconductor
+ S4Vectors            * 0.40.2    2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+ scales                 1.3.0     2023-11-28 [1] CRAN (R 4.3.2)
+ scuttle              * 1.12.0    2023-10-24 [1] Bioconductor
+ sessioninfo          * 1.2.2     2021-12-06 [1] CRAN (R 4.3.2)
+ SingleCellExperiment * 1.24.0    2023-10-24 [1] Bioconductor
+ SparseArray            1.2.2     2023-11-07 [1] Bioconductor
+ sparseMatrixStats      1.14.0    2023-10-24 [1] Bioconductor
+ statmod                1.5.0     2023-01-06 [1] CRAN (R 4.3.2)
+ stringi                1.8.3     2023-12-11 [1] CRAN (R 4.3.2)
+ stringr              * 1.5.1     2023-11-14 [1] CRAN (R 4.3.2)
+ SummarizedExperiment * 1.32.0    2023-10-24 [1] Bioconductor
+ systemfonts            1.0.5     2023-10-09 [1] CRAN (R 4.3.1)
+ textshaping            0.3.7     2023-10-09 [1] CRAN (R 4.3.1)
+ tibble               * 3.2.1     2023-03-20 [1] CRAN (R 4.3.0)
+ tidyr                * 1.3.0     2023-01-24 [1] CRAN (R 4.3.0)
+ tidyselect             1.2.0     2022-10-10 [1] CRAN (R 4.3.0)
+ tidyverse            * 2.0.0     2023-02-22 [1] CRAN (R 4.3.0)
+ timechange             0.2.0     2023-01-11 [1] CRAN (R 4.3.0)
+ tzdb                   0.4.0     2023-05-12 [1] CRAN (R 4.3.0)
+ utf8                   1.2.4     2023-10-22 [1] CRAN (R 4.3.1)
+ vctrs                  0.6.5     2023-12-01 [1] CRAN (R 4.3.2)
+ withr                  2.5.2     2023-10-30 [1] CRAN (R 4.3.1)
+ XVector                0.42.0    2023-10-24 [1] Bioconductor
+ zlibbioc               1.48.0    2023-10-24 [1] Bioconductor
+
+ [1] /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/R/library
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+********* Job Ends *********
+Sun Feb 25 11:48:06 AM EST 2024
