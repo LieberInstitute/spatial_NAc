@@ -1,0 +1,695 @@
+********* Job Starts *********
+Sun Feb 25 08:22:16 PM EST 2024
+Loading LIBD SLURM module for r_nac/1.0
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+Loading required package: DelayedArray
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Loading required package: S4Arrays
+Loading required package: abind
+
+Attaching package: ‘S4Arrays’
+
+The following object is masked from ‘package:abind’:
+
+    abind
+
+The following object is masked from ‘package:base’:
+
+    rowsum
+
+Loading required package: SparseArray
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:base’:
+
+    apply, scale, sweep
+
+Loading required package: rhdf5
+
+Attaching package: ‘HDF5Array’
+
+The following object is masked from ‘package:rhdf5’:
+
+    h5ls
+
+
+Attaching package: ‘purrr’
+
+The following object is masked from ‘package:DelayedArray’:
+
+    simplify
+
+The following object is masked from ‘package:GenomicRanges’:
+
+    reduce
+
+The following object is masked from ‘package:IRanges’:
+
+    reduce
+
+
+Attaching package: ‘dplyr’
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following objects are masked from ‘package:GenomicRanges’:
+
+    intersect, setdiff, union
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following objects are masked from ‘package:IRanges’:
+
+    collapse, desc, intersect, setdiff, slice, union
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, intersect, rename, setdiff, setequal, union
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following object is masked from ‘package:matrixStats’:
+
+    count
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: ‘tidyr’
+
+The following objects are masked from ‘package:Matrix’:
+
+    expand, pack, unpack
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+[1] "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc"
+$`10c_NAc_SVB`
+< table of extent 0 >
+
+$`11c_NAc_SVB`
+< table of extent 0 >
+
+$`12c_NAc_SVB`
+< table of extent 0 >
+
+$`13c_NAc_SVB`
+< table of extent 0 >
+
+$`14c_NAc_SVB`
+< table of extent 0 >
+
+$`15c_Nac_SVB`
+< table of extent 0 >
+
+$`16c_Nac_SVB`
+< table of extent 0 >
+
+$`17c_Nac_SVB`
+< table of extent 0 >
+
+$`18c_Nac_SVB`
+< table of extent 0 >
+
+$`19c_Nac_SVB`
+< table of extent 0 >
+
+$`1c_NAc_SVB`
+< table of extent 0 >
+
+$`20c_Nac_SVB`
+< table of extent 0 >
+
+$`2c_NAc_SVB`
+< table of extent 0 >
+
+$`3c_NAc_SVB`
+< table of extent 0 >
+
+$`4c_NAc_SVB`
+< table of extent 0 >
+
+$`5c_NAc_SVB`
+< table of extent 0 >
+
+$`6c_NAc_SVB`
+< table of extent 0 >
+
+$`7c_NAc_SVB`
+< table of extent 0 >
+
+$`8c_NAc_SVB`
+< table of extent 0 >
+
+$`9c_NAc_SVB`
+< table of extent 0 >
+
+$`10c_NAc_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE  3535     0  3535
+  TRUE     61  7351  7412
+  Sum    3596  7351 10947
+
+$`11c_NAc_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE  3559     0  3559
+  TRUE    293  6298  6591
+  Sum    3852  6298 10150
+
+$`12c_NAc_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE  4266     0  4266
+  TRUE    180  5974  6154
+  Sum    4446  5974 10420
+
+$`13c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  2932    0 2932
+  TRUE    170 6770 6940
+  Sum    3102 6770 9872
+
+$`14c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  3272    0 3272
+  TRUE     57 6117 6174
+  Sum    3329 6117 9446
+
+$`15c_Nac_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  2026    0 2026
+  TRUE    492 5345 5837
+  Sum    2518 5345 7863
+
+$`16c_Nac_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  2443    0 2443
+  TRUE     66 7416 7482
+  Sum    2509 7416 9925
+
+$`17c_Nac_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  1995    0 1995
+  TRUE     66 5740 5806
+  Sum    2061 5740 7801
+
+$`18c_Nac_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE  5681     0  5681
+  TRUE     80  6546  6626
+  Sum    5761  6546 12307
+
+$`19c_Nac_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE  4554     0  4554
+  TRUE    261  6340  6601
+  Sum    4815  6340 11155
+
+$`1c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE   295    0  295
+  TRUE    124 5739 5863
+  Sum     419 5739 6158
+
+$`20c_Nac_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE 10652     0 10652
+  TRUE    238  6436  6674
+  Sum   10890  6436 17326
+
+$`2c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  2742    0 2742
+  TRUE     36 5198 5234
+  Sum    2778 5198 7976
+
+$`3c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  2043    0 2043
+  TRUE     95 4370 4465
+  Sum    2138 4370 6508
+
+$`4c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  3369    0 3369
+  TRUE     49 5754 5803
+  Sum    3418 5754 9172
+
+$`5c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE   649    0  649
+  TRUE    316 5981 6297
+  Sum     965 5981 6946
+
+$`6c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE   641    0  641
+  TRUE     21 2652 2673
+  Sum     662 2652 3314
+
+$`7c_NAc_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE  5810     0  5810
+  TRUE    315  5725  6040
+  Sum    6125  5725 11850
+
+$`8c_NAc_SVB`
+       Limited
+Signif  FALSE  TRUE   Sum
+  FALSE  4323     0  4323
+  TRUE     96  5933  6029
+  Sum    4419  5933 10352
+
+$`9c_NAc_SVB`
+       Limited
+Signif  FALSE TRUE  Sum
+  FALSE  1944    0 1944
+  TRUE    274 5474 5748
+  Sum    2218 5474 7692
+
+ [1] "knee_lower =280" "knee_lower =287" "knee_lower =207" "knee_lower =260"
+ [5] "knee_lower =251" "knee_lower =262" "knee_lower =246" "knee_lower =268"
+ [9] "knee_lower =232" "knee_lower =296" "knee_lower =255" "knee_lower =252"
+[13] "knee_lower =336" "knee_lower =212" "knee_lower =219" "knee_lower =278"
+[17] "knee_lower =236" "knee_lower =218" "knee_lower =242" "knee_lower =208"
+ [1] "Running Sample: 1c_NAc_SVB (1/20)"   "Running Sample: 10c_NAc_SVB (10/20)"
+ [3] "Running Sample: 11c_NAc_SVB (11/20)" "Running Sample: 12c_NAc_SVB (12/20)"
+ [5] "Running Sample: 13c_NAc_SVB (13/20)" "Running Sample: 14c_NAc_SVB (14/20)"
+ [7] "Running Sample: 15c_Nac_SVB (15/20)" "Running Sample: 16c_Nac_SVB (16/20)"
+ [9] "Running Sample: 17c_Nac_SVB (17/20)" "Running Sample: 18c_Nac_SVB (18/20)"
+[11] "Running Sample: 19c_Nac_SVB (19/20)" "Running Sample: 2c_NAc_SVB (2/20)"  
+[13] "Running Sample: 20c_Nac_SVB (20/20)" "Running Sample: 3c_NAc_SVB (3/20)"  
+[15] "Running Sample: 4c_NAc_SVB (4/20)"   "Running Sample: 5c_NAc_SVB (5/20)"  
+[17] "Running Sample: 6c_NAc_SVB (6/20)"   "Running Sample: 7c_NAc_SVB (7/20)"  
+[19] "Running Sample: 8c_NAc_SVB (8/20)"   "Running Sample: 9c_NAc_SVB (9/20)"  
+Joining with `by = join_by(ind)`
+Joining with `by = join_by(ind)`
+        Sample total_drops non_empty knee_lower
+1  10c_NAc_SVB     1516737      7412        287
+2  11c_NAc_SVB     1126739      6591        207
+3  12c_NAc_SVB     1674120      6154        260
+4  13c_NAc_SVB     1301086      6940        251
+5  14c_NAc_SVB     1432070      6174        262
+6  15c_Nac_SVB     1322506      5837        246
+7  16c_Nac_SVB     1680971      7482        268
+8  17c_Nac_SVB     1313466      5806        232
+9  18c_Nac_SVB     1623409      6626        296
+10 19c_Nac_SVB     1375605      6601        255
+11  1c_NAc_SVB     1284650      5863        280
+12 20c_Nac_SVB     1631708      6674        336
+13  2c_NAc_SVB     1903528      5234        252
+14  3c_NAc_SVB     1368854      4465        212
+15  4c_NAc_SVB     1568789      5803        219
+16  5c_NAc_SVB     1219215      6297        278
+17  6c_NAc_SVB      984751      2673        236
+18  7c_NAc_SVB     1371545      6040        218
+19  8c_NAc_SVB     1693619      6029        242
+20  9c_NAc_SVB      876588      5748        208
+Saving 7 x 7 in image
+[1] "Droplet barplot complete"
+Loading objects:
+  sce
+[1]    36601 28269956
+[1]  36601 120449
+Saving 7 x 7 in image
+[1] "mito vs detected plot done"
+[1] "1c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "2c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "3c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "4c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "5c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "6c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "7c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "8c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "9c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "10c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "11c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "12c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "13c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "14c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "15c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "16c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "17c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "18c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "19c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "20c_Nac_SVB"
+Saving 7 x 7 in image
+             
+              FALSE TRUE
+  1c_NAc_SVB   5493  370
+  2c_NAc_SVB   4891  343
+  3c_NAc_SVB   3952  513
+  4c_NAc_SVB   5287  516
+  5c_NAc_SVB   5874  423
+  6c_NAc_SVB   2455  218
+  7c_NAc_SVB   5696  344
+  8c_NAc_SVB   5397  632
+  9c_NAc_SVB   5323  425
+  10c_NAc_SVB  6875  537
+  11c_NAc_SVB  6064  527
+  12c_NAc_SVB  5414  740
+  13c_NAc_SVB  6298  642
+  14c_NAc_SVB  5684  490
+  15c_Nac_SVB  5391  446
+  16c_Nac_SVB  6917  565
+  17c_Nac_SVB  5248  558
+  18c_Nac_SVB  5950  676
+  19c_Nac_SVB  5912  689
+  20c_Nac_SVB  6387  287
+Saving 7 x 7 in image
+
+ FALSE   TRUE 
+120180    269 
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+[1] "detected QC plots complete"
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+[1] "library size QC completed"
+             
+               FALSE   TRUE    Sum
+  1c_NAc_SVB    5798     65   5863
+  2c_NAc_SVB    5177     57   5234
+  3c_NAc_SVB    4301    164   4465
+  4c_NAc_SVB    5733     70   5803
+  5c_NAc_SVB    6169    128   6297
+  6c_NAc_SVB    2635     38   2673
+  7c_NAc_SVB    5876    164   6040
+  8c_NAc_SVB    5915    114   6029
+  9c_NAc_SVB    5478    270   5748
+  10c_NAc_SVB   7270    142   7412
+  11c_NAc_SVB   6346    245   6591
+  12c_NAc_SVB   6005    149   6154
+  13c_NAc_SVB   6805    135   6940
+  14c_NAc_SVB   6094     80   6174
+  15c_Nac_SVB   5780     57   5837
+  16c_Nac_SVB   7438     44   7482
+  17c_Nac_SVB   5691    115   5806
+  18c_Nac_SVB   6567     59   6626
+  19c_Nac_SVB   5961    640   6601
+  20c_Nac_SVB   6325    349   6674
+  Sum         117364   3085 120449
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+ 0.00000  0.08644  0.25361  0.61153  0.56285 28.81862 
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+# A tibble: 20 × 5
+   Sample      median   q95  drop drop_precent
+   <fct>        <dbl> <dbl> <int>        <dbl>
+ 1 1c_NAc_SVB   0.188  2.09   147        2.51 
+ 2 2c_NAc_SVB   0.356  1.88    91        1.74 
+ 3 3c_NAc_SVB   0.241  1.35    63        1.41 
+ 4 4c_NAc_SVB   0.325  1.94    86        1.48 
+ 5 5c_NAc_SVB   0.164  1.16   110        1.75 
+ 6 6c_NAc_SVB   0.513  1.58    10        0.374
+ 7 7c_NAc_SVB   0.193  1.81   130        2.15 
+ 8 8c_NAc_SVB   0.265  1.68   105        1.74 
+ 9 9c_NAc_SVB   0.241  1.93   125        2.17 
+10 10c_NAc_SVB  0.460  2.48   182        2.46 
+11 11c_NAc_SVB  0.171  1.20   105        1.59 
+12 12c_NAc_SVB  0.394  1.94    96        1.56 
+13 13c_NAc_SVB  0.167  1.12   146        2.10 
+14 14c_NAc_SVB  0.259  1.82   133        2.15 
+15 15c_Nac_SVB  0.163  1.53   127        2.18 
+16 16c_Nac_SVB  0.239  2.48   213        2.85 
+17 17c_Nac_SVB  0.186  1.06   100        1.72 
+18 18c_Nac_SVB  0.265  1.68   172        2.60 
+19 19c_Nac_SVB  0.264  1.12   101        1.53 
+20 20c_Nac_SVB  0.387  1.56   106        1.59 
+       
+         FALSE   TRUE
+  FALSE 115016   2348
+  TRUE    3085      0
+[1]  36601 117364
+[1] "Reproducibility information:"
+[1] "2024-02-25 20:46:57 EST"
+    user   system  elapsed 
+1428.957   19.147 1477.215 
+─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.2 (2023-10-31)
+ os       Rocky Linux 9.2 (Blue Onyx)
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       US/Eastern
+ date     2024-02-25
+ pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
+
+─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+ package              * version   date (UTC) lib source
+ abind                * 1.4-5     2016-07-21 [1] CRAN (R 4.3.2)
+ beachmat               2.18.0    2023-10-24 [1] Bioconductor
+ beeswarm               0.4.0     2021-06-01 [1] CRAN (R 4.3.2)
+ Biobase              * 2.62.0    2023-10-24 [1] Bioconductor
+ BiocGenerics         * 0.48.1    2023-11-01 [1] Bioconductor
+ BiocIO                 1.12.0    2023-10-24 [1] Bioconductor
+ BiocNeighbors          1.20.2    2024-01-07 [1] Bioconductor 3.18 (R 4.3.2)
+ BiocParallel           1.36.0    2023-10-24 [1] Bioconductor
+ BiocSingular           1.18.0    2023-10-24 [1] Bioconductor
+ Biostrings             2.70.1    2023-10-25 [1] Bioconductor
+ bitops                 1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
+ bluster                1.11.4    2024-02-02 [1] Github (LTLA/bluster@17dd9c8)
+ cli                    3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
+ cluster                2.1.6     2023-12-01 [1] CRAN (R 4.3.2)
+ codetools              0.2-19    2023-02-01 [1] CRAN (R 4.3.0)
+ colorspace             2.1-0     2023-01-23 [1] CRAN (R 4.3.0)
+ cowplot                1.1.1     2020-12-30 [1] CRAN (R 4.3.2)
+ crayon                 1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
+ data.table             1.14.10   2023-12-08 [1] CRAN (R 4.3.2)
+ DelayedArray         * 0.28.0    2023-10-24 [1] Bioconductor
+ DelayedMatrixStats     1.24.0    2023-10-24 [1] Bioconductor
+ dplyr                * 1.1.4     2023-11-17 [1] CRAN (R 4.3.2)
+ dqrng                  0.3.2     2023-11-29 [1] CRAN (R 4.3.2)
+ DropletUtils         * 1.22.0    2023-10-24 [1] Bioconductor
+ edgeR                  4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
+ fansi                  1.0.6     2023-12-08 [1] CRAN (R 4.3.2)
+ farver                 2.1.1     2022-07-06 [1] CRAN (R 4.3.0)
+ generics               0.1.3     2022-07-05 [1] CRAN (R 4.3.0)
+ GenomeInfoDb         * 1.38.1    2023-11-08 [1] Bioconductor
+ GenomeInfoDbData       1.2.11    2023-12-12 [1] Bioconductor
+ GenomicAlignments      1.38.0    2023-10-24 [1] Bioconductor
+ GenomicRanges        * 1.54.1    2023-10-29 [1] Bioconductor
+ ggbeeswarm             0.7.2     2023-04-29 [1] CRAN (R 4.3.2)
+ ggplot2              * 3.4.4     2023-10-12 [1] CRAN (R 4.3.1)
+ ggrepel                0.9.4     2023-10-13 [1] CRAN (R 4.3.2)
+ glue                   1.7.0     2024-01-09 [1] CRAN (R 4.3.2)
+ gridExtra              2.3       2017-09-09 [1] CRAN (R 4.3.2)
+ gtable                 0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
+ HDF5Array            * 1.30.0    2023-10-24 [1] Bioconductor
+ here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
+ hms                    1.1.3     2023-03-21 [1] CRAN (R 4.3.0)
+ igraph                 1.6.0     2023-12-11 [1] CRAN (R 4.3.2)
+ IRanges              * 2.36.0    2023-10-24 [1] Bioconductor
+ irlba                  2.3.5.1   2022-10-03 [1] CRAN (R 4.3.2)
+ jsonlite               1.8.8     2023-12-04 [1] CRAN (R 4.3.2)
+ labeling               0.4.3     2023-08-29 [1] CRAN (R 4.3.1)
+ lattice                0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
+ lifecycle              1.0.4     2023-11-07 [1] CRAN (R 4.3.2)
+ limma                  3.58.1    2023-10-31 [1] Bioconductor
+ locfit                 1.5-9.8   2023-06-11 [1] CRAN (R 4.3.2)
+ magrittr               2.0.3     2022-03-30 [1] CRAN (R 4.3.0)
+ MASS                   7.3-60    2023-05-04 [1] CRAN (R 4.3.0)
+ Matrix               * 1.6-4     2023-11-30 [1] CRAN (R 4.3.2)
+ MatrixGenerics       * 1.14.0    2023-10-24 [1] Bioconductor
+ matrixStats          * 1.2.0     2023-12-11 [1] CRAN (R 4.3.2)
+ metapod                1.10.0    2023-10-24 [1] Bioconductor
+ munsell                0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
+ pillar                 1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
+ pkgconfig              2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
+ purrr                * 1.0.2     2023-08-10 [1] CRAN (R 4.3.1)
+ R.methodsS3            1.8.2     2022-06-13 [1] CRAN (R 4.3.2)
+ R.oo                   1.26.0    2024-01-24 [1] CRAN (R 4.3.2)
+ R.utils                2.12.3    2023-11-18 [1] CRAN (R 4.3.2)
+ R6                     2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
+ rafalib              * 1.0.0     2015-08-09 [1] CRAN (R 4.3.2)
+ ragg                   1.2.7     2023-12-11 [1] CRAN (R 4.3.2)
+ RColorBrewer           1.1-3     2022-04-03 [1] CRAN (R 4.3.0)
+ Rcpp                   1.0.12    2024-01-09 [1] CRAN (R 4.3.2)
+ RCurl                  1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
+ readr                * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
+ restfulr               0.0.15    2022-06-16 [1] CRAN (R 4.3.2)
+ rhdf5                * 2.46.1    2023-11-29 [1] Bioconductor 3.18 (R 4.3.2)
+ rhdf5filters           1.14.1    2023-11-06 [1] Bioconductor
+ Rhdf5lib               1.24.1    2023-12-11 [1] Bioconductor 3.18 (R 4.3.2)
+ rjson                  0.2.21    2022-01-09 [1] CRAN (R 4.3.2)
+ rlang                  1.1.3     2024-01-10 [1] CRAN (R 4.3.2)
+ rprojroot              2.0.4     2023-11-05 [1] CRAN (R 4.3.2)
+ Rsamtools              2.18.0    2023-10-24 [1] Bioconductor
+ rsvd                   1.0.5     2021-04-16 [1] CRAN (R 4.3.2)
+ rtracklayer            1.62.0    2023-10-24 [1] Bioconductor
+ S4Arrays             * 1.2.0     2023-10-24 [1] Bioconductor
+ S4Vectors            * 0.40.2    2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+ ScaledMatrix           1.10.0    2023-10-24 [1] Bioconductor
+ scales                 1.3.0     2023-11-28 [1] CRAN (R 4.3.2)
+ scater               * 1.30.1    2023-11-16 [1] Bioconductor
+ scDblFinder          * 1.16.0    2023-10-24 [1] Bioconductor
+ scran                * 1.30.0    2023-10-24 [1] Bioconductor
+ scuttle              * 1.12.0    2023-10-24 [1] Bioconductor
+ sessioninfo            1.2.2     2021-12-06 [1] CRAN (R 4.3.2)
+ SingleCellExperiment * 1.24.0    2023-10-24 [1] Bioconductor
+ SparseArray          * 1.2.2     2023-11-07 [1] Bioconductor
+ sparseMatrixStats      1.14.0    2023-10-24 [1] Bioconductor
+ statmod                1.5.0     2023-01-06 [1] CRAN (R 4.3.2)
+ SummarizedExperiment * 1.32.0    2023-10-24 [1] Bioconductor
+ systemfonts            1.0.5     2023-10-09 [1] CRAN (R 4.3.1)
+ textshaping            0.3.7     2023-10-09 [1] CRAN (R 4.3.1)
+ tibble                 3.2.1     2023-03-20 [1] CRAN (R 4.3.0)
+ tidyr                * 1.3.0     2023-01-24 [1] CRAN (R 4.3.0)
+ tidyselect             1.2.0     2022-10-10 [1] CRAN (R 4.3.0)
+ tzdb                   0.4.0     2023-05-12 [1] CRAN (R 4.3.0)
+ utf8                   1.2.4     2023-10-22 [1] CRAN (R 4.3.1)
+ vctrs                  0.6.5     2023-12-01 [1] CRAN (R 4.3.2)
+ vipor                  0.4.5     2017-03-22 [1] CRAN (R 4.3.2)
+ viridis                0.6.4     2023-07-22 [1] CRAN (R 4.3.2)
+ viridisLite            0.4.2     2023-05-02 [1] CRAN (R 4.3.0)
+ withr                  2.5.2     2023-10-30 [1] CRAN (R 4.3.1)
+ xgboost                1.7.6.1   2023-12-06 [1] CRAN (R 4.3.2)
+ XML                    3.99-0.16 2023-11-29 [1] CRAN (R 4.3.2)
+ XVector                0.42.0    2023-10-24 [1] Bioconductor
+ yaml                   2.3.8     2023-12-11 [1] CRAN (R 4.3.2)
+ zlibbioc               1.48.0    2023-10-24 [1] Bioconductor
+
+ [1] /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/R/library
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+********* Job Ends *********
+Sun Feb 25 08:47:13 PM EST 2024
