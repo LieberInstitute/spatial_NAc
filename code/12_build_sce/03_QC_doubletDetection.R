@@ -17,9 +17,8 @@ library(dplyr)
 library(tidyr)
 library(here)
 
-here()
-
 #Compile droplet qc information
+print("Reading in droplet paths")
 droplet_paths <- list.files(path = here("processed-data","12_snRNA","droplet_scores"),
                             full.names = TRUE)
 
@@ -27,17 +26,14 @@ names(droplet_paths) <- gsub(x = basename(droplet_paths),
                              pattern = "_droplet_scores.Rdata",
                              replacement = "")
 
+droplet_paths
+
+
 #Read in the droplet scores
 e.out <- lapply(droplet_paths, function(x) get(load(x)))
 
 #To make sure we aren't throwing out any cells check if Limited=TRUE and SIG==FALSE
 #If both are true, then we could be throwing out non-empty droplets. 
-lapply(e.out,function(x){
-    table(x$Limited == TRUE & x$FD0.001)
-})
-
-#Also, 
-#Another way to look at this
 map(e.out, ~ addmargins(table(Signif = .x$FDR <= 0.001, Limited = .x$Limited)))
 
 
