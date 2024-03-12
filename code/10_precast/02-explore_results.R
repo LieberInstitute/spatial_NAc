@@ -95,10 +95,12 @@ for (k in 2:28) {
     plot_list <- list()
     for (donor in unique(spe$sample_id)) {
         plot_list[[donor]] <- spot_plot(
-            spe,
-            sample_id = donor, var_name = paste0("precast_k", k),
-            is_discrete = TRUE
-        )
+                spe,
+                sample_id = donor, var_name = paste0("precast_k", k),
+                is_discrete = TRUE
+            ) +
+            #   Increase size of colored dots in legend
+            guides(fill = guide_legend(override.aes = list(size = 5)))
     }
 
     pdf(file.path(plot_dir, sprintf("k%s_all_samples.pdf", k)))

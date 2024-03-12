@@ -65,7 +65,9 @@ for (k in which(!sapply(k_colors, is.null))) {
             ) +
                 #   For some reason, spot_plot(colors = k_colors[[k]]) isn't
                 #   working...
-                scale_fill_manual(values = k_colors[[k]])
+                scale_fill_manual(values = k_colors[[k]]) +
+                #   Increase size of colored dots in legend
+                guides(fill = guide_legend(override.aes = list(size = 5)))
     }
 
     pdf(file.path(plot_dir, sprintf("k%s_select_samples.pdf", k)))
