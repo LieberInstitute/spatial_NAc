@@ -16,8 +16,11 @@ plot_dir <- here("plots", "10_precast", "figures")
 
 #   Define color values for specific values of k
 k_colors = list()
-k_colors[[2]] =  palette36[c(8, 6)]
+
+#   NA color from spatialLIBD and (close to) center of viridis, respectively
+k_colors[[2]] =  c("#CCCCCC40", "#DE7065FF")
 names(k_colors[[2]]) = 1:2
+
 k_colors[[4]] = c(palette36[c(7, 8, 6)], "#45200D")
 names(k_colors[[4]]) = 1:4
 
