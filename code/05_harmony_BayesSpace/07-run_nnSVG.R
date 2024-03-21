@@ -22,11 +22,11 @@ opt <- getopt(spec)
 spe_dir <- here(
     "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
 )
-precast_path <- here("processed-data", "10_precast", "PRECAST_k2.csv")
+precast_path <- here("processed-data", "10_precast", "00_pre_clustering", "PRECAST_k2.csv")
 
 message(Sys.time(), " | Loading SpatialExperiment")
 spe <- loadHDF5SummarizedExperiment(spe_dir)
-sample_id <- unique(spe$sample_id)[as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))]
+sample_id <- levels(spe$sample_id)[as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))]
 
 if (opt$use_precast) {
     out_path <- here(
@@ -112,13 +112,16 @@ if (opt$use_precast) {
         as_tibble() |>
         left_join(precast_results, by = "key") |>
         pull(cluster)
-
-    spe <- nnSVG(spe, X = model.matrix(~precast_cluster))
+    precast_cluster_ <- as.factor(precast_cluster)
+    capture_area_ <- as.factor(as.character(spe$sample_id_original))
+    spe <- nnSVG(spe, X = model.matrix(~precast_cluster_ + capture_area_))
 } else {
-    spe <- nnSVG(spe)
+    capture_area_ <- as.factor(as.character(spe$sample_id_original))
+    spe <- nnSVG(spe, X = model.matrix(~capture_area_))
 }
 
 message(Sys.time(), " | Exporting results")
 write.csv(rowData(spe), out_path, row.names = FALSE, quote = FALSE)
 
 session_info()
+

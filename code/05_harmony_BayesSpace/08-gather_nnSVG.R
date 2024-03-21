@@ -18,6 +18,7 @@ nn_methods = c("default", "precast")
 hvg_scran_path <- here(
     "processed-data", "05_harmony_BayesSpace", "top.hvgs.Rdata"
 )
+hdgs_path <- here("processed-data", "05_harmony_BayesSpace", "hdgs.hb.Rdata")
 sig_cutoff <- 0.05
 best_sample_id <- "Br8492"
 
@@ -91,21 +92,28 @@ top_hvgs = list()
 
 #   Load significant (after adjustment) HVGs from scran::getTopHVGs
 load(hvg_scran_path, verbose = TRUE)
+load(hdgs_path, verbose = TRUE)
 top_hvgs[['scran']] <- tibble(
-    gene_id = top.hvgs.fdr5,
+    gene_name = top.hvgs.p2,
     method_name = 'scran'
 ) |>
     mutate(rank = row_number())
 
 #   Prepare highly deviant genes
-top_hvgs[['deviance']] = rowData(spe) |>
-    as_tibble() |>
-    arrange(desc(binomial_deviance)) |>
-    select(gene_id) |>
-    mutate(
-        method_name = 'deviance',
-        rank = row_number()
-    )
+#top_hvgs[['deviance']] = rowData(spe) |>
+#    as_tibble() |>
+#    arrange(desc(binomial_deviance)) |>
+#    select(gene_id) |>
+#    mutate(
+#        method_name = 'deviance',
+#        rank = row_number()
+#    )
+
+top_hvgs[['deviance']] <- tibble(
+    gene_name = hdgs.hb.2000,
+    method_name = 'deviance'
+) |>
+    mutate(rank = row_number())
 
 top_hvgs = do.call(rbind, top_hvgs) |>
     mutate(variation_type = 'HVG')
@@ -124,18 +132,15 @@ top_svgs = do.call(rbind, top_svgs) |>
         rank = row_number()
     ) |>
     ungroup() |>
-    select(colnames(top_hvgs))
-    
-top_genes = rbind(top_hvgs, top_svgs) |>
-    #   Add gene symbol
     mutate(
         gene_name = rowData(spe)[
             match(gene_id, rowData(spe)$gene_id), "gene_name"
         ]
     ) |>
-    #   Drop mitochondrial genes (already done for SVGs), considering that
-    #   expression variation in these genes represents technical noise
-    filter(!str_detect(gene_name, "^MT-")) |>
+    select(colnames(top_hvgs)) 
+
+
+top_genes = rbind(top_hvgs, top_svgs) |>
     #   Re-rank genes after dropping
     group_by(method_name, variation_type) |>
     arrange(rank) |>
@@ -193,11 +198,11 @@ for (svg_method in svg_methods) {
         for (i in 1:num_points) {
             overlap_df_list[[combined_method]][i, "prop_overlap"] <- mean(
                 head(
-                    these_svgs$gene_id,
+                    these_svgs$gene_name,
                     overlap_df_list[[combined_method]]$num_genes[i]
                 ) %in%
                 head(
-                    these_hvgs$gene_id,
+                    these_hvgs$gene_name,
                     overlap_df_list[[combined_method]]$num_genes[i]
                 )
             )
@@ -294,3 +299,15 @@ for (this_method in unique(top_genes$method_name)) {
 }
 
 session_info()
+
+
+cuts <- seq(100, 5000, 100)
+overlap <- c()
+for(i in cuts){
+    overlap <- c(overlap, length(intersect(nnSVG$gene_id[nnSVG$nnsvg_avg_rank_rank <= i], nnSVG_precast$gene_id[nnSVG_precast$nnsvg_avg_rank_rank <= i]))/i)
+}
+
+gene_symbol <- c()
+for(i in c(1:length(nnSVG$gene_id))){
+    gene_symbol[i] <- rowData(spe)$gene_name[rowData(spe)$gene_id == nnSVG$gene_id[i]]
+}

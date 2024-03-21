@@ -10,7 +10,7 @@ sample_info_path2 <- here(
     "processed-data", "02_image_stitching", "sample_info_clean.csv"
 )
 transformed_dir <- here("processed-data", "04_VisiumStitcher")
-raw_out_path <- here("processed-data", "05_harmony_BayesSpace", "spe_raw.rds")
+raw_out_path <- here("processed-data", "05_harmony_BayesSpace", "01-build_spe", "spe_raw.rds")
 
 ################################################################################
 #   Read in the two sources of sample info and merge

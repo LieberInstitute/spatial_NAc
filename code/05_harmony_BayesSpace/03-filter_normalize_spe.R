@@ -17,19 +17,21 @@ library(pheatmap)
 library(ggspavis)
 library(ggplot2)
 library(ggExtra)
+library(edgeR)
+library(cowplot)
+library(ggsci)
 
-code_dir = here("code", "05_harmony_BayesSpace")
-source(paste0(code_dir, "/localOutlier_2.R"))
-
-processed_dir = here("processed-data", "05_harmony_BayesSpace")
-raw_in_path = here('processed-data', '05_harmony_BayesSpace', 'spe_raw.rds')
+processed_dir = here("processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe")
+qc_hdf5_dir = here(
+    'processed-data', '05_harmony_BayesSpace', '02-compute_QC_metrics', 'spe_with_QC_metrics_hdf5'
+)
 filtered_ordinary_path = here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_filtered.rds'
+    'processed-data', '05_harmony_BayesSpace', '03-filter_normalize_spe','spe_filtered.rds'
 )
 filtered_hdf5_dir = here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
+    'processed-data', '05_harmony_BayesSpace', '03-filter_normalize_spe','spe_filtered_hdf5'
 )
-plot_dir = here('plots', '05_harmony_BayesSpace')
+plot_dir = here('plots', '05_harmony_BayesSpace', '03-filter_normalize_spe')
 num_red_dims = 50
 
 num_cores = Sys.getenv('SLURM_CPUS_ON_NODE')
@@ -38,169 +40,25 @@ set.seed(0)
 ################################################################################
 #   Read in the data and add additional QC metrics, followed by filtering data
 ################################################################################
-spe = readRDS(raw_in_path)
+spe = loadHDF5SummarizedExperiment(qc_hdf5_dir)
 cat("Initial number of spots:", dim(spe)[2], "\n")
 
-# Add the number of estimated cells per spot using Vistoseg
-sample_info_path = here('processed-data', 'VistoSeg', 'VistoSeg_inputs.csv')
-sample_info = read.csv(sample_info_path) |> as_tibble()
-
-counts_list = list()
-for (i in 1:nrow(sample_info)) {
-    counts_list[[i]] = read.csv(
-                file.path(sample_info$spaceranger_dir[i],
-                'tissue_spot_counts.csv')
-            ) |>
-            as_tibble() |>
-            mutate(sample_id = sample_info$sample_id[i])
-}
-
-counts = do.call(rbind, counts_list) |>
-    mutate(key = paste(barcode, sample_id, sep = '_')) |>
-    filter(key %in% spe$key)
-counts <- data.frame(counts)
-counts <- counts[match(spe$key, counts$key), ]
-spe$Nmask_dark_blue <- counts$Nmask_dark_blue
-spe$Pmask_dark_blue <- counts$Pmask_dark_blue
-spe$CNmask_dark_blue <- counts$CNmask_dark_blue
-
-# Subset individuals when testing code to save memory and time
-subset_individuals <- FALSE
-if(subset_individuals){
-    spe <- spe[ ,spe$sample_id %in% c("Br3942", "Br8325", "Br6423")]
-    spe$sample_id_original <- as.factor(as.character(spe$sample_id_original))
-    spe$sample_id <- as.factor(as.character(spe$sample_id))
-    spe$slide_num <- as.factor(as.character(spe$slide_num))
-    spe$donor <- as.factor(as.character(spe$donor))
-    spe$array_num <- as.factor(as.character(spe$array_num))
-}
-
-# Preliminary QC
-# Spot QC
-# Select spots that have non-zero gene expression and found in tissue
-spe <- spe[, (colSums(assays(spe)$counts) > 0) & spe$in_tissue]
-cat("Number of spots after preliminary QC:", dim(spe)[2], "\n")
-## Metrics QC
-metrics_qc <- function(spe) {
-
-    qc_df <- data.frame(
-        log2sum = log2(spe$sum_umi),
-        log2detected = log2(spe$sum_gene),
-        subsets_Mito_percent = spe$expr_chrM_ratio*100,
-        sample_id = spe$sample_id_original
-    )
-
-    qcfilter <- DataFrame(
-        low_lib_size = isOutlier(qc_df$log2sum, type = "lower", log = TRUE, batch = qc_df$sample_id),
-        low_n_features = isOutlier(qc_df$log2detected, type = "lower", log = TRUE, batch = qc_df$sample_id),
-        high_subsets_Mito_percent = isOutlier(qc_df$subsets_Mito_percent, type = "higher", batch = qc_df$sample_id)
-    )
-    qcfilter$discard <- (qcfilter$low_lib_size | qcfilter$low_n_features) | qcfilter$high_subsets_Mito_percent
-
-
-    spe$scran_low_lib_size_low_mito <- factor(qcfilter$low_lib_size & qc_df$subsets_Mito_percent < 0.5, levels = c("TRUE", "FALSE"))
-
-
-    spe$scran_discard <-
-        factor(qcfilter$discard, levels = c("TRUE", "FALSE"))
-    spe$scran_low_lib_size <-
-        factor(qcfilter$low_lib_size, levels = c("TRUE", "FALSE"))
-    spe$scran_low_n_features <-
-        factor(qcfilter$low_n_features, levels = c("TRUE", "FALSE"))
-    spe$scran_high_subsets_Mito_percent <-
-        factor(qcfilter$high_subsets_Mito_percent, levels = c("TRUE", "FALSE"))
-
-    ## Find edge spots
-    spots <- data.frame(
-        row = spe$array_row,
-        col = spe$array_col,
-        sample_id = spe$sample_id_original
-    )
-
-    edge_spots_row <- group_by(spots, sample_id, row) %>% summarize(min_col = min(col), max_col = max(col))
-    edge_spots_col <- group_by(spots, sample_id, col) %>% summarize(min_row = min(row), max_row = max(row))
-
-    spots <- left_join(spots, edge_spots_row) %>% left_join(edge_spots_col)
-    spots$edge_spots <- with(spots, row == min_row | row == max_row | col == min_col | col == max_col)
-
-    spots$row_distance <- with(spots, pmin(abs(row - min_row), abs(row - max_row)))
-    spots$col_distance <- with(spots, pmin(abs(col - min_col), abs(col - max_col)))
-    ## spots$edge_distance <- with(spots, sqrt(row_distance^2 + col_distance^2))
-    ## The above is from:
-    ## sqrt((x_1 - x_2)^2 + (y_1 - y_2)^2)
-    ## but it was wrong, here's a case the the smallest distance is on the column:
-    ## sqrt(0^2 + col_distance^2) = col_distance
-    spots$edge_distance <- with(spots, pmin(row_distance, col_distance))
-
-
-    spe$edge_spots <- factor(spots$edge_spots, levels = c("TRUE", "FALSE"))
-    spe$edge_distance <- spots$edge_distance
-
-
-    spe$scran_low_lib_size_edge <- factor(qcfilter$low_lib_size & spots$edge_distance < 1, levels = c("TRUE", "FALSE"))
-
-    return(spe)
-}
-
-spe <- metrics_qc(spe)
-# Remove spots that are both edge spots and have a low library size
-spe <- spe[ , !(spe$scran_low_lib_size == "TRUE" & spe$edge_spots == "TRUE")]
+unique_samples <- unique(spe$sample_id)
+pdf(width = 8, height = 8, paste0(plot_dir, "/local_outliers.pdf"))
+spot_plot(spe, "Br2720", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2743", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br3942", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6423", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6432", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6471", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6522", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8325", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8492", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8667", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+dev.off()
 
 # Visualize QC metrics prior to any further filtering
-pdf(width = 14, height = 5, paste0(plot_dir, "/QC_metric_prior_filtering.pdf"))
-ggplot(data = as.data.frame(colData(spe)),
-       aes(x = sum_umi)) +
-  geom_histogram(aes(y = after_stat(density)), 
-                 colour = "black", 
-                 fill = "grey", bins = 50) +
-  geom_density(alpha = 0.5,
-               adjust = 1.0,
-               fill = "#A0CBE8",
-               colour = "#4E79A7") +
-  geom_vline(xintercept = max(spe$sum_umi[spe$scran_low_lib_size == "TRUE"]), col="red", linetype = "dashed")+
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + 
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
-  xlab("Library size") + 
-  ylab("Density") + 
-  theme_classic()  + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
-
-p <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=sum_umi)) +
-  geom_point(size=0.5) + 
-  geom_smooth(method = "loess", se=FALSE) +
-  geom_hline(yintercept = 200, colour='red') + xlab("Nuclei count") + ylab("Sum UMI") +
-  theme_minimal() 
-ggMarginal(p, type='histogram', margins = 'both')
-
-ggplot(data = as.data.frame(colData(spe)),
-       aes(x = sum_gene)) +
-  geom_histogram(aes(y = after_stat(density)), 
-                 colour = "black", 
-                 fill = "grey", bins = 50) +
-  geom_density(alpha = 0.5,
-               adjust = 1.0,
-               fill = "#A0CBE8",
-               colour = "#4E79A7") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + 
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
-  xlab("Genes expressed in each spot") + 
-  ylab("Density") + 
-  theme_classic()  + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
-
-ggplot(data = as.data.frame(colData(spe)),
-       aes(x = expr_chrM_ratio)) +
-  geom_histogram(aes(y = after_stat(density)), 
-                 colour = "black", 
-                 fill = "grey", bins = 50) +
-  geom_density(alpha = 0.5,
-               adjust = 1.0,
-               fill = "#A0CBE8",
-               colour = "#4E79A7") +
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + 
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
-  xlab("Ratio of mitochondrial expression") + 
-  ylab("Density") + 
-  theme_classic() + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
-
+pdf(width = 12, height = 5, paste0(plot_dir, "/QC_metrics_prior_filtering.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = sample_id_original, y = sum_umi, fill = sample_id_original)) + 
   geom_violin() +
@@ -255,93 +113,185 @@ ggplot(data = as.data.frame(colData(spe)),
   theme(axis.text.x = element_blank(), axis.ticks = element_blank(), plot.margin = margin(2, 2, 2, 2, "cm")) +
   guides(fill=guide_legend(title="Slide Number"))
 
+ggplot(data = as.data.frame(colData(spe)),
+       aes(x = sum_umi)) +
+  geom_histogram(aes(y = after_stat(density)), 
+                 colour = "black", 
+                 fill = "grey", bins = 50) +
+  geom_density(alpha = 0.5,
+               adjust = 1.0,
+               fill = "#A0CBE8",
+               colour = "#4E79A7") +
+  geom_vline(xintercept = 200, col="red", linetype = "dashed")+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
+  xlab("Library size") + 
+  ylab("Density") + 
+  theme_classic()  + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
+
+ggplot(data = as.data.frame(colData(spe)),
+       aes(x = sum_gene)) +
+  geom_histogram(aes(y = after_stat(density)), 
+                 colour = "black", 
+                 fill = "grey", bins = 50) +
+  geom_density(alpha = 0.5,
+               adjust = 1.0,
+               fill = "#A0CBE8",
+               colour = "#4E79A7") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
+  xlab("Genes expressed in each spot") + 
+  ylab("Density") + 
+  theme_classic()  + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
+
+ggplot(data = as.data.frame(colData(spe)),
+       aes(x = expr_chrM_ratio)) +
+  geom_histogram(aes(y = after_stat(density)), 
+                 colour = "black", 
+                 fill = "grey", bins = 50) +
+  geom_density(alpha = 0.5,
+               adjust = 1.0,
+               fill = "#A0CBE8",
+               colour = "#4E79A7") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + 
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
+  xlab("Ratio of mitochondrial expression") + 
+  ylab("Density") + 
+  theme_classic() + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
+
+p <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=sum_umi)) +
+  geom_point(size=0.5) + 
+  geom_smooth(method = "loess", se=FALSE) +
+  geom_hline(yintercept = 200, colour='red') + xlab("Nuclei count") + ylab("Sum UMI") +
+  theme_bw() 
+
+p2 <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=sum_gene)) +
+  geom_point(size=0.5) + 
+  geom_smooth(method = "loess", se=FALSE) +
+  geom_hline(yintercept = 200, colour='red') + xlab("Nuclei count") + ylab("Number of detected genes") +
+  theme_bw() 
+
+p3 <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=expr_chrM_ratio)) +
+  geom_point(size=0.5) + 
+  geom_smooth(method = "loess", se=FALSE) + xlab("Nuclei count") + ylab("Ratio of mitochondrial gene expression") +
+  theme_bw() 
+
+plot_grid(ggMarginal(p, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
+plot_grid(ggMarginal(p2, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
+plot_grid(ggMarginal(p3, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
+
 dev.off()
 
-filterSpotSweeper <- FALSE
-if(filterSpotSweeper){
-# Check which spots are found to be outliers based on SpotSweeper
-spe$array_row <- spe$array_row_original
-spe$array_col <- spe$array_col_original
-spe$sample_id_original <- as.character(spe$sample_id_original)
-# Find SpotSweeper outliers
-feats <- c("sum_umi", "sum_gene", "expr_chrM_ratio")
-spe <- localOutliers_2(spe, features = feats, n_neighbors=18, 
-                    data_output=TRUE,
-                    method="multivariate", samples = "sample_id_original", n_cores = num_cores)
-# Check if spotSweeper outliers are enriched for white matter
+# Visualize edge spots that are low library size and would be exckuded
+pdf(width = 8, height = 8, paste0(plot_dir, "/edge_spots_low_lib_size.pdf"))
+spot_plot(spe, "Br2720", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2743", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br3942", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6423", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6432", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6471", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6522", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8325", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8492", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8667", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+dev.off()
 
-spe$array_row <- spe$array_row_transformed
-spe$array_col <- spe$array_col_transformed
+# Perform optional additional spot filtering
+spe <- spe[ ,spe$scran_low_lib_size_edge == "FALSE"]
+# Check if SpotSweeper outliers are enriched for white matter
+lost <- calculateAverage(counts(spe)[,spe$local_outliers == "TRUE"])
+kept <- calculateAverage(counts(spe)[,!spe$local_outliers == "TRUE"])
+logged <- cpm(cbind(lost, kept), log=TRUE, prior.count=2)
+logFC <- logged[,1] - logged[,2]
+abundance <- rowMeans(logged)
+
+is_WM <- rowData(spe)$gene_name %in% c("MBP", "MOBP", "SLC47A2", "SERPINA5")
+pdf(width = 5, height = 5, paste0(plot_dir, "/diff_expression_spotSweeper_QC.pdf"))
+plot(abundance, logFC, xlab="Average count", ylab="Log-FC (lost/kept)", pch=16)
+points(abundance[is_WM], logFC[is_WM], col="dodgerblue", pch=16)
+dev.off()
+# Since spotSweeper doesn't seem to be selectively picking White matter, we will exclude these spots
+filterSpotSweeper <- TRUE
+if(filterSpotSweeper){
+spe <- spe[ ,spe$local_outliers == "FALSE"]
 }
 
+
 # Gene QC
-rownames(spe) <- rowData(spe)$gene_name
 exprLogic <- counts(spe) > 0
-nCells_by_slide <- lapply(levels(spe$slide_num), function(iSlide){
-    rowSums(exprLogic[ ,spe$slide_num == iSlide])
+spe$sample_id <- as.factor(spe$sample_id)
+nSpots_by_donor <- lapply(levels(spe$sample_id), function(iSample){
+    rowSums(exprLogic[ ,spe$sample_id == iSample])
 })
-nCells_by_slide <- do.call(cbind, nCells_by_slide)
-colnames(nCells_by_slide) <- levels(spe$slide_num)
-select.genes <-  rownames(nCells_by_slide)[rowSums(nCells_by_slide == 0) == 0]
+nSpots_by_donor <- do.call(cbind, nSpots_by_donor)
+colnames(nSpots_by_donor) <- levels(spe$sample_id)
+select.genes <-  rownames(nSpots_by_donor)[rowSums(nSpots_by_donor == 0) == 0]
 # Only select those genes which have non-zero expression in atleast 1 spot in each slide
 spe <- spe[rownames(spe) %in% select.genes, ]
 
 # Compute the relative expression of each gene per cell
 # Use sparse matrix operations, if your dataset is large, doing matrix devisions the regular way will take a very long time.
-C <- counts(spe)
+C <- as(counts(spe, withDimnames = TRUE), "dgCMatrix")
 C@x <- C@x / rep.int(colSums(C), diff(C@p)) * 100
 most_expressed <- order(Matrix::rowSums(C), decreasing = T)[20:1]
-boxplot(as.matrix(t(C[most_expressed, ])), cex = .1, las = 1, xlab = "% total count per cell", col = scales::hue_pal()(20)[20:1], horizontal = TRUE)
 
+pdf(width = 8, height = 8, paste0(plot_dir, "/most_expressed_genes.pdf"))
+par(mar = c(3, 8, 3, 3))
+boxplot(as.matrix(t(C[most_expressed, ])), cex = .1, las = 1, xlab = "% total count per cell", col = scales::hue_pal()(20)[20:1], horizontal = TRUE)
+dev.off()
 # Exclude mitochondrial genes from downstream analysis
-spe <- spe[!grepl("^MT-", rownames(spe)), ]
+spe <- spe[!grepl("^MT-", rowData(spe)$gene_name), ]
 # Filter Ribossomal gene (optional if that is a problem on your data)
-spe <- spe[!grepl("^RP[SL]", rownames(spe)), ]
-spe <- spe[!rownames(spe) == "MALAT1", ]
+spe <- spe[!grepl("^RP[SL]", rowData(spe)$gene_name), ]
+spe <- spe[!rowData(spe)$gene_name == "MALAT1", ]
 # Filter Hemoglobin gene  (optional if that is a problem on your data)
 #spe <- spe[!grepl("^HB[^(P|E|S)]", rownames(spe)), ]
+
 
 ################################################################################
 #   Compute log-normalized counts
 ################################################################################
-C <- counts(spe)
-gene_attr <- data.frame(mean = rowMeans(C), detection_rate = rowMeans(C > 
-    0), var = apply(C, 1, var))
+C <- counts(spe, withDimnames = TRUE)
+mean_expr <- rowMeans(C)
+det_rate <- rowMeans(C > 0)
+var_expr <- rowVars(C)
+gene_attr <- data.frame(mean = mean_expr, detection_rate = det_rate, var = var_expr)
 gene_attr$log_mean <- log10(gene_attr$mean)
 gene_attr$log_var <- log10(gene_attr$var)
-rownames(gene_attr) <- rownames(C)
+rownames(gene_attr) <- make.names(rownames(C), unique = TRUE)
 cell_attr <- data.frame(n_umi = colSums(C), n_gene = colSums(C > 
     0))
 rownames(cell_attr) <- colnames(C)
 
+pdf(width = 8, height = 8, paste0(plot_dir, "/mean_var_counts.pdf"))
 ggplot(gene_attr, aes(log_mean, log_var)) + geom_point(alpha = 0.3, shape = 16) + 
     geom_density_2d(size = 0.3) + geom_abline(intercept = 0, slope = 1, color = "red")
+dev.off()
 
-#   Filter SPE: take only spots in tissue, drop spots with 0 counts for all
-#   genes, and drop genes with 0 counts in every spot
-message(Sys.time(), " - Running quickCluster()")
+#message(Sys.time(), " - Running quickCluster()")
 
-Sys.time()
-spe$scran_quick_cluster <- quickCluster(
-    spe,
-    BPPARAM = MulticoreParam(num_cores),
-    block = spe$slide_num,
-    block.BPPARAM = MulticoreParam(num_cores)
-)
-Sys.time()
-
-message(Sys.time(), " - Running computeSumFactors()")
-Sys.time()
-spe <- computeSumFactors(
-    spe,
-    clusters = spe$scran_quick_cluster,
-    BPPARAM = MulticoreParam(num_cores), 
-    positive = FALSE
-)
+#Sys.time()
+#spe$scran_quick_cluster <- quickCluster(
+#    spe,
+#    BPPARAM = MulticoreParam(num_cores),
+#    block = spe$slide_num,
+#    block.BPPARAM = MulticoreParam(num_cores)
+#)
 Sys.time()
 
-print("Quick cluster table:")
-table(spe$scran_quick_cluster)
+message(Sys.time(), " - Running computeLibraryFactors()")
+Sys.time()
+#spe <- computeSumFactors(
+#    spe,
+#    clusters = spe$scran_quick_cluster,
+#    BPPARAM = MulticoreParam(num_cores), 
+#    positive = FALSE
+#)
+spe <- computeLibraryFactors(spe)
+Sys.time()
+
+#print("Quick cluster table:")
+#table(spe$scran_quick_cluster)
 
 message(Sys.time(), " - Running checking sizeFactors()")
 summary(sizeFactors(spe))
@@ -358,6 +308,28 @@ spe = saveHDF5SummarizedExperiment(
 gc()
 
 ################################################################################
+#   Visualize spots by slide number and donor
+################################################################################
+donor <- c()
+slide <- c()
+nSpots <- c()
+spe$slide_num <- as.character(spe$slide_num)
+for(d in levels(spe$donor)){
+    for(s in unique(spe$slide_num[spe$donor == d])){
+        donor <- c(donor, d)
+        slide <- c(slide, s)
+        nSpots <- c(nSpots, sum(spe$donor == d & spe$slide_num == s))
+    }
+}
+spot_summary <- data.frame("donor" = donor, "slide" = slide, "nSpots" = nSpots)
+spe$slide_num <- as.factor(spe$slide_num)
+
+pdf(file.path(plot_dir, "spots_by_donor_after_filtering.pdf"), useDingbats = FALSE)
+ggplot(spot_summary, aes(fill=slide, y=nSpots, x=donor)) + 
+    geom_bar(position="stack", stat="identity") + theme_classic() + scale_fill_jco() + xlab("Donor") + ylab("Number of spots")
+dev.off()
+
+################################################################################
 #   Compute PCA
 ################################################################################
 
@@ -371,11 +343,12 @@ message(Sys.time(), " - Running modelGeneVar()")
 # the capture areas. 
 dec <- modelGeneVar(
     spe,
-    block = spe$donor,
+    block = spe$sample_id,
     BPPARAM = MulticoreParam(num_cores), 
     density.weights = FALSE
 )
 
+rowData(spe) <- cbind(rowData(spe), dec)
 pdf(file.path(plot_dir, "scran_modelGeneVar.pdf"), useDingbats = FALSE)
 mapply(function(block, blockname) {
     plot(
@@ -403,6 +376,7 @@ print(paste("Num HVGs at FDR = 0.05:", length(top.hvgs.fdr5)))
 top.hvgs.fdr1 <- getTopHVGs(dec, fdr.threshold = 0.01)
 print(paste("Num HVGs at FDR = 0.01:", length(top.hvgs.fdr1)))
 
+
 save(
     top.hvgs.p1, top.hvgs.p2, top.hvgs.p5, top.hvgs.fdr5, top.hvgs.fdr1,
     file = file.path(processed_dir, "top.hvgs.Rdata")
@@ -417,6 +391,11 @@ spe <- runPCA(spe, subset_row = top.hvgs.p5, ncomponents = num_red_dims, name = 
 Sys.time()
 
 #   Plot variance explained
+percent.var <- attr(reducedDim(spe, "PCA"), "percentVar")
+pdf(file.path(plot_dir, "pca_elbow.pdf"), useDingbats = FALSE)
+plot(percent.var, xlab = "PC", ylab = "Variance explained (%)")
+dev.off()
+
 percent.var <- attr(reducedDim(spe, "PCA_p1"), "percentVar")
 pdf(file.path(plot_dir, "pca_elbow_p1.pdf"), useDingbats = FALSE)
 plot(percent.var, xlab = "PC_p1", ylab = "Variance explained (%)")
@@ -432,15 +411,21 @@ pdf(file.path(plot_dir, "pca_elbow_p5.pdf"), useDingbats = FALSE)
 plot(percent.var, xlab = "PC_p5", ylab = "Variance explained (%)")
 dev.off()
 
+pdf(file.path(plot_dir, "pca_explanatory_vars.pdf"), useDingbats = FALSE)
+plotExplanatoryPCs(spe,variables = c("sum_umi", "sum_gene", "donor", "slide_num", 
+                                    "Nmask_dark_blue"), npcs_to_plot = 10, dimred = "PCA_p2") 
+dev.off()
+
 
 ################################################################################
 #   Compute GLM-PCA
 ################################################################################
 
 message(Sys.time(), " - Running devianceFeatureSelection()")
+
 spe <- devianceFeatureSelection(
     spe, assay = "counts", fam = "binomial", sorted = FALSE, 
-    batch = as.factor(spe$sample_id_original))
+    batch = as.factor(spe$sample_id))
 
 pdf(file.path(plot_dir, "binomial_deviance.pdf"))
 plot(sort(rowData(spe)$binomial_deviance, decreasing = T),
@@ -459,11 +444,22 @@ save(
     file = file.path(processed_dir, "hdgs.hb.Rdata")
 )
 
-message(Sys.time(), " - Running nullResiduals()")
-spe <- nullResiduals(
+residuals <- lapply(levels(spe$sample_id), function(i){
+    cat(i, "\n")
+    spe_subset <- subset(spe, ,sample_id == i)
+    spe_subset <- nullResiduals(spe_subset, assay = "counts", fam = "binomial", type = "deviance")
+    assay(spe_subset, "binomial_deviance_residuals")
+})
+residuals <- do.call(cbind, residuals)
+residuals <- residuals[ ,match(colnames(spe), colnames(residuals))]
+assay(spe, "binomial_deviance_residuals") <- residuals
+
+#message(Sys.time(), " - Running nullResiduals()")
+#spe <- nullResiduals(
     # default params
-    spe, assay = "counts", fam = "binomial", type = "deviance"
-)
+#    spe, assay = "counts", fam = "binomial", type = "deviance",
+#    batch = as.factor(spe$slide_num)
+#)
 
 message(Sys.time(), " - Running GLM-PCA")
 spe <- runPCA(
@@ -473,7 +469,7 @@ spe <- runPCA(
     name = "GLMPCA_approx",
     BSPARAM = BiocSingular::IrlbaParam()
 )
-
+message(Sys.time(), " - Running GLM-PCA")
 spe <- runPCA(
     spe,
     exprs_values = "binomial_deviance_residuals",
@@ -481,7 +477,7 @@ spe <- runPCA(
     name = "GLMPCA_approx_5000",
     BSPARAM = BiocSingular::IrlbaParam()
 )
-
+message(Sys.time(), " - Running GLM-PCA")
 spe <- runPCA(
     spe,
     exprs_values = "binomial_deviance_residuals",
@@ -489,22 +485,6 @@ spe <- runPCA(
     name = "GLMPCA_approx_10000",
     BSPARAM = BiocSingular::IrlbaParam()
 )
-
-################################################################################
-#   Obtain preliminary clusters based on default GLM-PCA and PCA settings
-################################################################################
-spe$leiden20_PCA <- clusterCells(spe, 
-                           use.dimred = "PCA", 
-                           BLUSPARAM = SNNGraphParam(k = 20, 
-                                                     cluster.fun = "leiden"), 
-                                                     cluster.args = list(resolution=2.0))
-
-spe$leiden20_GLMPCA <- clusterCells(spe, 
-                           use.dimred = "GLMPCA_approx", 
-                           BLUSPARAM = SNNGraphParam(k = 20, 
-                                                     cluster.fun = "leiden", 
-                                                     cluster.args = list(resolution=2.0)))
-
 
 ################################################################################
 #   Save the processed SPE object
@@ -519,4 +499,37 @@ message(Sys.time(), " - Saving ordinary filtered spe")
 spe = realize(spe)
 saveRDS(spe, filtered_ordinary_path)
 
+################################################################################
+#   Examine reduced dimensions
+################################################################################
+rbPal <- colorRampPalette(c('red','blue'))
+rownames(spe) <- rowData(spe)$gene_name
+cols <- rbPal(100)[as.numeric(cut(assays(spe)$logcounts["MBP", ], 100))]
+pdf(file.path(plot_dir, "PC1_vs_UMI.pdf"), width = 5, height = 5)
+plot(spe$sum_umi,reducedDim(spe, "PCA_p2")[ ,1], pch = 20,col = alpha(cols, 0.4), xlab = "Sum UMI", 
+ylab = "PC1")
+dev.off()
+
+spe$low_umi <- spe$sum_umi < 250
+spe$low_gene <- spe$sum_gene < 250
+
+pdf(file.path(plot_dir, "PCA_p2.pdf"), width = 6, height = 6)
+plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "donor")
+plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "slide_num")
+plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "sum_umi")
+plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "MOBP")
+plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "low_umi")
+plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "low_gene")
+dev.off()
+
+pdf(file.path(plot_dir, "GLMPCA_approx.pdf"), width = 6, height = 6)
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "donor")
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "slide_num")
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "sum_umi")
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "MOBP")
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "low_umi")
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "low_gene")
+dev.off()
+
 session_info()
+

@@ -17,7 +17,6 @@ library(HDF5Array)
 library(spatialNAcUtils)
 
 
-
 # Define harmony function that would allow us to specify which reduction to use with SingleCellExperiment object
 RunHarmony_mod <- function(
     object,
@@ -76,7 +75,7 @@ num_cores = detectCores() - 1
 dir_plots <- here("plots", "05_harmony_BayesSpace")
 dir_rdata <- here("processed-data", "05_harmony_BayesSpace")
 filtered_hdf5_dir = here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5_temp'
+    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
 )
 harmony_hdf5_dir = here(
     'processed-data', '05_harmony_BayesSpace', 'spe_harmony'
@@ -92,35 +91,6 @@ set.seed(20230712)
 
 ## Load the data
 spe = loadHDF5SummarizedExperiment(filtered_hdf5_dir)
-
-plot(spe$sum_umi, reducedDim(spe, "GLMPCA_approx")[ ,1], pch = 20)
-rbPal <- colorRampPalette(c('red','blue'))
-rownames(spe) <- rowData(spe)$gene_name
-cols <- rbPal(100)[as.numeric(cut(assays(spe)$logcounts["MBP", ], 100))]
-plot(spe$sum_umi,reducedDim(spe, "GLMPCA_approx")[ ,1], pch = 20,col = alpha(cols, 0.4), xlab = "Sum UMI", 
-ylab = "GLMPC1")
-
-
-## Plot initial low-dimensional representations prior to batch correction
-plotReducedDim(spe, dimred = "PCA", ncomponents = 3, colour_by = "donor")
-plotReducedDim(spe, dimred = "PCA", ncomponents = 3, colour_by = "slide_num")
-plotReducedDim(spe, dimred = "PCA", ncomponents = 3, colour_by = "scran_discard")
-
-plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 3, colour_by = "donor")
-plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 3, colour_by = "sum_umi")
-plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 3, colour_by = "scran_discard")
-
-ggcells(spe, aes(x = GLMPCA_approx.1, y = GLMPCA_approx.2, colour = scran_discard)) +
-  geom_point(size = 0.5) +
-  facet_wrap(~ slide_num) +
-  labs(x = "GLMPC1", y = "GLMPC2", colour = "Discard") + theme_classic()
-
-ggcells(spe, aes(x = GLMPCA_approx.1, y = GLMPCA_approx.2, colour = scran_discard)) +
-  geom_point(size = 0.5) +
-  facet_wrap(~ sample_id_original) +
-  labs(x = "GLMPC1", y = "GLMPC2", colour = "Discard") + theme_classic()
-
-
 
 ## Perform harmony batch correction
 message("Running RunHarmony()")
