@@ -14,8 +14,11 @@ Images/VistoSeg/
 02_image_stitching/combined_*_initial
 02_image_stitching/*.tif
 02_image_stitching/*/*.tif
-05_harmony_BayesSpace/*.rds
-05_harmony_BayesSpace/spe_filtered_hdf5*
+05_harmony_BayesSpace/01-build_spe/*.rds
+05_harmony_BayesSpace/02-compute_QC_metrics/*.rds
+05_harmony_BayesSpace/02-compute_QC_metrics/spe_with_QC_metrics_hdf5
+05_harmony_BayesSpace/03-filter_normalize_spe/spe_filtered_hdf5*
+05_harmony_BayesSpace/03-filter_normalize_spe/*.rds
 03_webatlas_tests/work
 03_webatlas_tests/0.3.2/*.zarr
 03_webatlas_tests/0.3.2/*.h5ad
