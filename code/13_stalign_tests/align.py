@@ -18,7 +18,10 @@ capture_areas = ['V12D07-078_B1', 'V12D07-078_D1']
 
 out_dir.mkdir(parents = False, exist_ok = True)
 
+################################################################################
 #   Read in source and target images and normalize
+################################################################################
+
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 img_paths = [
     str(here(x, 'tissue_hires_image.png'))
@@ -31,19 +34,37 @@ img_arrs = [
 
 I = np.moveaxis(img_arrs[0], 2, 0)
 J = np.moveaxis(img_arrs[1], 2, 0)
+XI = np.array(range(I.shape[2])) * 1.
+YI = np.array(range(I.shape[1])) * 1.
+XJ = np.array(range(J.shape[2])) * 1.
+YJ = np.array(range(J.shape[1])) * 1.
+extentJ = STalign.extent_from_x((YJ,XJ))
+extentI = STalign.extent_from_x((YI,XI))
 
 #   Save images in format expected by 'point_annotator.py'
-np.savez(
-    out_dir / 'src_image',
-    x = np.array(range(I.shape[2])) * 1.,
-    y = np.array(range(I.shape[1])) * 1.,
-    I = I
-)
-np.savez(
-    out_dir / 'target_image',
-    x = np.array(range(J.shape[2])) * 1.,
-    y = np.array(range(J.shape[1])) * 1.,
-    I = J
-)
+np.savez(out_dir / 'src_image', x = XI, y = YI, I = I)
+np.savez(out_dir / 'target_image', x = XJ, y = YJ, I = J)
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #   Then run annotate_landmarks.sh interactively
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+################################################################################
+#   Read in landmarks as done in the tutorial
+################################################################################
+ 
+pointsIlist = np.load(out_dir / 'src_image_points.npy', allow_pickle=True).tolist()
+pointsJlist = np.load(out_dir / 'target_image_points.npy', allow_pickle=True).tolist()
+
+pointsI = []
+pointsJ = []
+for i in pointsIlist.keys():
+    for j in range(len(pointsIlist[i])):
+        pointsI.append([pointsIlist[i][j][1], pointsIlist[i][j][0]])
+
+for i in pointsJlist.keys():
+    for j in range(len(pointsJlist[i])):
+        pointsJ.append([pointsJlist[i][j][1], pointsJlist[i][j][0]])
+
+pointsI = np.array(pointsI)
+pointsJ = np.array(pointsJ)
