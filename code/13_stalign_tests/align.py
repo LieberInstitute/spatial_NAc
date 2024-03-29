@@ -106,3 +106,44 @@ ax[1].set_title(capture_areas[1], fontsize=15)
 
 plt.savefig(str(plot_dir / '_'.join(capture_areas)) + '_with_landmarks.png')
 plt.clf()
+
+################################################################################
+#   Compute affine transformation and plot aligned images
+################################################################################
+
+# set device for building tensors
+if torch.cuda.is_available():
+    torch.set_default_device('cuda:0')
+else:
+    torch.set_default_device('cpu')
+
+# compute initial affine transformation from points
+L,T = STalign.L_T_from_points(pointsI,pointsJ)
+A = STalign.to_A(torch.tensor(L),torch.tensor(T))
+
+#apply A to sources landmark points in row, column (y,x) orientation
+ypointsI = pointsI[:,0]
+xpointsI = pointsI[:,1]
+affine = np.matmul(np.array(A.cpu()),np.array([ypointsI, xpointsI, np.ones(len(ypointsI))]))
+
+xpointsIaffine = affine[1,:]
+ypointsIaffine = affine[0,:]
+pointsIaffine = np.column_stack((ypointsIaffine,xpointsIaffine))
+
+# plot results
+fig,ax = plt.subplots()
+
+ax.imshow((J).transpose(1,2,0),extent=extentJ)
+ax.scatter(pointsIaffine[:,1],pointsIaffine[:,0],c="blue", label='source landmarks aligned', s=100)
+
+ax.scatter(pointsJ[:,1],pointsJ[:,0], c='red', label='target landmarks', s=100)
+ax.set_aspect('equal')
+
+lgnd = plt.legend(loc="upper right", scatterpoints=1, fontsize=10)
+for handle in lgnd.legend_handles:
+    handle.set_sizes([10.0])
+
+ax.set_title('Landmark-based affine alignment', fontsize=15)
+
+plt.savefig(str(plot_dir / '_'.join(capture_areas)) + '_aligned.png')
+plt.clf()
