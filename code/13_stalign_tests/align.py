@@ -9,6 +9,9 @@ from STalign import STalign
 from pathlib import Path
 from pyhere import here
 from PIL import Image
+import re
+import os
+import json
 
 #   Set a non-interactive backend for writing figures to a file
 import matplotlib
@@ -108,6 +111,41 @@ plt.savefig(str(plot_dir / '_'.join(capture_areas)) + '_with_landmarks.png')
 plt.clf()
 
 ################################################################################
+#   Read in tissue positions for source capture area and scale to highres
+################################################################################
+
+pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
+this_dir = sample_info.loc[capture_areas[0], 'spaceranger_dir']
+tissue_path = [
+        Path(os.path.join(this_dir, x)) for x in os.listdir(this_dir)
+        if pattern.match(x)
+    ][0]
+if '_list' in tissue_path.name: 
+    tissue_positions = pd.read_csv(
+        tissue_path,
+        header = None,
+        # Note the switch of x and y
+        names = ["in_tissue", "row", "col", "y", "x"],
+        index_col = 0
+    )
+else:
+    tissue_positions = pd.read_csv(
+        tissue_path,
+        skiprows = 1,
+        # Note the switch of x and y
+        names = ["in_tissue", "row", "col", "y", "x"],
+        index_col = 0
+    )
+
+sf_json_path = os.path.join(this_dir, 'scalefactors_json.json')
+with open(sf_json_path, 'r') as f:
+    spaceranger_json = json.load(f)
+
+#   Scale spatial coordinates to highres (like the images we're using here)
+tissue_positions['x'] *= spaceranger_json['tissue_hires_scalef']
+tissue_positions['y'] *= spaceranger_json['tissue_hires_scalef']
+
+################################################################################
 #   Compute affine transformation and plot aligned images
 ################################################################################
 
@@ -120,6 +158,21 @@ else:
 # compute initial affine transformation from points
 L,T = STalign.L_T_from_points(pointsI,pointsJ)
 A = STalign.to_A(torch.tensor(L),torch.tensor(T))
+
+#   Apply affine transform to spatial coordinates
+affine = np.matmul(
+    np.array(A.cpu()),
+    np.array(
+        [
+            tissue_positions['y'],
+            tissue_positions['x'],
+            np.ones(len(tissue_positions['x']))
+        ]
+    )
+)
+
+xIaffine = affine[1,:]
+yIaffine = affine[0,:]
 
 #apply A to sources landmark points in row, column (y,x) orientation
 ypointsI = pointsI[:,0]
@@ -134,6 +187,7 @@ pointsIaffine = np.column_stack((ypointsIaffine,xpointsIaffine))
 fig,ax = plt.subplots()
 
 ax.imshow((J).transpose(1,2,0),extent=extentJ)
+ax.scatter(xIaffine,yIaffine,s=1,alpha=0.1, label = 'source aligned')
 ax.scatter(pointsIaffine[:,1],pointsIaffine[:,0],c="blue", label='source landmarks aligned', s=100)
 
 ax.scatter(pointsJ[:,1],pointsJ[:,0], c='red', label='target landmarks', s=100)
