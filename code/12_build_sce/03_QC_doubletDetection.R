@@ -211,6 +211,59 @@ ggsave(plot = detected_violin_brainID,filename = here("plots","12_snRNA",
                                                       "nuclei_QC","number_genes",
                                                       "number_of_genes_coloredbyBrainID.png"))
 
+#NeuN sorted samples are unimodal, while PI sorted samples are bimodal. 
+#Will batch by Sort type because of this. 
+#MAD approach with batch by Sample results in the removal of high quality cells from 
+#NeuN sorted samples and retention of low quality cells from PI sorted samples. 
+#nMAD=3
+sce$low_detected_3 <- isOutlier(sce$detected, nmads = 3, type = "lower", batch = sce$Sort)
+
+low_genes_3 <- plotColData(sce, x = "Sample", y = "detected",colour_by = "low_detected_3") +
+  scale_y_continuous(trans="log10") +
+  ggtitle("Number of genes/nucleus\nnMAD=3") +
+  geom_hline(yintercept = 750,lty = 2,color = "red") +
+  geom_hline(yintercept = 1000,lty = 2,color = "blue") +
+  geom_hline(yintercept = 2000,lty = 2,color = "green") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+ggsave(plot = low_genes_3,here("plots","12_snRNA",
+                               "nuclei_QC","number_genes",
+                               "number_genes_nMAD3_batchbySort.png"))
+
+table(sce$low_detected_3,sce$Sort)
+
+#nMAD=2
+sce$low_detected_2 <- isOutlier(sce$detected, nmads = 2, type = "lower", batch = sce$Sort)
+
+low_genes_2 <- plotColData(sce, x = "Sample", y = "detected",colour_by = "low_detected_2") +
+  scale_y_continuous(trans="log10") +
+  ggtitle("Number of genes/nucleus\nnMAD=2") +
+  geom_hline(yintercept = 750,lty = 2,color = "red") +
+  geom_hline(yintercept = 1000,lty = 2,color = "blue") +
+  geom_hline(yintercept = 2000,lty = 2,color = "green") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+ggsave(plot = low_genes_2,here("plots","12_snRNA",
+                               "nuclei_QC","number_genes",
+                               "number_genes_nMAD2_batchbySort.png"))
+
+table(sce$low_detected_2,sce$Sort)
+
+#nMAD=1
+sce$low_detected_1 <- isOutlier(sce$detected, nmads = 1, type = "lower", batch = sce$Sort)
+
+low_genes_1 <-plotColData(sce, x = "Sample", y = "detected",colour_by = "low_detected_1") +
+  scale_y_continuous(trans="log10") +
+  ggtitle("Number of genes/nucleus\nnMAD=1") +
+  geom_hline(yintercept = 1000,lty = 2,color = "red") +
+  geom_hline(yintercept = 2000,lty = 2,color = "blue") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+ggsave(plot = low_genes_1,here("plots","12_snRNA",
+                               "nuclei_QC","number_genes",
+                               "number_genes_nMAD1_batchbySort.png"))
+
+table(sce$low_detected_1,sce$Sort)
 print("detected QC plots complete")
 #########################################
 ########## Low Library Size #############
@@ -243,19 +296,97 @@ ggsave(plot = lib_size_violin_brain,filename = here("plots","12_snRNA",
                                                     "nuclei_QC","library_size",
                                                     "library_size_violin_coloredbyBrain.png"))
 
+#Batching by Sort again for library size. Also, log=TRUE so library size is log2 transformed before
+#MADs are computed.
+#nMAD=3
+sce$low_library_3 <- isOutlier(sce$sum, nmads = 3, type = "lower", batch = sce$Sort,log = TRUE)
+
+low_lib_3 <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_library_3") +
+  scale_y_continuous(trans="log2") +
+  ggtitle("Total UMIs\nnMAD=3") +
+  geom_hline(yintercept = 1000,lty = 2,color = "red") +
+  geom_hline(yintercept = 2000,lty = 2,color = "blue") +
+  geom_hline(yintercept = 4000,lty = 2,color = "green") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+ggsave(plot = low_lib_3,here("plots","12_snRNA",
+                             "nuclei_QC","library_size",
+                             "library_size_nMAD3_batchbySort_logTrue.png"))
+
+table(sce$low_library_3,sce$Sort)
+
+#nMAD=2
+sce$low_library_2 <- isOutlier(sce$sum, nmads = 2, type = "lower", batch = sce$Sort,log = TRUE)
+
+low_lib_2 <-plotColData(sce, x = "Sample", y = "sum",colour_by = "low_library_2") +
+  scale_y_continuous(trans="log2") +
+  ggtitle("Total UMIs\nnMAD=2") +
+  geom_hline(yintercept = 1000,lty = 2,color = "red") +
+  geom_hline(yintercept = 2000,lty = 2,color = "blue") +
+  geom_hline(yintercept = 4000,lty = 2,color = "green") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+ggsave(plot = low_lib_2,here("plots","12_snRNA",
+                             "nuclei_QC","library_size",
+                             "library_size_nMAD2_batchbySort_logTrue.png"))
+
+table(sce$low_library_2,sce$Sort)
+
+#nMAD=1
+sce$low_library_1 <- isOutlier(sce$sum, nmads = 1, type = "lower", batch = sce$Sort,log = TRUE)
+
+low_lib_1 <- plotColData(sce, x = "Sample", y = "sum",colour_by = "low_library_1") +
+  scale_y_continuous(trans="log2") +
+  ggtitle("Total UMIs\nnMAD=1") +
+  geom_hline(yintercept = 1000,lty = 2,color = "red") +
+  geom_hline(yintercept = 2000,lty = 2,color = "blue") +
+  geom_hline(yintercept = 4000,lty = 2,color = "green") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+ggsave(plot = low_lib_1,here("plots","12_snRNA",
+                             "nuclei_QC","library_size",
+                             "library_size_nMAD1_batchbySort_logTrue.png"))
+
+table(sce$low_detected_1,sce$Sort) 
 print("library size QC completed")
-###make some basic QC cutoffs and move on to see if any PI_NeuN samples have a substantial amount of glia 
-#Will do total umis < 600,detected genes > 300, and mitochondrial percentage > 50
-qc_lib_600 <- sce$sum < 600
-qc_genes_500 <- sce$detected < 500
-qc_mito_5 <- sce$subsets_Mito_percent > 5
 
-sce$discard_basic <- qc_lib_600 | qc_genes_500 | qc_mito_5
+########################################################
+###For NeuN+, low detected genes nMAD = 3, low library = 3
+###For PI+, low detected genes nMAD = 1, low library = 1
+####Identify NeuN cells that need to be dropped 
+NeuN_Drop <- sce[,sce$Sort == "PI_NeuN"]$low_detected_3 | sce[,sce$Sort == "PI_NeuN"]$low_library_3
+table(NeuN_Drop)
 
+#Get cell IDs that need to be dropped
+NeuN_Drop_names <- rownames(colData(sce[,sce$Sort == "PI_NeuN"])[which(NeuN_Drop),])
 
-qc_t <- addmargins(table(sce$Sample, sce$discard_basic))
+print("How many NeuN sorted cells removed with low detected genes?")
+table(colData(sce[,sce$Sort == "PI_NeuN"])[NeuN_Drop_names,"low_detected_3"])
 
-qc_t
+print("How many NeuN sorted cells removed with low library size?")
+table(colData(sce[,sce$Sort == "PI_NeuN"])[NeuN_Drop_names,"low_library_3"])
+
+####Identify PI cells that need to be dropped 
+PI_Drop <- sce[,sce$Sort == "PI"]$low_detected_1 | sce[,sce$Sort == "PI"]$low_library_1
+
+#Get cell IDs that need to be dropped
+PI_Drop_names <- rownames(colData(sce[,sce$Sort == "PI"])[which(PI_Drop),])
+
+print("How many PI sorted cells removed with low detected features?")
+table(colData(sce[,sce$Sort == "PI"])[PI_Drop_names,"low_detected_1"])
+
+print("How many PI sorted cells removed with low library size?")
+table(colData(sce[,sce$Sort == "PI"])[PI_Drop_names,"low_library_1"])
+
+#Add a unique rowname to the sce object to identify cells to drop
+sce$unique_rowname <- rownames(colData(sce))
+stopifnot(identical(rownames(colData(sce)),sce$unique_rowname))
+
+#add colDAta column to remove the low quality cells as determined by library size and detected genes
+cells_to_drop <- c(NeuN_Drop_names,PI_Drop_names)
+sce$discard_sum_detected <- ifelse(sce$unique_rowname %in% cells_to_drop,
+                                      TRUE,
+                                      FALSE)
 
 #### Doublet detection ####
 ## To speed up, run on sample-level top-HVGs - just take top 1000
@@ -312,8 +443,22 @@ dbl_df %>%
         drop_precent = 100 * drop / n()
     )
 
+#Identify cells that were low quality as determined by mitochondrial percentage + above metrics
+qc_sum_detected <- sce$discard_sum_detected
+qc_mito_pct <- sce$subsets_Mito_percent > 5
+qc_doublet <- sce$doubletScore >= 5
 
-table(sce$discard_basic, sce$doubletScore >= 5)
+#Add discard to sce object
+sce$discard <- qc_sum_detected | qc_mito_pct | qc_doublet
+
+print("How many cells are removed from the object?")
+table(sce$discard)
+
+qc_t <- addmargins(table(sce$Sample, sce$discard))
+
+qc_t
+
+table(sce$discard, sce$doubletScore >= 5)
 
 
 #Save object
@@ -322,13 +467,12 @@ save(sce,
 
 
 #Remove the cells that don't meet the basic QC cutoffs 
-sce <- sce[,!sce$discard_basic]
+sce <- sce[,!sce$discard]
 dim(sce)
 
 #Save object
 save(sce,
      file = here("processed-data","12_snRNA","sce_clean.rds"))
-
 
 print("Reproducibility information:")
 Sys.time()
