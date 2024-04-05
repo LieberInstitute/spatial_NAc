@@ -114,39 +114,46 @@ plt.clf()
 #   Read in tissue positions for source capture area and scale to highres
 ################################################################################
 
-pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
-this_dir = sample_info.loc[capture_areas[0], 'spaceranger_dir']
-tissue_path = [
-        Path(os.path.join(this_dir, x)) for x in os.listdir(this_dir)
-        if pattern.match(x)
-    ][0]
-if '_list' in tissue_path.name: 
-    tissue_positions = pd.read_csv(
-        tissue_path,
-        header = None,
-        # Note the switch of x and y
-        names = ["in_tissue", "row", "col", "y", "x"],
-        index_col = 0
-    )
-else:
-    tissue_positions = pd.read_csv(
-        tissue_path,
-        skiprows = 1,
-        # Note the switch of x and y
-        names = ["in_tissue", "row", "col", "y", "x"],
-        index_col = 0
-    )
+tissue_positions_list = []
+for i in range(2):
+    pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
+    this_dir = sample_info.loc[capture_areas[i], 'spaceranger_dir']
+    tissue_path = [
+            Path(os.path.join(this_dir, x)) for x in os.listdir(this_dir)
+            if pattern.match(x)
+        ][0]
+    if '_list' in tissue_path.name: 
+        tissue_positions = pd.read_csv(
+            tissue_path,
+            header = None,
+            # Note the switch of x and y
+            names = ["in_tissue", "row", "col", "y", "x"],
+            index_col = 0
+        )
+    else:
+        tissue_positions = pd.read_csv(
+            tissue_path,
+            skiprows = 1,
+            # Note the switch of x and y
+            names = ["in_tissue", "row", "col", "y", "x"],
+            index_col = 0
+        )
+    #
+    sf_json_path = os.path.join(this_dir, 'scalefactors_json.json')
+    with open(sf_json_path, 'r') as f:
+        spaceranger_json = json.load(f)
+    #
+    #   Scale spatial coordinates to highres (like the images we're using here)
+    tissue_positions['x'] *= spaceranger_json['tissue_hires_scalef']
+    tissue_positions['y'] *= spaceranger_json['tissue_hires_scalef']
+    #
+    tissue_positions_list.append(tissue_positions)
 
-sf_json_path = os.path.join(this_dir, 'scalefactors_json.json')
-with open(sf_json_path, 'r') as f:
-    spaceranger_json = json.load(f)
 
-#   Scale spatial coordinates to highres (like the images we're using here)
-tissue_positions['x'] *= spaceranger_json['tissue_hires_scalef']
-tissue_positions['y'] *= spaceranger_json['tissue_hires_scalef']
 
 ################################################################################
-#   Compute affine transformation and plot aligned images
+#   Compute affine transformation and apply to source landmarks and spatial
+#   coords
 ################################################################################
 
 # set device for building tensors
@@ -159,14 +166,14 @@ else:
 L,T = STalign.L_T_from_points(pointsI,pointsJ)
 A = STalign.to_A(torch.tensor(L),torch.tensor(T))
 
-#   Apply affine transform to spatial coordinates
+#   Apply affine transform to source spatial coordinates
 affine = np.matmul(
     np.array(A.cpu()),
     np.array(
         [
-            tissue_positions['y'],
-            tissue_positions['x'],
-            np.ones(len(tissue_positions['x']))
+            tissue_positions_list[0]['y'],
+            tissue_positions_list[0]['x'],
+            np.ones(len(tissue_positions_list[0]['x']))
         ]
     )
 )
@@ -174,7 +181,7 @@ affine = np.matmul(
 xIaffine = affine[1,:]
 yIaffine = affine[0,:]
 
-#apply A to sources landmark points in row, column (y,x) orientation
+#   Apply affine transform to source landmarks
 ypointsI = pointsI[:,0]
 xpointsI = pointsI[:,1]
 affine = np.matmul(np.array(A.cpu()),np.array([ypointsI, xpointsI, np.ones(len(ypointsI))]))
@@ -183,21 +190,37 @@ xpointsIaffine = affine[1,:]
 ypointsIaffine = affine[0,:]
 pointsIaffine = np.column_stack((ypointsIaffine,xpointsIaffine))
 
-# plot results
-fig,ax = plt.subplots()
+################################################################################
+#   Plot each image with its spatial coords and landmarks (aligned, for the
+#   source capture area)
+################################################################################
 
-ax.imshow((J).transpose(1,2,0),extent=extentJ)
-ax.scatter(xIaffine,yIaffine,s=1,alpha=0.1, label = 'source aligned')
-ax.scatter(pointsIaffine[:,1],pointsIaffine[:,0],c="blue", label='source landmarks aligned', s=100)
+fig, ax = plt.subplots(1, 2)
 
-ax.scatter(pointsJ[:,1],pointsJ[:,0], c='red', label='target landmarks', s=100)
-ax.set_aspect('equal')
+#   Images
+ax[0].imshow((I).transpose(1,2,0),extent=extentI)
+ax[1].imshow((J).transpose(1,2,0),extent=extentJ)
 
-lgnd = plt.legend(loc="upper right", scatterpoints=1, fontsize=10)
-for handle in lgnd.legend_handles:
-    handle.set_sizes([10.0])
+#   Spatial coords
+ax[0].scatter(xIaffine,yIaffine,s=1,alpha=0.1, label = 'source spatial coords')
+ax[1].scatter(
+    tissue_positions_list[1]['x'],
+    tissue_positions_list[1]['y'],
+    s=1, alpha=0.2, label = 'target spatial coords'
+)
 
-ax.set_title('Landmark-based affine alignment', fontsize=15)
+#   Landmarks and visual settings
+for this_ax in ax:
+    #   Landmarks
+    this_ax.scatter(pointsIaffine[:,1],pointsIaffine[:,0],c="blue", label='source landmarks aligned', s=100, marker = "1")
+    this_ax.scatter(pointsJ[:,1],pointsJ[:,0], c='red', label='target landmarks', s=100, marker = "2")
+    #
+    this_ax.legend()
+    this_ax.set_aspect('equal')
+
+#   Add titles
+ax[0].set_title(f'Source ({capture_areas[0]})', fontsize=15)
+ax[1].set_title(f'Target ({capture_areas[1]})', fontsize=15)
 
 plt.savefig(str(plot_dir / '_'.join(capture_areas)) + '_aligned.png')
 plt.clf()
