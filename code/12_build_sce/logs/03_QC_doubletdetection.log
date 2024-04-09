@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Tue Mar 19 05:44:47 PM EDT 2024
+Thu Apr  4 07:32:07 PM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -470,6 +470,7 @@ Saving 7 x 7 in image
   19c_Nac_SVB  5912  689
   20c_Nac_SVB  6387  287
 Saving 7 x 7 in image
+[1] "Table for number of nuclei removed by high mitochondrial percentage"
 
  FALSE   TRUE 
 120180    269 
@@ -478,16 +479,19 @@ Saving 7 x 7 in image
 Saving 7 x 7 in image
 Saving 7 x 7 in image
 Saving 7 x 7 in image
+[1] "Number of nuclei with low genes by sort (nMAD=3)"
        
            PI PI_NeuN
   FALSE 60188   58579
   TRUE      0    1682
 Saving 7 x 7 in image
+[1] "Number of nuclei with low genes by sort (nMAD=2)"
        
            PI PI_NeuN
   FALSE 60188   52926
   TRUE      0    7335
 Saving 7 x 7 in image
+[1] "Number of nuclei with low genes by sort (nMAD=1)"
        
            PI PI_NeuN
   FALSE 56391   47030
@@ -497,21 +501,25 @@ Saving 7 x 7 in image
 Saving 7 x 7 in image
 Saving 7 x 7 in image
 Saving 7 x 7 in image
+[1] "Number of nuclei with low library size by sort (nMAD=3)"
        
            PI PI_NeuN
   FALSE 60188   54866
   TRUE      0    5395
 Saving 7 x 7 in image
+[1] "Number of nuclei with low library size by sort (nMAD=2)"
        
            PI PI_NeuN
   FALSE 58389   51879
   TRUE   1799    8382
 Saving 7 x 7 in image
+[1] "Number of nuclei with low library size by sort (nMAD=1)"
        
            PI PI_NeuN
   FALSE 56391   47030
   TRUE   3797   13231
 [1] "library size QC completed"
+[1] "How many NeuN sorted cells are dropped?"
 NeuN_Drop
 FALSE  TRUE 
 54866  5395 
@@ -523,6 +531,14 @@ FALSE  TRUE
 
 TRUE 
 5395 
+[1] "How many PI_NeuN nuclei that have low detected genes also have low library size?"
+      
+       FALSE TRUE
+  TRUE  3713 1682
+[1] "How many PI sorted cells are dropped?"
+PI_Drop
+FALSE  TRUE 
+53018  7170 
 [1] "How many PI sorted cells removed with low detected features?"
 
 FALSE  TRUE 
@@ -531,6 +547,11 @@ FALSE  TRUE
 
 TRUE 
 7170 
+[1] "How many\tPI_NeuN nuclei that have low detected genes also have low library size?"
+      
+       FALSE TRUE
+  TRUE  3373 3797
+[1] "Running Doublet Detection"
     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
  0.00000  0.08644  0.25361  0.61153  0.56285 28.81862 
 Saving 7 x 7 in image
@@ -558,6 +579,10 @@ Saving 7 x 7 in image
 18 18c_Nac_SVB  0.265  1.68   172        2.60 
 19 19c_Nac_SVB  0.264  1.12   101        1.53 
 20 20c_Nac_SVB  0.387  1.56   106        1.59 
+[1] "Number of cells removed by sum/detected cutoffs"
+
+ FALSE   TRUE 
+107884  12565 
 [1] "How many cells are removed from the object?"
 
  FALSE   TRUE 
@@ -585,15 +610,30 @@ Saving 7 x 7 in image
   19c_Nac_SVB   5477   1124   6601
   20c_Nac_SVB   5766    908   6674
   Sum         105433  15016 120449
+[1] "How many cells identified as low quality cells are doublets?"
        
          FALSE   TRUE
   FALSE 105433      0
   TRUE   12668   2348
 [1]  36601 105433
+[1] "SCE object with low quality cells and doublets removed"
+class: SingleCellExperiment 
+dim: 36601 105433 
+metadata(1): Samples
+assays(1): counts
+rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
+  ENSG00000277196
+rowData names(6): source type ... gene_name gene_type
+colnames(105433): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
+  20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
+colData names(29): Sample Barcode ... doubletScore discard
+reducedDimNames(0):
+mainExpName: NULL
+altExpNames(0):
 [1] "Reproducibility information:"
-[1] "2024-03-19 18:07:04 EDT"
+[1] "2024-04-04 20:27:50 EDT"
     user   system  elapsed 
-1276.424   11.670 1330.270 
+3141.847  146.555 3338.335 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
@@ -604,7 +644,7 @@ Saving 7 x 7 in image
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-03-19
+ date     2024-04-04
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -725,4 +765,4 @@ Saving 7 x 7 in image
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Tue Mar 19 06:07:12 PM EDT 2024
+Thu Apr  4 08:27:59 PM EDT 2024

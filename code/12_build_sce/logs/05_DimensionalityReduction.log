@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Wed Mar 20 01:22:26 PM EDT 2024
+Sun Apr  7 04:25:08 PM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -136,6 +136,12 @@ altExpNames(0):
 [1] "Running PCA"
 Saving 7 x 7 in image
 [1] "PCA Complete"
+[1] "Running tSNE"
+[1] "tSNE complete"
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
 running Harmony
 Transposing data matrix
 Initializing state using k-means centroids initialization
@@ -169,16 +175,19 @@ Harmony 4/10
 **************************************************|
 Harmony converged after 4 iterations
 Warning message:
-did not converge in 25 iterations 
+Quick-TRANSfer stage steps exceeded maximum (= 5271650) 
 [1] "Running tSNE post-Harmony"
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
 Saving 7 x 7 in image
 [1] "tSNE_HARMONY complete"
 [1] "Saving sce object"
 [1] "Object saved"
 [1] "Reproducibility information:"
-[1] "2024-03-20 15:44:24 EDT"
-    user   system  elapsed 
-7699.563  410.855 8513.918 
+[1] "2024-04-07 20:03:50 EDT"
+     user    system   elapsed 
+11968.436   799.605 13115.886 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
@@ -189,7 +198,7 @@ Saving 7 x 7 in image
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-03-20
+ date     2024-04-07
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -289,4 +298,4 @@ Saving 7 x 7 in image
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Wed Mar 20 03:44:33 PM EDT 2024
+Sun Apr  7 08:04:00 PM EDT 2024

@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Thu Mar 28 08:37:35 PM EDT 2024
+Mon Apr  8 03:52:45 PM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -166,25 +166,124 @@ rowData names(7): source type ... gene_type binomial_deviance
 colnames(105433): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
   20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
 colData names(29): Sample Barcode ... doubletScore discard
-reducedDimNames(3): GLMPCA_approx HARMONY tSNE_HARMONY
+reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
 mainExpName: NULL
 altExpNames(0):
 [1] TRUE
-[1] "Computing log counts"
 class: SingleCellExperiment 
 dim: 36601 105433 
 metadata(1): Samples
-assays(3): counts binomial_pearson_residuals logcounts
+assays(2): counts binomial_pearson_residuals
 rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
   ENSG00000277196
 rowData names(7): source type ... gene_type binomial_deviance
 colnames(105433): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
   20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
-colData names(30): Sample Barcode ... discard sizeFactor
-reducedDimNames(3): GLMPCA_approx HARMONY tSNE_HARMONY
+colData names(29): Sample Barcode ... doubletScore discard
+reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
 mainExpName: NULL
 altExpNames(0):
-[1] TRUE
+[1] "Clustering"
+[1] "2024-04-08 15:53:21 EDT"
+[1] "k=10, louvain res = 1"
+clust_10_1
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17617 11999  4472  3599  7113 11185  6235   948  8600  6763   847  1998  1697 
+   14    15    16    17    18    19    20    21    22    23    24    25    26 
+ 4983  1826  1265   327   166  2538  1167   148  3705   701  1450   773   931 
+   27    28    29    30    31 
+ 1561   258   481    26    54 
+Saving 7 x 7 in image
+[1] "k=10, louvain res = .75"
+clust_10.75
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17642 19042  4471  3708 12478   948  8635  7929  1015  1985  1671  8773  5013 
+   14    15    16    17    18    19    20    21    22    23    24    25 
+ 1839  1270   327  2464   701  1465   773   932  1563   257   478    54 
+Saving 7 x 7 in image
+[1] "k=10, louvain res = .5"
+clust_10.5
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17652 22557  4436  3709 22715   942  8687  7929  1005  1998  1655  1847  1259 
+   14    15    16    17    18    19    20    21    22 
+  322  2512   700  1451   775  1410  1561   257    54 
+Saving 7 x 7 in image
+clust_10.25
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17652 22976  4436  3680 22633   942 10027  7932  1005  1985  1648  1876  2470 
+   14    15    16    17    18 
+  701  1464  2188  1561   257 
+Saving 7 x 7 in image
+[1] "k=50, louvain res = 1"
+clust_50_1
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17654 19255  4429  3672 11421 10445   946  8737  7922   843  1987  1950  3956 
+   14    15    16    17    18    19    20    21    22    23    24 
+ 1849  1283   265   166  2490   699  1457   766   936  1561   744 
+Saving 7 x 7 in image
+[1] "k=50, louvain res = .75"
+clust_50.75
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17654 19834  4429  3672 21494   944  8747  7923  1009  1988  1940  3739  1849 
+   14    15    16    17    18    19    20    21 
+ 1276   264  2508   698  1457   766  1680  1562 
+Saving 7 x 7 in image
+[1] "k=50, louvain res = .5"
+clust_50.5
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17655 22939  4428  3671 22519   946 10022  7918  1008  1987  1823  1854  2501 
+   14    15    16    17 
+  699  1457  2446  1560 
+Saving 7 x 7 in image
+clust_50.25
+    1     2     3     4     5     6     7     8     9    10    11    12    13 
+17655 22742  4431  3671 22768   944 10024  7924  2789  1989  1856  2480  3143 
+   14    15 
+ 1457  1560 
+Saving 7 x 7 in image
+[1] "1c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "2c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "3c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "4c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "5c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "6c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "7c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "8c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "9c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "10c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "11c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "12c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "13c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "14c_NAc_SVB"
+Saving 7 x 7 in image
+[1] "15c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "16c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "17c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "18c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "19c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "20c_Nac_SVB"
+Saving 7 x 7 in image
+[1] "Clustering complete"
+[1] "Calculating log-normalized counts"
+[1] "2024-04-08 16:42:39 EDT"
 [1] "SNAP25"
 Scale for colour is already present.
 Adding another scale for colour, which will replace the existing scale.
@@ -361,79 +460,17 @@ Saving 7 x 7 in image
 Scale for colour is already present.
 Adding another scale for colour, which will replace the existing scale.
 Saving 7 x 7 in image
+[1] "GLP1R"
+Scale for colour is already present.
+Adding another scale for colour, which will replace the existing scale.
 Saving 7 x 7 in image
-clust_10_1
-    1     2     3     4     5     6     7     8     9    10    11    12    13 
-17618  9794  4472  9506  3600 11325  6135   944  8615  6579   849  1997  4084 
-   14    15    16    17    18    19    20    21    22    23    24    25    26 
- 1966  1253   326   165  2567  1353   145  3927   700  1440  1987   786   922 
-   27    28    29    30 
- 1563   255   479    81 
-clust_10.75
-    1     2     3     4     5     6     7     8     9    10    11    12    13 
-17644 19454  4471  3682 12704  9867   953  8658  7930  1125  1997  3048  1978 
-   14    15    16    17    18    19    20    21    22    23    24 
- 1241   326  2550   699  1439  1580   787  1404  1561   255    80 
-clust_10.5
-    1     2     3     4     5     6     7     8     9    10    11    12    13 
-17650 22588  4436  3709 22495   953  8694  7937  1008  1997  1966  1240   324 
-   14    15    16    17    18    19    20    21    22 
- 2567   699  1438  1677   788  1398  1561   255    53 
-clust_10.25
-    1     2     3     4     5     6     7     8     9    10    11    12    13 
-17656 22764  4432  3682 22703   943 10024  7931  1006  1997  1976  2557   699 
-   14    15    16    17    18 
- 1440  1618  2186  1564   255 
-Saving 7 x 7 in image
-Saving 7 x 7 in image
-Saving 7 x 7 in image
-Saving 7 x 7 in image
-[1] "1c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "2c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "3c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "4c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "5c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "6c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "7c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "8c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "9c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "10c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "11c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "12c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "13c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "14c_NAc_SVB"
-Saving 7 x 7 in image
-[1] "15c_Nac_SVB"
-Saving 7 x 7 in image
-[1] "16c_Nac_SVB"
-Saving 7 x 7 in image
-[1] "17c_Nac_SVB"
-Saving 7 x 7 in image
-[1] "18c_Nac_SVB"
-Saving 7 x 7 in image
-[1] "19c_Nac_SVB"
-Saving 7 x 7 in image
-[1] "20c_Nac_SVB"
 Saving 7 x 7 in image
 [1] "Saving sce object"
 [1] "Object saved"
 [1] "Reproducibility information:"
-[1] "2024-03-28 23:18:04 EDT"
-    user   system  elapsed 
-9024.395  113.797 9626.593 
+[1] "2024-04-08 22:03:44 EDT"
+     user    system   elapsed 
+20055.597   163.729 22253.704 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
@@ -444,7 +481,7 @@ Saving 7 x 7 in image
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-03-28
+ date     2024-04-08
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -544,4 +581,4 @@ Saving 7 x 7 in image
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Thu Mar 28 11:18:06 PM EDT 2024
+Mon Apr  8 10:03:47 PM EDT 2024
