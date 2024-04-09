@@ -12,6 +12,7 @@ from PIL import Image
 import re
 import os
 import json
+import pickle
 
 #   Set a non-interactive backend for writing figures to a file
 import matplotlib
@@ -23,6 +24,7 @@ sample_info_path = here(
 out_dir = Path(here('processed-data', '13_stalign_tests'))
 plot_dir = Path(here('plots', '13_stalign_tests'))
 capture_areas = ['V12D07-078_B1', 'V12D07-078_D1']
+resolution = 'lowres'
 
 out_dir.mkdir(parents = False, exist_ok = True)
 plot_dir.mkdir(parents = False, exist_ok = True)
@@ -33,7 +35,7 @@ plot_dir.mkdir(parents = False, exist_ok = True)
 
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 img_paths = [
-    str(here(x, 'tissue_hires_image.png'))
+    str(here(x, f'tissue_{resolution}_image.png'))
     for x in sample_info.loc[capture_areas, 'spaceranger_dir']
 ]
 img_arrs = [
@@ -51,8 +53,8 @@ extentJ = STalign.extent_from_x((YJ,XJ))
 extentI = STalign.extent_from_x((YI,XI))
 
 #   Save images in format expected by 'point_annotator.py'
-np.savez(out_dir / 'src_image', x = XI, y = YI, I = I)
-np.savez(out_dir / 'target_image', x = XJ, y = YJ, I = J)
+np.savez(out_dir / f'src_image_{resolution}', x = XI, y = YI, I = I)
+np.savez(out_dir / f'target_image_{resolution}', x = XJ, y = YJ, I = J)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #   Then run annotate_landmarks.sh interactively
@@ -62,8 +64,12 @@ np.savez(out_dir / 'target_image', x = XJ, y = YJ, I = J)
 #   Read in landmarks as done in the tutorial
 ################################################################################
  
-pointsIlist = np.load(out_dir / 'src_image_points.npy', allow_pickle=True).tolist()
-pointsJlist = np.load(out_dir / 'target_image_points.npy', allow_pickle=True).tolist()
+pointsIlist = np.load(
+        out_dir / f'src_image_{resolution}_points.npy', allow_pickle=True
+    ).tolist()
+pointsJlist = np.load(
+        out_dir / f'target_image_{resolution}_points.npy', allow_pickle=True
+    ).tolist()
 
 pointsI = []
 pointsJ = []
@@ -107,7 +113,10 @@ for i in pointsJlist.keys():
 ax[0].set_title(capture_areas[0], fontsize=15)
 ax[1].set_title(capture_areas[1], fontsize=15)
 
-plt.savefig(str(plot_dir / '_'.join(capture_areas)) + '_with_landmarks.png')
+plt.savefig(
+    str(plot_dir / '_'.join(capture_areas)) +
+    f'_with_landmarks_{resolution}.png'
+)
 plt.clf()
 
 ################################################################################
@@ -143,13 +152,11 @@ for i in range(2):
     with open(sf_json_path, 'r') as f:
         spaceranger_json = json.load(f)
     #
-    #   Scale spatial coordinates to highres (like the images we're using here)
-    tissue_positions['x'] *= spaceranger_json['tissue_hires_scalef']
-    tissue_positions['y'] *= spaceranger_json['tissue_hires_scalef']
+    #   Scale spatial coordinates to high or lowres
+    tissue_positions['x'] *= spaceranger_json[f'tissue_{resolution}_scalef']
+    tissue_positions['y'] *= spaceranger_json[f'tissue_{resolution}_scalef']
     #
     tissue_positions_list.append(tissue_positions)
-
-
 
 ################################################################################
 #   Compute affine transformation and apply to source landmarks and spatial
@@ -177,6 +184,9 @@ affine = np.matmul(
         ]
     )
 )
+
+#   To apply to the source coords in place
+# tissue_positions_list[0][['y', 'x']] = affine[:2, :]
 
 xIaffine = affine[1,:]
 yIaffine = affine[0,:]
@@ -222,5 +232,80 @@ for this_ax in ax:
 ax[0].set_title(f'Source ({capture_areas[0]})', fontsize=15)
 ax[1].set_title(f'Target ({capture_areas[1]})', fontsize=15)
 
-plt.savefig(str(plot_dir / '_'.join(capture_areas)) + '_aligned.png')
+plt.savefig(
+    str(plot_dir / '_'.join(capture_areas)) + f'_{resolution}_aligned.png'
+)
 plt.clf()
+
+################################################################################
+#   Try nonlinear alignment as well
+################################################################################
+
+if torch.cuda.is_available():
+    device = 'cuda:0'
+else:
+    device = 'cpu'
+
+# keep all other parameters default
+params = {
+    'L':L,
+    'T':T,
+    'niter': 200,
+    'pointsI': pointsI,
+    'pointsJ': pointsJ,
+    'device': device,
+    'sigmaP': 2e-1,
+    'sigmaM': 0.18,
+    'sigmaB': 0.18,
+    'sigmaA': 0.18,
+    'diffeo_start': 100,
+    'epL': 5e-11,
+    'epT': 5e-4,
+    'epV': 5e1
+}
+
+out = STalign.LDDMM([YI,XI],I,[YJ,XJ],J,**params)
+
+#   Save since it takes a long time to compute
+with open(out_dir / f'LDDMM_out_{resolution}.pkl', 'wb') as f:
+    pickle.dump(out, f, protocol = pickle.HIGHEST_PROTOCOL)
+
+with open(out_dir / f'LDDMM_out_{resolution}.pkl', 'rb') as f:
+    out = pickle.load(f)
+
+#### get necessary output variables
+A = out['A']
+v = out['v']
+xv = out['xv']
+WM = out['WM']
+
+# apply transform
+phii = STalign.build_transform(xv,v,A,XJ=[YJ,XJ],direction='b')
+phiI = STalign.transform_image_source_to_target(xv,v,A,[YI,XI],I,[YJ,XJ])
+phiipointsI = STalign.transform_points_source_to_target(xv,v,A,pointsI)
+
+#switch tensor from cuda to cpu for plotting with numpy
+if phii.is_cuda:
+    phii = phii.cpu()
+
+if phiI.is_cuda:
+    phiI = phiI.cpu()
+
+if phiipointsI.is_cuda:
+    phiipointsI = phiipointsI.cpu()
+
+
+# plot with grids
+fig,ax = plt.subplots()
+levels = np.arange(-100000,100000,1000)
+
+ax.contour(XJ,YJ,phii[...,0],colors='r',linestyles='-',levels=levels)
+ax.contour(XJ,YJ,phii[...,1],colors='g',linestyles='-',levels=levels)
+ax.set_aspect('equal')
+ax.set_title('source to target')
+
+ax.imshow(phiI.permute(1,2,0)/torch.max(phiI),extent=extentJ)
+ax.scatter(phiipointsI[:,1].detach(),phiipointsI[:,0].detach(),c="m")
+
+#   This actually normalizes things to be between 0 and 1, unlike the other method
+a = (phiI.permute(1,2,0) - torch.min(phiI)) / (torch.max(phiI) - torch.min(phiI))
