@@ -169,6 +169,7 @@ sce$high_mito_pct <- ifelse(sce$subsets_Mito_percent > 5.0,
                             TRUE,
                             FALSE)
 
+print("Table for number of nuclei removed by high mitochondrial percentage")
 table(sce$high_mito_pct)
 
 mito_pct_vln <- plotColData(sce,x = "Sample",y= "subsets_Mito_percent",colour_by = "high_mito_pct") +
@@ -230,6 +231,7 @@ ggsave(plot = low_genes_3,here("plots","12_snRNA",
                                "nuclei_QC","number_genes",
                                "number_genes_nMAD3_batchbySort.png"))
 
+print("Number of nuclei with low genes by sort (nMAD=3)")
 table(sce$low_detected_3,sce$Sort)
 
 #nMAD=2
@@ -247,6 +249,7 @@ ggsave(plot = low_genes_2,here("plots","12_snRNA",
                                "nuclei_QC","number_genes",
                                "number_genes_nMAD2_batchbySort.png"))
 
+print("Number of nuclei with low genes by sort (nMAD=2)")
 table(sce$low_detected_2,sce$Sort)
 
 #nMAD=1
@@ -263,7 +266,9 @@ ggsave(plot = low_genes_1,here("plots","12_snRNA",
                                "nuclei_QC","number_genes",
                                "number_genes_nMAD1_batchbySort.png"))
 
+print("Number of nuclei with low genes by sort (nMAD=1)")
 table(sce$low_detected_1,sce$Sort)
+
 print("detected QC plots complete")
 #########################################
 ########## Low Library Size #############
@@ -313,6 +318,7 @@ ggsave(plot = low_lib_3,here("plots","12_snRNA",
                              "nuclei_QC","library_size",
                              "library_size_nMAD3_batchbySort_logTrue.png"))
 
+print("Number of nuclei with low library size by sort (nMAD=3)")
 table(sce$low_library_3,sce$Sort)
 
 #nMAD=2
@@ -330,6 +336,7 @@ ggsave(plot = low_lib_2,here("plots","12_snRNA",
                              "nuclei_QC","library_size",
                              "library_size_nMAD2_batchbySort_logTrue.png"))
 
+print("Number of nuclei with low library size by sort (nMAD=2)")
 table(sce$low_library_2,sce$Sort)
 
 #nMAD=1
@@ -347,14 +354,16 @@ ggsave(plot = low_lib_1,here("plots","12_snRNA",
                              "nuclei_QC","library_size",
                              "library_size_nMAD1_batchbySort_logTrue.png"))
 
+print("Number of nuclei with low library size by sort (nMAD=1)")
 table(sce$low_detected_1,sce$Sort) 
-print("library size QC completed")
 
+print("library size QC completed")
 ########################################################
 ###For NeuN+, low detected genes nMAD = 3, low library = 3
 ###For PI+, low detected genes nMAD = 1, low library = 1
 ####Identify NeuN cells that need to be dropped 
 NeuN_Drop <- sce[,sce$Sort == "PI_NeuN"]$low_detected_3 | sce[,sce$Sort == "PI_NeuN"]$low_library_3
+print("How many NeuN sorted cells are dropped?")
 table(NeuN_Drop)
 
 #Get cell IDs that need to be dropped
@@ -366,8 +375,14 @@ table(colData(sce[,sce$Sort == "PI_NeuN"])[NeuN_Drop_names,"low_detected_3"])
 print("How many NeuN sorted cells removed with low library size?")
 table(colData(sce[,sce$Sort == "PI_NeuN"])[NeuN_Drop_names,"low_library_3"])
 
+print("How many PI_NeuN nuclei that have low detected genes also have low library size?")
+table(colData(sce[,sce$Sort == "PI_NeuN"])[NeuN_Drop_names,"low_library_3"],
+      colData(sce[,sce$Sort == "PI_NeuN"])[NeuN_Drop_names,"low_detected_3"])
+
 ####Identify PI cells that need to be dropped 
 PI_Drop <- sce[,sce$Sort == "PI"]$low_detected_1 | sce[,sce$Sort == "PI"]$low_library_1
+print("How many PI sorted cells are dropped?")
+table(PI_Drop)
 
 #Get cell IDs that need to be dropped
 PI_Drop_names <- rownames(colData(sce[,sce$Sort == "PI"])[which(PI_Drop),])
@@ -377,6 +392,10 @@ table(colData(sce[,sce$Sort == "PI"])[PI_Drop_names,"low_detected_1"])
 
 print("How many PI sorted cells removed with low library size?")
 table(colData(sce[,sce$Sort == "PI"])[PI_Drop_names,"low_library_1"])
+
+print("How many	PI_NeuN nuclei that have low detected genes also have low library size?")
+table(colData(sce[,sce$Sort == "PI"])[PI_Drop_names,"low_library_1"],
+      colData(sce[,sce$Sort == "PI"])[PI_Drop_names,"low_detected_1"])
 
 #Add a unique rowname to the sce object to identify cells to drop
 sce$unique_rowname <- rownames(colData(sce))
@@ -390,6 +409,7 @@ sce$discard_sum_detected <- ifelse(sce$unique_rowname %in% cells_to_drop,
 
 #### Doublet detection ####
 ## To speed up, run on sample-level top-HVGs - just take top 1000
+print("Running Doublet Detection")
 set.seed(1234)
 
 colData(sce)$doubletScore <- NA
@@ -448,6 +468,10 @@ qc_sum_detected <- sce$discard_sum_detected
 qc_mito_pct <- sce$subsets_Mito_percent > 5
 qc_doublet <- sce$doubletScore >= 5
 
+#How many cells removed by sum/detected cutoffs?
+print("Number of cells removed by sum/detected cutoffs")
+table(sce$discard_sum_detected)
+
 #Add discard to sce object
 sce$discard <- qc_sum_detected | qc_mito_pct | qc_doublet
 
@@ -458,8 +482,11 @@ qc_t <- addmargins(table(sce$Sample, sce$discard))
 
 qc_t
 
-table(sce$discard, sce$doubletScore >= 5)
+#Write out qc table
+write.csv(qc_t,file = here("processed-data","12_snRNA","DiscardedCells_by_Sample.csv"))
 
+print("How many cells identified as low quality cells are doublets?")
+table(sce$discard,sce$doubletScore >= 5)
 
 #Save object
 save(sce,
@@ -469,6 +496,10 @@ save(sce,
 #Remove the cells that don't meet the basic QC cutoffs 
 sce <- sce[,!sce$discard]
 dim(sce)
+
+#Print the sce object. 
+print("SCE object with low quality cells and doublets removed")
+sce
 
 #Save object
 save(sce,
