@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#SBATCH -p shared
 #SBATCH --job-name=04_featureslxn
 #SBATCH --output=logs/04_featureslxn.log 
 #SBATCH --error=logs/04_featureslxn.log

@@ -15,6 +15,7 @@ load(here("processed-data","12_snRNA","sce_clean.rds"),verbose = TRUE)
 dim(sce)
 
 # feature selection
+set.seed(717)
 sce <- devianceFeatureSelection(sce,
                                 assay = "counts",
                                 fam = "binomial",
