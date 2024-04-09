@@ -17,7 +17,6 @@ load(here("processed-data","12_snRNA","sce_featureselection.rds"),verbose = TRUE
 
 sce
 
-
 #Take top 2000 highly deviant genes
 hdgs <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:2000]
 hdgs.symbols <- rowData(sce)$gene_name[match(hdgs, rowData(sce)$gene_id)]
@@ -27,6 +26,7 @@ c("DRD1","DRD2","PPP1R1B") %in% hdgs.symbols
 
 print("Running PCA")
 #Run PCA
+set.seed(1234)
 sce <- runPCA(sce,
               exprs_values = "binomial_pearson_residuals",
               subset_row = hdgs, 
@@ -43,45 +43,43 @@ ggsave(PCA_plots,filename = here("plots","12_snRNA","Dim_Red","Top6_PCAs.png"))
 print("PCA Complete")
 
 #t-SNE with top 50 dimensions.
-#print("Running tSNE") 
-#set.seed(100111001)
-#sce <- runTSNE(sce,
-#               dimred = "GLMPCA_approx",
-#               n_dimred = 50,
-#               name = "tSNE")
-#print("tSNE complete")
+print("Running tSNE") 
+set.seed(1010)
+sce <- runTSNE(sce,
+               dimred = "GLMPCA_approx",
+               n_dimred = 50,
+               name = "tSNE")
+print("tSNE complete")
+
 #Visualize t-SNE with points colored by sample
-#tsne_sample <- plotReducedDim(sce,
-#                              dimred = "tSNE", 
-#                              colour_by = "Sample",
-#                              point_alpha = 0.3)
-#ggsave(tsne_sample,filename = here("plots","12_snRNA","Dim_Red","tSNE_Sample_noMNN.png"))
+tsne_sample <- plotReducedDim(sce,
+                              dimred = "tSNE", 
+                              colour_by = "Sample",
+                              point_alpha = 0.3)
+ggsave(tsne_sample,filename = here("plots","12_snRNA","Dim_Red","tSNE_Sample_noCorrection.png"))
 #Looks like some sections af the tSNE are dominated by just a few of the samples. 
+
+#Visualize t-SNE with points colored by sample
+tsne_brainid <- plotReducedDim(sce,
+                              dimred = "tSNE",
+                              colour_by = "Brain_ID",
+                              point_alpha = 0.3)
+ggsave(tsne_brainid,filename = here("plots","12_snRNA","Dim_Red","tSNE_BrainID_noCorrection.png"))
 
 #Plot by snRNA_date
 #Misspelled as snRNA_data, will fix later. 
-#tsne_snRNA_date <- plotReducedDim(sce,
-#                                  dimred = "tSNE", 
-#                                  colour_by = "snRNA_data",
-#                                  point_alpha = 0.3)
-#ggsave(tsne_snRNA_date,filename = here("plots","12_snRNA","Dim_Red","tSNE_snRNA_date_noMNN.png"))
+tsne_snRNA_date <- plotReducedDim(sce,
+                                  dimred = "tSNE", 
+                                  colour_by = "snRNA_data",
+                                  point_alpha = 0.3)
+ggsave(tsne_snRNA_date,filename = here("plots","12_snRNA","Dim_Red","tSNE_snRNA_date_noCorrection.png"))
 
 #Plot by sort type
-#tsne_sort <- plotReducedDim(sce,
-#                            dimred = "tSNE", 
-#                            colour_by = "Sort",
-#                            point_alpha = 0.3)
-#ggsave(tsne_sort,filename = here("plots","12_snRNA","Dim_Red","tSNE_SortType_noMNN.png"))
-
-#Batch correction most likely needed here. 
-#Run batch correction with mutual nearest neighbors. 
-#print("Running MNN")
-#glmpca_mnn <- batchelor::reducedMNN(reducedDim(sce, "GLMPCA_approx"),
-#                                    batch=as.factor(sce$Sample))
-#print("MNN complete")
-
-#Add mnn to the object
-#reducedDim(sce,"mnn") <- glmpca_mnn$corrected
+tsne_sort <- plotReducedDim(sce,
+                            dimred = "tSNE", 
+                            colour_by = "Sort",
+                            point_alpha = 0.3)
+ggsave(tsne_sort,filename = here("plots","12_snRNA","Dim_Red","tSNE_SortType_noCorrection.png"))
 
 #########HARMONY
 #Harmony requires the PCA reduced dim to be named "PCA"
@@ -95,12 +93,13 @@ reducedDim(sce, "PCA") <- NULL
 
 #tSNE post-mnn with top 50 dimensions
 print("Running tSNE post-Harmony")
-set.seed(100111001)
+set.seed(1001)
 sce <- runTSNE(sce,
                dimred = "HARMONY",
                n_dimred = 50,
                name = "tSNE_HARMONY")
 
+#Corrected tSNE by Sample 
 tSNE_HARMONY_Sample <- plotReducedDim(sce,
                                       dimred = "tSNE_HARMONY", 
                                       colour_by = "Sample",
@@ -108,6 +107,28 @@ tSNE_HARMONY_Sample <- plotReducedDim(sce,
 ggsave(tSNE_HARMONY_Sample,
        filename = here("plots","12_snRNA","Dim_Red","tSNE_Sample_HARMONY.png"))
 
+#Corrected tSNE by Brain_ID 
+tSNE_HARMONY_BrainID <- plotReducedDim(sce,
+                                       dimred = "tSNE_HARMONY",
+                                       colour_by = "Brain_ID",
+                                       point_alpha = 0.3)
+ggsave(tSNE_HARMONY_BrainID,
+       filename = here("plots","12_snRNA","Dim_Red","tSNE_BrainID_HARMONY.png"))
+
+#Plot by snRNA_date
+#Misspelled as snRNA_data, will fix later. 
+tsne_HARMONY_snRNA_date <- plotReducedDim(sce,
+                                          dimred = "tSNE_HARMONY",
+                                          colour_by = "snRNA_data",
+                                          point_alpha = 0.3)
+ggsave(tsne_HARMONY_snRNA_date,filename = here("plots","12_snRNA","Dim_Red","tSNE_snRNA_date_HARMONY.png"))
+
+#Plot by sort type
+tsne_HARMONY_sort <- plotReducedDim(sce,
+                            dimred = "tSNE_HARMONY",
+                            colour_by = "Sort",
+                            point_alpha = 0.3)
+ggsave(tsne_HARMONY_sort,filename = here("plots","12_snRNA","Dim_Red","tSNE_SortType_HARMONY.png"))
 
 print("tSNE_HARMONY complete")
 
