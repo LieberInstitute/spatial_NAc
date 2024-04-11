@@ -21,30 +21,91 @@ matplotlib.use('agg')
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
+coldata_path = here(
+    'processed-data', '13_stalign_tests', 'raw_coldata.csv'
+)
 out_dir = Path(here('processed-data', '13_stalign_tests'))
 plot_dir = Path(here('plots', '13_stalign_tests'))
 capture_areas = ['V12D07-078_B1', 'V12D07-078_D1']
 resolution = 'lowres'
+rasterize = True
 
 out_dir.mkdir(parents = False, exist_ok = True)
 plot_dir.mkdir(parents = False, exist_ok = True)
+
+sample_info = pd.read_csv(sample_info_path, index_col = 0)
+
+################################################################################
+#   Read in tissue positions for source capture area and scale to highres
+################################################################################
+
+tissue_positions_list = []
+for i in range(2):
+    pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
+    this_dir = sample_info.loc[capture_areas[i], 'spaceranger_dir']
+    tissue_path = [
+            Path(os.path.join(this_dir, x)) for x in os.listdir(this_dir)
+            if pattern.match(x)
+        ][0]
+    if '_list' in tissue_path.name: 
+        tissue_positions = pd.read_csv(
+            tissue_path,
+            header = None,
+            # Note the switch of x and y
+            names = ["in_tissue", "row", "col", "y", "x"],
+            index_col = 0
+        )
+    else:
+        tissue_positions = pd.read_csv(
+            tissue_path,
+            skiprows = 1,
+            # Note the switch of x and y
+            names = ["in_tissue", "row", "col", "y", "x"],
+            index_col = 0
+        )
+    #
+    sf_json_path = os.path.join(this_dir, 'scalefactors_json.json')
+    with open(sf_json_path, 'r') as f:
+        spaceranger_json = json.load(f)
+    #
+    #   Scale spatial coordinates to high or lowres
+    tissue_positions['x'] *= spaceranger_json[f'tissue_{resolution}_scalef']
+    tissue_positions['y'] *= spaceranger_json[f'tissue_{resolution}_scalef']
+    #
+    tissue_positions.index += '_' + capture_areas[i]
+    tissue_positions_list.append(tissue_positions)
 
 ################################################################################
 #   Read in source and target images and normalize
 ################################################################################
 
-sample_info = pd.read_csv(sample_info_path, index_col = 0)
-img_paths = [
-    str(here(x, f'tissue_{resolution}_image.png'))
-    for x in sample_info.loc[capture_areas, 'spaceranger_dir']
-]
-img_arrs = [
-    STalign.normalize(np.array(Image.open(x), dtype = np.float64) / 256)
-    for x in img_paths
-]
+if rasterize:
+    coldata = pd.read_csv(coldata_path, index_col = 'key')
+    #
+    img_arrs = []
+    for pos in tissue_positions_list:
+        pos['sum_umi'] = coldata['sum_umi']
+        #
+        XI, YI, I, fig = STalign.rasterize(
+            x = pos['x'], y = pos['y'], g = pos['sum_umi']
+        )
+        img_arrs.append(I)
+    #
+    I = img_arrs[0]
+    J = img_arrs[1]
+else:
+    img_paths = [
+        str(here(x, f'tissue_{resolution}_image.png'))
+        for x in sample_info.loc[capture_areas, 'spaceranger_dir']
+    ]
+    img_arrs = [
+        STalign.normalize(np.array(Image.open(x), dtype = np.float64) / 256)
+        for x in img_paths
+    ]
+    #
+    I = np.moveaxis(img_arrs[0], 2, 0)
+    J = np.moveaxis(img_arrs[1], 2, 0)
 
-I = np.moveaxis(img_arrs[0], 2, 0)
-J = np.moveaxis(img_arrs[1], 2, 0)
 XI = np.array(range(I.shape[2])) * 1.
 YI = np.array(range(I.shape[1])) * 1.
 XJ = np.array(range(J.shape[2])) * 1.
@@ -118,45 +179,6 @@ plt.savefig(
     f'_with_landmarks_{resolution}.png'
 )
 plt.clf()
-
-################################################################################
-#   Read in tissue positions for source capture area and scale to highres
-################################################################################
-
-tissue_positions_list = []
-for i in range(2):
-    pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
-    this_dir = sample_info.loc[capture_areas[i], 'spaceranger_dir']
-    tissue_path = [
-            Path(os.path.join(this_dir, x)) for x in os.listdir(this_dir)
-            if pattern.match(x)
-        ][0]
-    if '_list' in tissue_path.name: 
-        tissue_positions = pd.read_csv(
-            tissue_path,
-            header = None,
-            # Note the switch of x and y
-            names = ["in_tissue", "row", "col", "y", "x"],
-            index_col = 0
-        )
-    else:
-        tissue_positions = pd.read_csv(
-            tissue_path,
-            skiprows = 1,
-            # Note the switch of x and y
-            names = ["in_tissue", "row", "col", "y", "x"],
-            index_col = 0
-        )
-    #
-    sf_json_path = os.path.join(this_dir, 'scalefactors_json.json')
-    with open(sf_json_path, 'r') as f:
-        spaceranger_json = json.load(f)
-    #
-    #   Scale spatial coordinates to high or lowres
-    tissue_positions['x'] *= spaceranger_json[f'tissue_{resolution}_scalef']
-    tissue_positions['y'] *= spaceranger_json[f'tissue_{resolution}_scalef']
-    #
-    tissue_positions_list.append(tissue_positions)
 
 ################################################################################
 #   Compute affine transformation and apply to source landmarks and spatial
