@@ -2,25 +2,77 @@ library(here)
 library(PRECAST)
 library(HDF5Array)
 library(Seurat)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
 library(sessioninfo)
 library(tidyverse)
 library(Matrix)
 library(SpatialExperiment)
+library(ggsci)
+library(ggpubr)
+library(getopt)
+library(scran)
+library(scater)
+library(spatialNAcUtils)
+library(spatialLIBD)
 
-k <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+spec <- matrix(
+    c(
+        "nnSVG_type", "n", 1, "logical", "Use nnSVGs identified by controlling for PRECAST k = 2 clusters?",
+        "specify_k", "k", 1, "logical", "Pre-specify number of clusters?"
+    ),
+    byrow = TRUE, ncol = 5
+)
+opt <- getopt(spec)
+
+if(opt$specify_k){
+    k <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
+}else{
+    k <- c(3:28)
+}
+
 
 spe_dir <- here(
-    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
 )
-svg_path <- here(
-    "processed-data", "05_harmony_BayesSpace", "nnSVG_out",
-    "summary_across_samples.csv"
-)
-out_path <- here("processed-data", "10_precast", paste0("PRECAST_k", k, ".csv"))
+
+if (opt$nnSVG_type) {
+    svg_path <- here(
+        "processed-data", "05_harmony_BayesSpace", "07-run_nnSVG", "nnSVG_precast_out",
+        "summary_across_samples.csv"
+    )
+    if(opt$specify_k){
+        out_path <- here("processed-data", "10_precast", "nnSVG_precast", paste0("PRECAST_k", k, ".csv"))
+        plot_dir <- here('plots', '10_precast', 'nnSVG_precast', paste0("cluster_k_", k))}
+    else{
+        out_path <- here("processed-data", "10_precast", "nnSVG_precast", paste0("PRECAST.csv"))
+        plot_dir <- here('plots', '10_precast', 'nnSVG_precast', 'BIC_select')
+    }
+} else {
+    svg_path <- here(
+        "processed-data", "05_harmony_BayesSpace", "07-run_nnSVG", "nnSVG_out",
+        "summary_across_samples.csv"
+    )
+    if(opt$specify_k){
+        out_path <- here("processed-data", "10_precast", "nnSVG_default", paste0("PRECAST_k", k, ".csv"))
+        plot_dir <- here('plots', '10_precast', 'nnSVG_default', paste0("cluster_k_", k))} 
+    else {
+        out_path <- here("processed-data", "10_precast", "nnSVG_default", paste0("PRECAST.csv"))
+        plot_dir <- here('plots', '10_precast', 'nnSVG_default', 'BIC_select')
+    }
+}
+print("Output saved at:")
+print(out_path)
+print("Spatially variable genes obtained from:")
+print(svg_path)
+print("Plots saved at:")
+print(plot_dir)
 num_genes <- 2000
 
 set.seed(1)
 dir.create(dirname(out_path), showWarnings = FALSE)
+dir.create(dirname(plot_dir), showWarnings = FALSE)
 
 spe <- loadHDF5SummarizedExperiment(spe_dir)
 
@@ -28,12 +80,15 @@ spe <- loadHDF5SummarizedExperiment(spe_dir)
 spe$row <- spe$array_row_transformed
 spe$col <- spe$array_col_transformed
 
+rownames(spe) <- rowData(spe)$gene_name
+rownames(spe) <- make.names(rownames(spe), unique = TRUE)
 #   Create a list of Seurat objects: one per donor
 seu_list <- lapply(
-    unique(spe$donor),
+    levels(spe$donor),
     function(donor) {
+        cat(donor, "\n")
         small_spe <- spe[, spe$donor == donor]
-
+        cat(dim(small_spe), "\n")
         CreateSeuratObject(
             #   Bring into memory to greatly improve speed
             counts = as(assays(small_spe)$counts, "dgCMatrix"),
@@ -43,11 +98,13 @@ seu_list <- lapply(
     }
 )
 
+
 svgs <- read.csv(svg_path) |>
+    mutate( gene_name = rowData(spe)[ match(gene_id, rowData(spe)$gene_id), "gene_name"]) |>
     as_tibble() |>
     arrange(nnsvg_avg_rank_rank) |>
     slice_head(n = num_genes) |>
-    pull(gene_id)
+    pull(gene_name)
 
 pre_obj <- CreatePRECASTObject(
     seuList = seu_list,
@@ -71,20 +128,77 @@ pre_obj <- AddAdjList(pre_obj, platform = "Visium")
 #   documented
 pre_obj <- AddParSetting(
     pre_obj,
-    Sigma_equal = FALSE, verbose = TRUE, maxIter = 30
+    Sigma_equal = FALSE, verbose = TRUE, maxIter = 30, coreNum_int=detectCores() - 1,
 )
 
 #   Fit model
 pre_obj <- PRECAST(pre_obj, K = k)
-pre_obj <- SelectModel(pre_obj)
+resList <- pre_obj@resList
+pre_obj <- SelectModel(pre_obj, return_para_est=TRUE)
 pre_obj <- IntegrateSpaData(pre_obj, species = "Human")
 
 #   Extract PRECAST results, clean up column names, and export to CSV
-pre_obj@meta.data |>
+precast_results <- pre_obj@meta.data |>
     rownames_to_column("key") |>
     as_tibble() |>
     select(-orig.ident) |>
-    rename_with(~ sub("_PRE_CAST", "", .x)) |>
-    write_csv(out_path)
+    rename_with(~ sub("_PRE_CAST", "", .x))
+
+write_csv(precast_results, out_path)
+
+cols_cluster <- get_palette(palette = "default", k)
+
+pre_obj <- RunTSNE(pre_obj, reduction = "PRECAST", tSNE.method = "FIt-SNE")
+
+p1 <- dimPlot(pre_obj, item = "cluster", point_size = 0.5, font_family = "serif", cols = cols_cluster,
+    border_col = "gray10", nrow.legend = 14, legend_pos = "right")
+
+cols_batch <- chooseColors(palettes_name = "Classic 20", n_colors = 10, plot_colors = TRUE)
+p2 <- dimPlot(pre_obj, item = "batch", point_size = 0.5, font_family = "serif", cols = cols_batch,
+    border_col = "gray10", nrow.legend = 14, legend_pos = "right")
+
+pdf(file.path(plot_dir, "/precast_tSNE.pdf"), width = 12, height = 8)
+plot_grid(p1, p2, ncol = 2)
+dev.off()
+
+dat_deg <- FindAllMarkers(pre_obj)
+n <- 10
+dat_deg %>%
+    group_by(cluster) %>%
+    top_n(n = n, wt = avg_log2FC) -> top_markers
+
+pdf(file.path(plot_dir, "/precast_cluster_markers.pdf"), width = 15, height = 7)
+DotPlot(pre_obj, features = unique(top_markers$gene), col.min = 0, col.max = 1) + theme(axis.text.x = element_text(angle = 45,
+    hjust = 1, size = 8))
+dev.off()
+
+
+precast_cluster <- colData(spe) |>
+        as_tibble() |>
+        left_join(precast_results, by = "key") |>
+        pull(cluster)
+
+spe$precast_cluster <- precast_cluster
+# Extract PRECAST results 
+pdf(file.path(plot_dir, "precast_clusters.pdf"), width = 8, height = 8)
+spot_plot(spe, "Br2720", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2743", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br3942", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6423", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6432", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6471", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6522", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8325", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8492", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8667", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
+dev.off()
+
+pdf(file.path(plot_dir, "GLMPCA_precast_clusters.pdf"), width = 6, height = 6)
+plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "precast_cluster")
+dev.off()
+
+pdf(file.path(plot_dir, "PCA_precast_clusters.pdf"), width = 6, height = 6)
+plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "precast_cluster")
+dev.off()
 
 session_info()

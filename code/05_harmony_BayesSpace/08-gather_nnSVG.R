@@ -9,16 +9,16 @@ library(nnSVG)
 library(cowplot)
 
 spe_dir <- here(
-    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
 )
-out_dir <- here("processed-data", "05_harmony_BayesSpace")
-plot_dir <- here("plots", "05_harmony_BayesSpace")
+out_dir <- here("processed-data", "05_harmony_BayesSpace", "07-run_nnSVG")
+plot_dir <- here("plots", "05_harmony_BayesSpace", "07-run_nnSVG")
 nn_methods = c("default", "precast")
 
 hvg_scran_path <- here(
-    "processed-data", "05_harmony_BayesSpace", "top.hvgs.Rdata"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "top.hvgs.Rdata"
 )
-hdgs_path <- here("processed-data", "05_harmony_BayesSpace", "hdgs.hb.Rdata")
+hdgs_path <- here("processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "hdgs.hb.Rdata")
 sig_cutoff <- 0.05
 best_sample_id <- "Br8492"
 
@@ -94,26 +94,20 @@ top_hvgs = list()
 load(hvg_scran_path, verbose = TRUE)
 load(hdgs_path, verbose = TRUE)
 top_hvgs[['scran']] <- tibble(
-    gene_name = top.hvgs.p2,
+    gene_id = top.hvgs.p2,
     method_name = 'scran'
 ) |>
     mutate(rank = row_number())
 
 #   Prepare highly deviant genes
-#top_hvgs[['deviance']] = rowData(spe) |>
-#    as_tibble() |>
-#    arrange(desc(binomial_deviance)) |>
-#    select(gene_id) |>
-#    mutate(
-#        method_name = 'deviance',
-#        rank = row_number()
-#    )
-
-top_hvgs[['deviance']] <- tibble(
-    gene_name = hdgs.hb.2000,
-    method_name = 'deviance'
-) |>
-    mutate(rank = row_number())
+top_hvgs[['deviance']] = rowData(spe) |>
+    as_tibble() |>
+    arrange(desc(binomial_deviance)) |>
+    select(gene_id) |>
+    mutate(
+        method_name = 'deviance',
+        rank = row_number()
+    )
 
 top_hvgs = do.call(rbind, top_hvgs) |>
     mutate(variation_type = 'HVG')
@@ -147,7 +141,7 @@ top_genes = rbind(top_hvgs, top_svgs) |>
     mutate(rank = row_number()) |>
     ungroup()
 
-if (any(is.na(top_genes$gene_name))) {
+if (any(is.na(top_genes$gene_id))) {
     stop("Some top genes not in SpatialExperiment")
 }
 
@@ -198,11 +192,11 @@ for (svg_method in svg_methods) {
         for (i in 1:num_points) {
             overlap_df_list[[combined_method]][i, "prop_overlap"] <- mean(
                 head(
-                    these_svgs$gene_name,
+                    these_svgs$gene_id,
                     overlap_df_list[[combined_method]]$num_genes[i]
                 ) %in%
                 head(
-                    these_hvgs$gene_name,
+                    these_hvgs$gene_id,
                     overlap_df_list[[combined_method]]$num_genes[i]
                 )
             )
@@ -223,6 +217,7 @@ pdf(file.path(plot_dir, "HVG_SVG_prop_overlap.pdf"))
 print(p)
 dev.off()
 
+
 ################################################################################
 #   Plot and export top variable genes for each method of HVGs and SVGs
 ################################################################################
@@ -236,6 +231,9 @@ for (this_method in unique(top_genes$method_name)) {
     )
 
     #   Export top 100 genes for this method
+    these_genes <- these_genes |>
+        mutate( gene_name = rowData(spe)[ match(gene_id, rowData(spe)$gene_id), "gene_name"])
+        
     these_genes |>
         select(gene_id, gene_name, rank) |>
         dplyr::rename(symbol = gene_name) |>
@@ -254,7 +252,7 @@ for (this_method in unique(top_genes$method_name)) {
             ),
             var_name = these_genes$gene_id[i],
             is_discrete = FALSE,
-            minCount = 0
+            minCount = 0, spatial = TRUE
         )
     }
 
@@ -274,7 +272,7 @@ for (this_method in unique(top_genes$method_name)) {
     counter <- 1
     for (i in 1:num_genes) {
         for (j in 1:num_samples) {
-            this_sample_id <- unique(spe$sample_id)[j]
+            this_sample_id <- levels(spe$sample_id)[j]
             plot_list[[counter]] <- spot_plot(
                 spe,
                 sample_id = this_sample_id,
@@ -283,7 +281,7 @@ for (this_method in unique(top_genes$method_name)) {
                 ),
                 var_name = these_genes$gene_id[i],
                 is_discrete = FALSE,
-                minCount = 0
+                minCount = 0, spatial = TRUE
             )
             counter <- counter + 1
         }
@@ -299,15 +297,3 @@ for (this_method in unique(top_genes$method_name)) {
 }
 
 session_info()
-
-
-cuts <- seq(100, 5000, 100)
-overlap <- c()
-for(i in cuts){
-    overlap <- c(overlap, length(intersect(nnSVG$gene_id[nnSVG$nnsvg_avg_rank_rank <= i], nnSVG_precast$gene_id[nnSVG_precast$nnsvg_avg_rank_rank <= i]))/i)
-}
-
-gene_symbol <- c()
-for(i in c(1:length(nnSVG$gene_id))){
-    gene_symbol[i] <- rowData(spe)$gene_name[rowData(spe)$gene_id == nnSVG$gene_id[i]]
-}

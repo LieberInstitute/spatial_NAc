@@ -3,26 +3,41 @@ library(HDF5Array)
 library(sessioninfo)
 library(tidyverse)
 library(SpatialExperiment)
-library(getopt)
 library(spatialLIBD)
+library(getopt)
 
+k <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
 spec <- matrix(
-    c("k", "k", 1, "integer", "Number of PRECAST clusters"),
+    c(
+        "agg_level", "a", 1, "character", "Specify aggregation level"
+    ),
     byrow = TRUE, ncol = 5
 )
-opt <- getopt(spec = spec)
+opt <- getopt(spec)
 
-cluster_col = paste0('precast_k', opt$k)
+cluster_col = paste0('precast_k', k)
 
 spe_dir <- here(
-    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
 )
 precast_path = here(
-    'processed-data', '10_precast', sprintf('PRECAST_k%s.csv', opt$k)
+    'processed-data', '10_precast', 'nnSVG_precast', sprintf('PRECAST_k%s.csv', k)
 )
-spe_pseudo_path = here(
-    'processed-data', '10_precast', sprintf('spe_pseudo_%s.rds', cluster_col)
+
+if(opt$agg_level == "sample_id"){
+    spe_pseudo_path = here(
+    'processed-data', '10_precast', 'nnSVG_precast', 'pseudobulk_donor', sprintf('spe_pseudo_%s.rds', cluster_col)
 )
+}else{
+    if(opt$agg_level == "sample_id_original"){
+        spe_pseudo_path = here(
+    'processed-data', '10_precast', 'nnSVG_precast', 'pseudobulk_capture_area', sprintf('spe_pseudo_%s.rds', cluster_col)
+)
+    }else{
+        stop("Invalid input")
+
+    }
+}
 
 spe <- loadHDF5SummarizedExperiment(spe_dir)
 
@@ -33,16 +48,28 @@ spe[[cluster_col]] = colData(spe) |>
     pull(cluster) |>
     as.factor()
 
-spe_pseudo = registration_pseudobulk(
+# Based on the aggregation level perform pseudo-bulking
+if(opt$agg_level == "sample_id"){
+    spe_pseudo = registration_pseudobulk(
     spe,
     var_registration = cluster_col,
     var_sample_id = "sample_id",
     min_ncells = 10
-)
+)}
+
+if(opt$agg_level == "sample_id_original"){
+    spe_pseudo = registration_pseudobulk(
+    spe,
+    var_registration = cluster_col,
+    var_sample_id = "sample_id_original",
+    min_ncells = 10
+)}
+
+
 
 #   Simplify colData to key, sample-level information
 colData(spe_pseudo) = colData(spe_pseudo)[
-    , sort(c("Age", "Sex", "sample_id", cluster_col, "Diagnosis"))
+    , sort(c("Age", "Sex", "sample_id_original", cluster_col, "Diagnosis"))
 ]
 
 saveRDS(spe_pseudo, spe_pseudo_path)

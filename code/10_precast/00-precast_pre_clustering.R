@@ -98,7 +98,7 @@ cols_batch <- chooseColors(palettes_name = "Classic 20", n_colors = 10, plot_col
 p2 <- dimPlot(pre_obj, item = "batch", point_size = 0.5, font_family = "serif", cols = cols_batch,
     border_col = "gray10", nrow.legend = 14, legend_pos = "right")
 
-pdf(file.path(plot_dir, "precast_tSNE.pdf"), width = 12, height = 8)
+pdf(file.path(plot_dir, "/precast_tSNE.pdf"), width = 12, height = 8)
 plot_grid(p1, p2, ncol = 2)
 dev.off()
 
@@ -108,7 +108,7 @@ dat_deg %>%
     group_by(cluster) %>%
     top_n(n = n, wt = avg_log2FC) -> top40
 
-pdf(file.path(plot_dir, "precast_cluster_markers.pdf"), width = 15, height = 7)
+pdf(file.path(plot_dir, "/precast_cluster_markers.pdf"), width = 15, height = 7)
 DotPlot(pre_obj, features = c(unique(top40$gene), "MBP", "MOBP"), col.min = 0, col.max = 1) + theme(axis.text.x = element_text(angle = 45,
     hjust = 1, size = 8))
 dev.off()

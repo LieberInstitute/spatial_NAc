@@ -7,12 +7,15 @@ library(SpatialExperiment)
 library(spatialLIBD)
 library(spatialNAcUtils)
 library(purrr)
+library(ggpubr)
+library(ggsci)
+library(dittoSeq)
 
-out_path <- here("processed-data", "10_precast", "PRECAST_k%s.csv")
+out_path <- here("processed-data", "10_precast", "nnSVG_precast", "PRECAST_k%s.csv")
 spe_dir <- here(
-    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
 )
-plot_dir <- here("plots", "10_precast")
+plot_dir <- here("plots", "10_precast", "nnSVG_precast")
 
 #   List of genes provided by Svitlana, named by the subregion they're markers
 #   for
@@ -40,7 +43,7 @@ stopifnot(all(unlist(subregion_genes) %in% rowData(spe)$gene_name))
 ################################################################################
 
 result_list <- list()
-for (K in 2:28) {
+for (K in 3:28) {
     result_list[[K]] <- sprintf(out_path, K) |>
         read.csv() |>
         as_tibble() |>
@@ -52,6 +55,11 @@ precast_results <- do.call(rbind, result_list) |>
         values_from = cluster, names_from = k, names_prefix = "precast_k"
     )
 
+precast_results <- data.frame(precast_results)
+for(i in c(2:dim(precast_results)[2])){
+    precast_results[ ,i] <- factor(as.character(precast_results[ ,i]), levels = c(1:(i+1)))
+}
+
 temp <- colnames(spe)
 colData(spe) <- colData(spe) |>
     as_tibble() |>
@@ -60,44 +68,16 @@ colData(spe) <- colData(spe) |>
 colnames(spe) <- temp
 
 ################################################################################
-#   Check that k = 2 strongly correlates with WM vs GM boundary
-################################################################################
-
-#   For each spot, average expression Z-scores across all white matter genes.
-#   The idea is that the combined expression of several white matter genes
-#   should form a more precise marker of white matter than one gene
-a <- assays(spe)$logcounts[
-    match(subregion_genes[["white_matter"]], rowData(spe)$gene_name),
-]
-gene_z <- (a - rowMeans(a)) / rowSds(a)
-spe$z_score <- colMeans(gene_z, na.rm = TRUE)
-
-#   The averaged Z-score of expression across white matter genes should strongly
-#   correlate with the cluster assignment at k=2
-print("Overall correlation of WM gene expression with k=2 cluster assignment:")
-print(cor(spe$z_score, spe$precast_k2, use = "complete.obs"))
-
-print("Correlation broken down by donor:")
-colData(spe) |>
-    as_tibble() |>
-    group_by(sample_id) |>
-    summarize(cor_value = cor(z_score, precast_k2, use = "complete.obs")) |>
-    print()
-
-#   Note that correlations are consistently large and positive, indicating that
-#   cluster 1 roughly corresponds to gray matter, and 2 roughly to white matter
-
-################################################################################
 #   Simply plot cluster assignments for k=2 through k=28
 ################################################################################
 
-for (k in 2:28) {
+for (k in 3:28) {
     plot_list <- list()
     for (donor in unique(spe$sample_id)) {
         plot_list[[donor]] <- spot_plot(
                 spe,
                 sample_id = donor, var_name = paste0("precast_k", k),
-                is_discrete = TRUE
+                is_discrete = TRUE, spatial = TRUE
             ) +
             #   Increase size of colored dots in legend
             guides(fill = guide_legend(override.aes = list(size = 5)))
@@ -107,6 +87,262 @@ for (k in 2:28) {
     print(plot_list)
     dev.off()
 }
+
+# For each value of k, determine the number of spots that belong to each cluster from each donor
+p_list <- list()
+index <- 1
+
+for(k in 3:28){
+    cluster_assignments <- data.frame(spe@colData)
+    group_ids <- c("sample_id", paste0("precast_k", k))
+    k_summary <- cluster_assignments %>%  group_by(across(all_of(group_ids))) %>% summarize(n = n())
+    colnames(k_summary) <- c("sample_id", "cluster", "n")
+    k_summary$cluster <- as.factor(k_summary$cluster)
+    p_list[[index]] <- ggplot(k_summary, aes(x = cluster, y = n, fill = sample_id)) + geom_bar(position="stack", stat="identity") + 
+    theme_classic(base_size = 22) + scale_fill_npg() + xlab("Cluster") + ylab("Number of spots") + guides(fill=guide_legend(title="Individual"))
+    index <- index + 1
+}
+
+pdf(file.path(plot_dir, "cluster_spots_by_sample.pdf"), width = 15, height = 5)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+# Add in clustering for k = 2
+WM_cluster_path <- here("processed-data", "10_precast", "00_pre_clustering", "PRECAST_k2.csv")
+WM_results <- read.csv(WM_cluster_path) |>
+        as_tibble()
+WM_cluster <- colData(spe) |>
+        as_tibble() |>
+        left_join(WM_results, by = "key") |>
+        pull(cluster)
+spe$WM_cluster <- WM_cluster
+spe$WM_cluster[WM_cluster == 1] <- "Gray matter"
+spe$WM_cluster[WM_cluster == 2] <- "White matter"
+spe$WM_cluster <- as.factor(spe$WM_cluster)
+
+spe <- spe[, !is.na(spe$WM_cluster)]
+
+# Visualize proportion of white matter spots in each cluster
+p_list <- list()
+index <- 1
+for(k in 3:28){
+    prop_WM <- list()
+    for(j in 1:k){
+        ind <- spe@colData[ ,paste0("precast_k", k)] == j
+        prop_WM[[j]] <- table(spe$WM_cluster[ind])
+    }
+    prop_WM <- data.frame(do.call(rbind, prop_WM))
+    prop_WM$Cluster <- c(1:k)
+    prop_WM <- reshape2::melt(prop_WM, id.vars = "Cluster")
+    colnames(prop_WM) <- c("Cluster", "Region", "nSpots")
+    prop_WM$Cluster <- factor(prop_WM$Cluster, levels = c(1:k))
+    levels(prop_WM$Region) <- gsub("\\.", " ", levels(prop_WM$Region))
+    p_list[[index]] <- ggplot(prop_WM, aes(x = Cluster, y = nSpots, fill = Region)) + geom_bar(stat = "identity", position = "stack") + 
+    theme_classic(base_size = 22) + ylab("Number of spots") 
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "prop_WM_in_clusters.pdf"), width = 15, height = 5)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+# Plot the distribution of UMI counts in each cluster
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+  p_list[[index]] <- ggplot(data = as.data.frame(colData(spe)),
+       aes_string(x = paste0("precast_k", k), y = "sum_umi", fill = paste0("precast_k", k))) + 
+  geom_violin() + xlab("Cluster") + ylab("Library size") +
+  theme_classic(base_size = 22) + scale_fill_igv() + ylim(c(0, 18000)) + ggtitle(paste0("K = ", k)) +
+  theme(legend.position = "none")
+  index <- index + 1
+}
+pdf(file.path(plot_dir, "Library_size_distributions_by_cluster.pdf"), width = 20, height = 5)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+# Distributions of number of genes
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+  p_list[[index]] <- ggplot(data = as.data.frame(colData(spe)),
+       aes_string(x = paste0("precast_k", k), y = "sum_gene", fill = paste0("precast_k", k))) + 
+  geom_violin() + xlab("Cluster") + ylab("Number of genes") +
+  theme_classic(base_size = 22) + scale_fill_igv() + ylim(c(0, 10000)) + ggtitle(paste0("K = ", k)) +
+  theme(legend.position = "none")
+  index <- index + 1
+}
+pdf(file.path(plot_dir, "Detected_gene_distributions_by_cluster.pdf"), width = 20, height = 5)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+# Distributions of edge distance
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+  p_list[[index]] <- ggplot(data = as.data.frame(colData(spe)),
+       aes_string(x = paste0("precast_k", k), y = "edge_distance", fill = paste0("precast_k", k))) + 
+  geom_violin() + xlab("Cluster") + ylab("Edge distance") +
+  theme_classic(base_size = 22) + scale_fill_igv() + ylim(c(0, 50)) + ggtitle(paste0("K = ", k)) +
+  theme(legend.position = "none")
+  index <- index + 1
+}
+pdf(file.path(plot_dir, "Edge_distance_distributions_by_cluster.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+# Distribution of percent mito
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+  p_list[[index]] <- ggplot(data = as.data.frame(colData(spe)),
+       aes_string(x = paste0("precast_k", k), y = "expr_chrM_ratio", fill = paste0("precast_k", k))) + 
+  geom_violin() + xlab("Cluster") + ylab("Ratio of mitochondrial expression") +
+  theme_classic(base_size = 22) + scale_fill_igv() + ylim(c(0, 0.6)) + ggtitle(paste0("K = ", k)) +
+  theme(legend.position = "none")
+  index <- index + 1
+}
+pdf(file.path(plot_dir, "percent_mito_distributions_by_cluster.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+# Distribution of number of cells by cluster
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+  p_list[[index]] <- ggplot(data = as.data.frame(colData(spe)),
+       aes_string(x = paste0("precast_k", k), y = "Nmask_dark_blue", fill = paste0("precast_k", k))) + 
+  geom_violin() + xlab("Cluster") + ylab("Number of cells ") +
+  theme_classic(base_size = 22) + scale_fill_igv() + ylim(c(0, 10)) + ggtitle(paste0("K = ", k)) +
+  theme(legend.position = "none")
+  index <- index + 1
+}
+pdf(file.path(plot_dir, "nCells_distributions_by_cluster.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+# Check the distribution of shell genes in clusters
+rownames(spe) <- rowData(spe)$gene_name
+
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$shell, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
+    adjustment = "z-score")
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "shell_marker_expression.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$core, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
+    adjustment = "z-score")
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "core_marker_expression.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$white_matter, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
+    adjustment = "z-score")
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "WM_marker_expression.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$D1_islands, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
+    adjustment = "z-score")
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "D1_islands_marker_expression.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+
+## Heatmap to visualize expression in clusters
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoHeatmap(spe, subregion_genes$shell, group.by = paste0("precast_k", k), 
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "shell_marker_expression.pdf"), width = 15, height = 10)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoHeatmap(spe, subregion_genes$core, group.by = paste0("precast_k", k), 
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "core_marker_expression.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoHeatmap(spe, subregion_genes$white_matter, group.by = paste0("precast_k", k), 
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "WM_marker_expression.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
+p_list <- list()
+index <- 1
+for(k in c(3:28)){
+    p_list[[index]] <- dittoHeatmap(spe, subregion_genes$D1_islands, group.by = paste0("precast_k", k), 
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+    index <- index + 1
+}
+pdf(file.path(plot_dir, "D1_islands_marker_expression.pdf"), width = 20, height = 7)
+for(k in 1:length(p_list)){
+    print(p_list[[k]])
+}
+dev.off()
+
 
 ################################################################################
 #   Evaluate if PRECAST cluster assignments were shared for overlapping spots
@@ -248,17 +484,15 @@ pdf(file.path(plot_dir, "WM_vs_match_rate.pdf"))
 print(p)
 dev.off()
 
+### For the remainder of the analysis, we can exclude overlapping spots
+
+
 ################################################################################
 #   Compare PRECAST clusters with marker gene expression of suspected biological
 #   regions (e.g. WM/GM, D1 islands, shell, core)
 ################################################################################
 
-#   Specifically, k = 4 seems to consistently capture WM vs. GM, has a cluster
-#   spread in small pockets across the tissue (D1 islands?), and a cluster
-#   marking a subregion of GM (shell or core?)
-#
-#   Evaluate how well marker genes (albeit derived from mouse/ other species)
-#   of these biological regions line up with k = 4 clusters from PRECAST
+#   We note that 
 b <- Sys.time()
 assay_subset <- Matrix(
     assays(spe)$logcounts[match(unlist(subregion_genes), rowData(spe)$gene_name), ],
@@ -291,16 +525,16 @@ for (subregion in names(subregion_genes)) {
 
     #   Now compute correlation between cluster identity (in a boolean sense--
     #   belonging or not belonging in the cluster) and the averaged Z-score
-    for (cluster_identity in 1:4) {
+    for (cluster_identity in 1:8) {
         cor_mat[match(subregion, names(subregion_genes)), cluster_identity] <-
             cor(
-                gene_z, spe$precast_k4 == cluster_identity,
+                gene_z, spe$precast_k8 == cluster_identity,
                 use = "complete.obs"
             )
     }
 }
 
-message("Correlation of subregion markers with clusters in k=4:")
+message("Correlation of subregion markers with clusters in k=8:")
 print(cor_mat)
 
 session_info()

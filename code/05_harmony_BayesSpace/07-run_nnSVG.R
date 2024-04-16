@@ -30,12 +30,12 @@ sample_id <- levels(spe$sample_id)[as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))
 
 if (opt$use_precast) {
     out_path <- here(
-        "processed-data", "05_harmony_BayesSpace", "nnSVG_precast_out",
+        "processed-data", "05_harmony_BayesSpace", "07-run_nnSVG", "nnSVG_precast_out",
         paste0(sample_id, ".csv")
     )
 } else {
     out_path <- here(
-        "processed-data", "05_harmony_BayesSpace", "nnSVG_out",
+        "processed-data", "05_harmony_BayesSpace", "07-run_nnSVG", "nnSVG_out",
         paste0(sample_id, ".csv")
     )
 }
