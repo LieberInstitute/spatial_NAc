@@ -1,11 +1,10 @@
 **** Job starts ****
-Mon Mar 18 03:05:33 PM EDT 2024
+Thu Mar 28 12:24:37 AM EDT 2024
 **** JHPCE info ****
 User: pravicha
-Job id: 3243030
-Job name: filter_normalize_spe
-Node name: compute-062
-Using 4 cores
+Job id: 3509277
+Job name: 08-gather_nnSVG
+Node name: compute-095
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SpatialExperiment
 Loading required package: SingleCellExperiment
@@ -108,8 +107,6 @@ here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 ✖ lubridate::second<-() masks S4Vectors::second<-()
 ✖ dplyr::slice()        masks IRanges::slice()
 ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-Loading required package: rafalib
-Loading required package: scuttle
 Loading required package: DelayedArray
 Loading required package: Matrix
 
@@ -156,28 +153,6 @@ The following object is masked from ‘package:rhdf5’:
 
     h5ls
 
-Registered S3 method overwritten by 'ggside':
-  method from   
-  +.gg   ggplot2
-Loading required package: limma
-
-Attaching package: ‘limma’
-
-The following object is masked from ‘package:scater’:
-
-    plotMDS
-
-The following object is masked from ‘package:BiocGenerics’:
-
-    plotMA
-
-
-Attaching package: ‘edgeR’
-
-The following object is masked from ‘package:SingleCellExperiment’:
-
-    cpm
-
 
 Attaching package: ‘cowplot’
 
@@ -185,89 +160,420 @@ The following object is masked from ‘package:lubridate’:
 
     stamp
 
-Initial number of spots: 177804 
+Loading objects:
+  top.hvgs.p1
+  top.hvgs.p2
+  top.hvgs.p5
+  top.hvgs.fdr5
+  top.hvgs.fdr1
+Loading objects:
+  hdgs.hb.2000
+  hdgs.hb.5000
+  hdgs.hb.10000
+`summarise()` has grouped output by 'method_name'. You can override using the
+`.groups` argument.
 null device 
           1 
-`geom_smooth()` using formula = 'y ~ x'
-`geom_smooth()` using formula = 'y ~ x'
-`geom_smooth()` using formula = 'y ~ x'
-`geom_smooth()` using formula = 'y ~ x'
-`geom_smooth()` using formula = 'y ~ x'
-`geom_smooth()` using formula = 'y ~ x'
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-Warning message:
-Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead. 
-null device 
-          1 
-[1] "2024-03-18 18:30:10 EDT"
-2024-03-18 18:30:10.559628 - Running computeLibraryFactors()
-[1] "2024-03-18 18:30:10 EDT"
-[1] "2024-03-18 18:42:21 EDT"
-2024-03-18 18:42:21.183416 - Running checking sizeFactors()
-    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-0.001204 0.524745 0.850002 1.000000 1.313066 8.987761 
-2024-03-18 18:42:21.394086 - Running logNormCounts()
-2024-03-18 18:42:21.710977 - Saving HDF5-backed object to control memory later
-           used  (Mb) gc trigger    (Mb)   max used    (Mb)
-Ncells 13210814 705.6   20474861  1093.5   20474861  1093.5
-Vcells 57173995 436.3 1704553328 13004.8 2663364524 20319.9
-null device 
-          1 
-2024-03-18 19:56:17.933525 - Running modelGeneVar()
-  Br2720      Br2743      Br3942      Br6423      Br6432      Br6471     
-x numeric,101 numeric,101 numeric,101 numeric,101 numeric,101 numeric,101
-y numeric,101 numeric,101 numeric,101 numeric,101 numeric,101 numeric,101
-  Br6522      Br8325      Br8492      Br8667     
-x numeric,101 numeric,101 numeric,101 numeric,101
-y numeric,101 numeric,101 numeric,101 numeric,101
-null device 
-          1 
-2024-03-18 20:23:36.568083 - Running getTopHVGs()
-[1] "Num HVGs at FDR = 0.05: 10336"
-[1] "Num HVGs at FDR = 0.01: 9637"
-2024-03-18 20:23:36.854463 - Running runPCA()
-[1] "2024-03-18 20:23:36 EDT"
-[1] "2024-03-18 22:21:14 EDT"
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-null device 
-          1 
-2024-03-18 22:21:18.441715 - Running devianceFeatureSelection()
-null device 
-          1 
-Br2720 
-Br2743 
-Br3942 
-Br6423 
-Br6432 
-Br6471 
-Br6522 
-Br8325 
-Br8492 
-Br8667 
-2024-03-18 23:59:00.831159 - Running GLM-PCA
-There were 50 or more warnings (use warnings() to see the first 50)
-2024-03-19 09:45:14.885359 - Running GLM-PCA
-There were 50 or more warnings (use warnings() to see the first 50)
-2024-03-19 20:19:06.747089 - Running GLM-PCA
-There were 50 or more warnings (use warnings() to see the first 50)
-2024-03-20 08:32:04.996859 - Saving HDF5-backed filtered spe
-There were 50 or more warnings (use warnings() to see the first 50)
-2024-03-20 13:03:47.630012 - Saving ordinary filtered spe
+[[1]]
+
+[[2]]
+
+[[3]]
+
+[[4]]
+
+[[5]]
+
+[[6]]
+
+[[7]]
+
+[[8]]
+
+[[9]]
+
+[[10]]
+
+[[11]]
+
+[[12]]
+
+[[13]]
+
+[[14]]
+
+[[15]]
+
+[[16]]
+
+[[17]]
+
+[[18]]
+
+[[19]]
+
+[[20]]
+
+[[21]]
+
+[[22]]
+
+[[23]]
+
+[[24]]
+
+[[25]]
+
+[[26]]
+
+[[27]]
+
+[[28]]
+
+[[29]]
+
+[[30]]
+
+[[31]]
+
+[[32]]
+
+[[33]]
+
+[[34]]
+
+[[35]]
+
+[[36]]
+
+[[37]]
+
+[[38]]
+
+[[39]]
+
+[[40]]
+
+[[41]]
+
+[[42]]
+
+[[43]]
+
+[[44]]
+
+[[45]]
+
+[[46]]
+
+[[47]]
+
+[[48]]
+
+[[49]]
+
+[[50]]
+
+[[1]]
+
+[[2]]
+
+[[3]]
+
+[[4]]
+
+[[5]]
+
+[[6]]
+
+[[7]]
+
+[[8]]
+
+[[9]]
+
+[[10]]
+
+[[11]]
+
+[[12]]
+
+[[13]]
+
+[[14]]
+
+[[15]]
+
+[[16]]
+
+[[17]]
+
+[[18]]
+
+[[19]]
+
+[[20]]
+
+[[21]]
+
+[[22]]
+
+[[23]]
+
+[[24]]
+
+[[25]]
+
+[[26]]
+
+[[27]]
+
+[[28]]
+
+[[29]]
+
+[[30]]
+
+[[31]]
+
+[[32]]
+
+[[33]]
+
+[[34]]
+
+[[35]]
+
+[[36]]
+
+[[37]]
+
+[[38]]
+
+[[39]]
+
+[[40]]
+
+[[41]]
+
+[[42]]
+
+[[43]]
+
+[[44]]
+
+[[45]]
+
+[[46]]
+
+[[47]]
+
+[[48]]
+
+[[49]]
+
+[[50]]
+
+[[1]]
+
+[[2]]
+
+[[3]]
+
+[[4]]
+
+[[5]]
+
+[[6]]
+
+[[7]]
+
+[[8]]
+
+[[9]]
+
+[[10]]
+
+[[11]]
+
+[[12]]
+
+[[13]]
+
+[[14]]
+
+[[15]]
+
+[[16]]
+
+[[17]]
+
+[[18]]
+
+[[19]]
+
+[[20]]
+
+[[21]]
+
+[[22]]
+
+[[23]]
+
+[[24]]
+
+[[25]]
+
+[[26]]
+
+[[27]]
+
+[[28]]
+
+[[29]]
+
+[[30]]
+
+[[31]]
+
+[[32]]
+
+[[33]]
+
+[[34]]
+
+[[35]]
+
+[[36]]
+
+[[37]]
+
+[[38]]
+
+[[39]]
+
+[[40]]
+
+[[41]]
+
+[[42]]
+
+[[43]]
+
+[[44]]
+
+[[45]]
+
+[[46]]
+
+[[47]]
+
+[[48]]
+
+[[49]]
+
+[[50]]
+
+[[1]]
+
+[[2]]
+
+[[3]]
+
+[[4]]
+
+[[5]]
+
+[[6]]
+
+[[7]]
+
+[[8]]
+
+[[9]]
+
+[[10]]
+
+[[11]]
+
+[[12]]
+
+[[13]]
+
+[[14]]
+
+[[15]]
+
+[[16]]
+
+[[17]]
+
+[[18]]
+
+[[19]]
+
+[[20]]
+
+[[21]]
+
+[[22]]
+
+[[23]]
+
+[[24]]
+
+[[25]]
+
+[[26]]
+
+[[27]]
+
+[[28]]
+
+[[29]]
+
+[[30]]
+
+[[31]]
+
+[[32]]
+
+[[33]]
+
+[[34]]
+
+[[35]]
+
+[[36]]
+
+[[37]]
+
+[[38]]
+
+[[39]]
+
+[[40]]
+
+[[41]]
+
+[[42]]
+
+[[43]]
+
+[[44]]
+
+[[45]]
+
+[[46]]
+
+[[47]]
+
+[[48]]
+
+[[49]]
+
+[[50]]
+
 ─ Session info ───────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
@@ -278,7 +584,7 @@ There were 50 or more warnings (use warnings() to see the first 50)
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-03-20
+ date     2024-03-28
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -297,15 +603,16 @@ There were 50 or more warnings (use warnings() to see the first 50)
  BiocIO                   1.12.0    2023-10-24 [1] Bioconductor
  BiocManager              1.30.22   2023-08-08 [1] CRAN (R 4.3.2)
  BiocNeighbors            1.20.2    2024-01-07 [1] Bioconductor 3.18 (R 4.3.2)
- BiocParallel           * 1.36.0    2023-10-24 [1] Bioconductor
- BiocSingular           * 1.18.0    2023-10-24 [1] Bioconductor
+ BiocParallel             1.36.0    2023-10-24 [1] Bioconductor
+ BiocSingular             1.18.0    2023-10-24 [1] Bioconductor
  BiocVersion              3.18.1    2023-11-15 [1] Bioconductor
  Biostrings               2.70.1    2023-10-25 [1] Bioconductor
  bit                      4.0.5     2022-11-15 [1] CRAN (R 4.3.0)
  bit64                    4.0.5     2020-08-30 [1] CRAN (R 4.3.0)
  bitops                   1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
  blob                     1.2.4     2023-03-17 [1] CRAN (R 4.3.0)
- bluster                * 1.11.4    2024-02-02 [1] Github (LTLA/bluster@17dd9c8)
+ bluster                  1.11.4    2024-02-02 [1] Github (LTLA/bluster@17dd9c8)
+ BRISC                    1.0.5     2022-04-29 [1] CRAN (R 4.3.2)
  bslib                    0.6.1     2023-11-28 [1] CRAN (R 4.3.2)
  cachem                   1.0.8     2023-05-01 [1] CRAN (R 4.3.0)
  cli                      3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
@@ -319,7 +626,6 @@ There were 50 or more warnings (use warnings() to see the first 50)
  data.table               1.14.10   2023-12-08 [1] CRAN (R 4.3.2)
  DBI                      1.1.3     2022-06-18 [1] CRAN (R 4.3.0)
  dbplyr                   2.4.0     2023-10-26 [1] CRAN (R 4.3.1)
- dbscan                   1.1-12    2023-11-28 [1] CRAN (R 4.3.2)
  DelayedArray           * 0.28.0    2023-10-24 [1] Bioconductor
  DelayedMatrixStats       1.24.0    2023-10-24 [1] Bioconductor
  deldir                   2.0-2     2023-11-23 [1] CRAN (R 4.3.2)
@@ -329,7 +635,7 @@ There were 50 or more warnings (use warnings() to see the first 50)
  dplyr                  * 1.1.4     2023-11-17 [1] CRAN (R 4.3.2)
  dqrng                    0.3.2     2023-11-29 [1] CRAN (R 4.3.2)
  DT                       0.31      2023-12-09 [1] CRAN (R 4.3.2)
- edgeR                  * 4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
+ edgeR                    4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
  ellipsis                 0.3.2     2021-04-29 [1] CRAN (R 4.3.0)
  ExperimentHub            2.10.0    2023-10-24 [1] Bioconductor
  fansi                    1.0.6     2023-12-08 [1] CRAN (R 4.3.2)
@@ -341,28 +647,21 @@ There were 50 or more warnings (use warnings() to see the first 50)
  fitdistrplus             1.1-11    2023-04-25 [1] CRAN (R 4.3.2)
  forcats                * 1.0.0     2023-01-29 [1] CRAN (R 4.3.0)
  foreach                  1.5.2     2022-02-02 [1] CRAN (R 4.3.0)
- fs                       1.6.3     2023-07-20 [1] CRAN (R 4.3.1)
  future                   1.33.0    2023-07-01 [1] CRAN (R 4.3.0)
  future.apply             1.11.0    2023-05-21 [1] CRAN (R 4.3.0)
- gargle                   1.5.2     2023-07-20 [1] CRAN (R 4.3.1)
  generics                 0.1.3     2022-07-05 [1] CRAN (R 4.3.0)
  GenomeInfoDb           * 1.38.1    2023-11-08 [1] Bioconductor
  GenomeInfoDbData         1.2.11    2023-12-12 [1] Bioconductor
  GenomicAlignments        1.38.0    2023-10-24 [1] Bioconductor
  GenomicRanges          * 1.54.1    2023-10-29 [1] Bioconductor
  ggbeeswarm               0.7.2     2023-04-29 [1] CRAN (R 4.3.2)
- ggExtra                * 0.10.1    2023-08-21 [1] CRAN (R 4.3.2)
  ggplot2                * 3.4.4     2023-10-12 [1] CRAN (R 4.3.2)
  ggrepel                  0.9.4     2023-10-13 [1] CRAN (R 4.3.2)
  ggridges                 0.5.4     2022-09-26 [1] CRAN (R 4.3.2)
- ggsci                  * 3.0.1     2024-03-02 [1] CRAN (R 4.3.2)
- ggside                   0.3.0     2024-02-26 [1] CRAN (R 4.3.2)
- ggspavis               * 1.8.0     2023-10-24 [1] Bioconductor
  globals                  0.16.2    2022-11-21 [1] CRAN (R 4.3.0)
  glue                     1.7.0     2024-01-09 [1] CRAN (R 4.3.2)
  goftest                  1.2-3     2021-10-07 [1] CRAN (R 4.3.2)
  golem                    0.4.1     2023-06-05 [1] CRAN (R 4.3.2)
- googledrive              2.1.1     2023-06-11 [1] CRAN (R 4.3.0)
  gridExtra                2.3       2017-09-09 [1] CRAN (R 4.3.2)
  gtable                   0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
  HDF5Array              * 1.30.0    2023-10-24 [1] Bioconductor
@@ -377,9 +676,7 @@ There were 50 or more warnings (use warnings() to see the first 50)
  interactiveDisplayBase   1.40.0    2023-10-24 [1] Bioconductor
  IRanges                * 2.36.0    2023-10-24 [1] Bioconductor
  irlba                    2.3.5.1   2022-10-03 [1] CRAN (R 4.3.2)
- isoband                  0.2.7     2022-12-20 [1] CRAN (R 4.3.0)
  iterators                1.0.14    2022-02-05 [1] CRAN (R 4.3.0)
- jaffelab               * 0.99.32   2023-12-12 [1] Github (LieberInstitute/jaffelab@21e6574)
  jquerylib                0.1.4     2021-04-26 [1] CRAN (R 4.3.0)
  jsonlite                 1.8.8     2023-12-04 [1] CRAN (R 4.3.2)
  KEGGREST                 1.42.0    2023-10-24 [1] Bioconductor
@@ -390,7 +687,7 @@ There were 50 or more warnings (use warnings() to see the first 50)
  lazyeval                 0.2.2     2019-03-15 [1] CRAN (R 4.3.0)
  leiden                   0.4.3.1   2023-11-17 [1] CRAN (R 4.3.2)
  lifecycle                1.0.4     2023-11-07 [1] CRAN (R 4.3.2)
- limma                  * 3.58.1    2023-10-31 [1] Bioconductor
+ limma                    3.58.1    2023-10-31 [1] Bioconductor
  listenv                  0.9.0     2022-12-16 [1] CRAN (R 4.3.0)
  lmtest                   0.9-40    2022-03-21 [1] CRAN (R 4.3.2)
  locfit                   1.5-9.8   2023-06-11 [1] CRAN (R 4.3.2)
@@ -404,16 +701,15 @@ There were 50 or more warnings (use warnings() to see the first 50)
  matrixStats            * 1.2.0     2023-12-11 [1] CRAN (R 4.3.2)
  memoise                  2.0.1     2021-11-26 [1] CRAN (R 4.3.0)
  metapod                  1.10.0    2023-10-24 [1] Bioconductor
- mgcv                     1.9-0     2023-07-11 [1] CRAN (R 4.3.0)
  mime                     0.12      2021-09-28 [1] CRAN (R 4.3.0)
  miniUI                   0.1.1.1   2018-05-18 [1] CRAN (R 4.3.2)
  munsell                  0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
  nlme                     3.1-164   2023-11-27 [1] CRAN (R 4.3.2)
+ nnSVG                  * 1.6.0     2023-10-24 [1] Bioconductor
  paletteer                1.5.0     2022-10-19 [1] CRAN (R 4.3.2)
  parallelly               1.36.0    2023-05-26 [1] CRAN (R 4.3.0)
  patchwork                1.1.3     2023-08-14 [1] CRAN (R 4.3.2)
  pbapply                  1.7-2     2023-06-27 [1] CRAN (R 4.3.2)
- pheatmap               * 1.0.12    2019-01-04 [1] CRAN (R 4.3.2)
  pillar                   1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
  pkgconfig                2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
  plotly                   4.10.3    2023-10-21 [1] CRAN (R 4.3.2)
@@ -424,7 +720,6 @@ There were 50 or more warnings (use warnings() to see the first 50)
  promises                 1.2.1     2023-08-10 [1] CRAN (R 4.3.1)
  purrr                  * 1.0.2     2023-08-10 [1] CRAN (R 4.3.1)
  R6                       2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
- rafalib                * 1.0.0     2015-08-09 [1] CRAN (R 4.3.2)
  RANN                     2.6.1     2019-01-08 [1] CRAN (R 4.3.2)
  rappdirs                 0.3.3     2021-01-31 [1] CRAN (R 4.3.0)
  RColorBrewer             1.1-3     2022-04-03 [1] CRAN (R 4.3.0)
@@ -432,6 +727,7 @@ There were 50 or more warnings (use warnings() to see the first 50)
  RcppAnnoy                0.0.21    2023-07-02 [1] CRAN (R 4.3.2)
  RcppHNSW                 0.5.0     2023-09-19 [1] CRAN (R 4.3.2)
  RCurl                    1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
+ rdist                    0.0.5     2020-05-04 [1] CRAN (R 4.3.2)
  readr                  * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
  rematch2                 2.1.2     2020-05-01 [1] CRAN (R 4.3.0)
  reshape2                 1.4.4     2020-04-09 [1] CRAN (R 4.3.0)
@@ -455,13 +751,11 @@ There were 50 or more warnings (use warnings() to see the first 50)
  sass                     0.4.8     2023-12-06 [1] CRAN (R 4.3.2)
  ScaledMatrix             1.10.0    2023-10-24 [1] Bioconductor
  scales                   1.3.0     2023-11-28 [1] CRAN (R 4.3.2)
- scater                 * 1.30.1    2023-11-16 [1] Bioconductor
+ scater                   1.30.1    2023-11-16 [1] Bioconductor
  scattermore              1.2       2023-06-12 [1] CRAN (R 4.3.2)
- scran                  * 1.30.0    2023-10-24 [1] Bioconductor
- scry                   * 1.14.0    2023-10-24 [1] Bioconductor
+ scran                    1.30.0    2023-10-24 [1] Bioconductor
  sctransform              0.4.1     2023-10-19 [1] CRAN (R 4.3.2)
- scuttle                * 1.12.0    2023-10-24 [1] Bioconductor
- segmented                2.0-0     2023-11-27 [1] CRAN (R 4.3.2)
+ scuttle                  1.12.0    2023-10-24 [1] Bioconductor
  sessioninfo            * 1.2.2     2021-12-06 [1] CRAN (R 4.3.2)
  Seurat                   5.0.1     2023-11-17 [1] CRAN (R 4.3.2)
  SeuratObject             5.0.1     2023-11-17 [1] CRAN (R 4.3.2)
@@ -481,7 +775,6 @@ There were 50 or more warnings (use warnings() to see the first 50)
  spatstat.random          3.2-2     2023-11-29 [1] CRAN (R 4.3.2)
  spatstat.sparse          3.0-3     2023-10-24 [1] CRAN (R 4.3.2)
  spatstat.utils           3.0-4     2023-10-24 [1] CRAN (R 4.3.2)
- SpotSweeper            * 0.99.1    2024-02-16 [1] Github (MicTott/SpotSweeper@70b5880)
  statmod                  1.5.0     2023-01-06 [1] CRAN (R 4.3.2)
  stringi                  1.8.3     2023-12-11 [1] CRAN (R 4.3.2)
  stringr                * 1.5.1     2023-11-14 [1] CRAN (R 4.3.2)
@@ -500,6 +793,7 @@ There were 50 or more warnings (use warnings() to see the first 50)
  vipor                    0.4.5     2017-03-22 [1] CRAN (R 4.3.2)
  viridis                  0.6.4     2023-07-22 [1] CRAN (R 4.3.2)
  viridisLite              0.4.2     2023-05-02 [1] CRAN (R 4.3.0)
+ vroom                    1.6.5     2023-12-05 [1] CRAN (R 4.3.2)
  withr                    2.5.2     2023-10-30 [1] CRAN (R 4.3.1)
  XML                      3.99-0.16 2023-11-29 [1] CRAN (R 4.3.2)
  xtable                   1.8-4     2019-04-21 [1] CRAN (R 4.3.0)
@@ -512,4 +806,4 @@ There were 50 or more warnings (use warnings() to see the first 50)
 
 ──────────────────────────────────────────────────────────────────────────────
 **** Job ends ****
-Wed Mar 20 02:14:55 PM EDT 2024
+Thu Mar 28 12:41:03 AM EDT 2024
