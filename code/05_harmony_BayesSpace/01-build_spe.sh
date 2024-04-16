@@ -31,7 +31,7 @@ echo "Job id: ${job_id}"
 echo "Job name: ${job_name}"
 echo "Node name: ${node_name}"
 
-module load conda_R/4.3
+module load r_nac
 Rscript 01-build_spe.R
 
 echo "**** Job ends ****"
