@@ -15,6 +15,7 @@ spec <- matrix(
 )
 opt <- getopt(spec)
 
+
 cluster_col = paste0('precast_k', k)
 
 spe_dir <- here(
@@ -24,6 +25,8 @@ precast_path = here(
     'processed-data', '10_precast', 'nnSVG_precast', sprintf('PRECAST_k%s.csv', k)
 )
 
+print("The aggregation level is")
+print(opt$agg_level)
 if(opt$agg_level == "sample_id"){
     spe_pseudo_path = here(
     'processed-data', '10_precast', 'nnSVG_precast', 'pseudobulk_donor', sprintf('spe_pseudo_%s.rds', cluster_col)
@@ -69,7 +72,7 @@ if(opt$agg_level == "sample_id_original"){
 
 #   Simplify colData to key, sample-level information
 colData(spe_pseudo) = colData(spe_pseudo)[
-    , sort(c("Age", "Sex", "sample_id_original", cluster_col, "Diagnosis"))
+    , sort(c("Age", "Sex", "sample_id_original", "sample_id", cluster_col, "Diagnosis"))
 ]
 
 saveRDS(spe_pseudo, spe_pseudo_path)
