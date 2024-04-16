@@ -2,11 +2,25 @@
 #module load r_nac
 library(SingleCellExperiment)
 library(DeconvoBuddies)
+library(HDF5Array)
+library(here)
 
-gmr_pt25 <- get_mean_ratio(sce,
-                           cellType_col = "k_10_louvain_pt25",
-                           assay_name = "logcounts",
-                           add_symbol = FALSE)
+#Load sce
+print("Loading SCE")
+sce <- loadHDF5SummarizedExperiment(dir = here("processed-data","12_snRNA",
+                                               "sce_clustered"))
+dim(sce)
+
+stopifnot(identical(rownames(colData(sce)),colnames(sce)))
+
+sce
+######################
+
+#Run mean ratio
+gmr_pt25 <- get_mean_ratio2(sce,
+                            cellType_col = "k_10_louvain_pt25",
+                            assay_name = "logcounts",
+                            add_symbol = FALSE)
 
 save(sce,
      file = here("processed-data","12_snRNA","broad_clustering_meanratio_preannotation.rds"))
