@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Tue Apr  9 08:44:16 AM EDT 2024
+Thu Apr 18 09:06:02 AM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -117,31 +117,31 @@ The following object is masked from ‘package:rhdf5’:
 Loading required package: scuttle
 here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 [1] "Loading SCE"
-[1]  36601 105433
+[1]  36601 103785
 class: SingleCellExperiment 
-dim: 36601 105433 
+dim: 36601 103785 
 metadata(1): Samples
 assays(3): counts binomial_pearson_residuals logcounts
 rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
   ENSG00000277196
 rowData names(7): source type ... gene_type binomial_deviance
-colnames(105433): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
+colnames(103785): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
   20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
-colData names(38): Sample Barcode ... k_50_louvain_pt25 sizeFactor
+colData names(39): Sample Barcode ... k_50_louvain_pt25 sizeFactor
 reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
 mainExpName: NULL
 altExpNames(0):
 [1] "Starting DEG testing"
           1     2     3     4     5     6     7     8     9    10    11    12
-FALSE 35688 36311 34982 36017 36250 33663 35644 36386 35302 35769 36384 35811
-TRUE    913   290  1619   584   351  2938   957   215  1299   832   217   790
-         13    14    15    16    17    18
-FALSE 36101 36358 36152 36464 35596 36284
-TRUE    500   243   449   137  1005   317
+FALSE 35929 36350 35646 36132 36298 34328 35871 36406 35734 35959 35931 36180
+TRUE    672   251   955   469   303  2273   730   195   867   642   670   421
+         13    14    15    16    17
+FALSE 36402 36326 36399 36067 35797
+TRUE    199   275   202   534   804
 [1] "Reproducibility information:"
-[1] "2024-04-09 09:17:15 EDT"
+[1] "2024-04-18 09:24:31 EDT"
     user   system  elapsed 
-1613.517   15.154 1976.014 
+1065.251    6.564 1108.472 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
@@ -152,7 +152,7 @@ TRUE    500   243   449   137  1005   317
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-04-09
+ date     2024-04-18
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -239,4 +239,4 @@ TRUE    500   243   449   137  1005   317
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Tue Apr  9 09:17:16 AM EDT 2024
+Thu Apr 18 09:24:32 AM EDT 2024

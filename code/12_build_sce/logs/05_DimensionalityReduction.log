@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Sun Apr  7 04:25:08 PM EDT 2024
+Wed Apr 17 09:20:55 AM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -120,15 +120,15 @@ here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 Loading objects:
   sce
 class: SingleCellExperiment 
-dim: 36601 105433 
+dim: 36601 103785 
 metadata(1): Samples
 assays(2): counts binomial_pearson_residuals
 rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
   ENSG00000277196
 rowData names(7): source type ... gene_type binomial_deviance
-colnames(105433): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
+colnames(103785): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
   20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
-colData names(29): Sample Barcode ... doubletScore discard
+colData names(30): Sample Barcode ... IEG_cells discard
 reducedDimNames(0):
 mainExpName: NULL
 altExpNames(0):
@@ -174,8 +174,10 @@ Harmony 4/10
 [----|----|----|----|----|----|----|----|----|----|
 **************************************************|
 Harmony converged after 4 iterations
-Warning message:
-Quick-TRANSfer stage steps exceeded maximum (= 5271650) 
+Warning messages:
+1: Quick-TRANSfer stage steps exceeded maximum (= 5189250) 
+2: Quick-TRANSfer stage steps exceeded maximum (= 5189250) 
+3: Quick-TRANSfer stage steps exceeded maximum (= 5189250) 
 [1] "Running tSNE post-Harmony"
 Saving 7 x 7 in image
 Saving 7 x 7 in image
@@ -185,9 +187,9 @@ Saving 7 x 7 in image
 [1] "Saving sce object"
 [1] "Object saved"
 [1] "Reproducibility information:"
-[1] "2024-04-07 20:03:50 EDT"
-     user    system   elapsed 
-11968.436   799.605 13115.886 
+[1] "2024-04-17 10:27:25 EDT"
+    user   system  elapsed 
+3694.124   71.114 3985.290 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
@@ -198,7 +200,7 @@ Saving 7 x 7 in image
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-04-07
+ date     2024-04-17
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -298,4 +300,4 @@ Saving 7 x 7 in image
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Sun Apr  7 08:04:00 PM EDT 2024
+Wed Apr 17 10:27:29 AM EDT 2024
