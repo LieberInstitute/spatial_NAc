@@ -468,12 +468,27 @@ qc_sum_detected <- sce$discard_sum_detected
 qc_mito_pct <- sce$subsets_Mito_percent > 5
 qc_doublet <- sce$doubletScore >= 5
 
+#Previous clustering analysis identified low-quality neurons that express far fewer genes and exhbiti
+#significant enrichment of immediate early genes such as Fos and NPAS4. I saved the IDs of these cells 
+#and will remove them as part of the QC. 
+load(here("processed-data","12_snRNA","IEG_neurons_to_remove.rds"),verbose = TRUE)
+#add unique rowname column to the colData
+colData(sce)$unique_rowname <- rownames(colData(sce))
+#Add TRUE/FALSE statement for whether cell is in the IEG_cells vector
+sce$IEG_cells <- colData(sce)$unique_rowname %in% IEG_cells
+#sanity check for above code
+all(subset(colData(sce),subset=(IEG_cells == TRUE))$unique_rowname %in% IEG_cells)
+qc_IEG <- sce$IEG_cells
+
+print("Number of cells identified as low quality neurons (IEG cells)")
+table(sce$IEG_cells)
+
 #How many cells removed by sum/detected cutoffs?
 print("Number of cells removed by sum/detected cutoffs")
 table(sce$discard_sum_detected)
 
 #Add discard to sce object
-sce$discard <- qc_sum_detected | qc_mito_pct | qc_doublet
+sce$discard <- qc_sum_detected | qc_mito_pct | qc_doublet | qc_IEG
 
 print("How many cells are removed from the object?")
 table(sce$discard)
@@ -491,7 +506,6 @@ table(sce$discard,sce$doubletScore >= 5)
 #Save object
 save(sce,
      file = here("processed-data","12_snRNA","sce_emptyDrops_removed_withQC.rds"))
-
 
 #Remove the cells that don't meet the basic QC cutoffs 
 sce <- sce[,!sce$discard]
