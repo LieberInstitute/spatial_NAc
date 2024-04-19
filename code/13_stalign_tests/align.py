@@ -28,7 +28,7 @@ out_dir = Path(here('processed-data', '13_stalign_tests'))
 plot_dir = Path(here('plots', '13_stalign_tests'))
 capture_areas = ['V12D07-078_B1', 'V12D07-078_D1']
 resolution = 'lowres'
-rasterize = True
+rasterize = False
 
 out_dir.mkdir(parents = False, exist_ok = True)
 plot_dir.mkdir(parents = False, exist_ok = True)
@@ -195,6 +195,8 @@ else:
 L,T = STalign.L_T_from_points(pointsI,pointsJ)
 A = STalign.to_A(torch.tensor(L),torch.tensor(T))
 
+AI = STalign.transform_image_source_with_A(A, [YI,XI], I, [YJ,XJ])
+
 #   Apply affine transform to source spatial coordinates
 affine = np.matmul(
     np.array(A.cpu()),
@@ -229,8 +231,8 @@ pointsIaffine = np.column_stack((ypointsIaffine,xpointsIaffine))
 
 fig, ax = plt.subplots(1, 2)
 
-#   Images
-ax[0].imshow((I).transpose(1,2,0),extent=extentI)
+#   Target and aligned source images
+ax[0].imshow((AI.cpu()).permute(1,2,0),extent=extentJ)
 ax[1].imshow((J).transpose(1,2,0),extent=extentJ)
 
 #   Spatial coords
