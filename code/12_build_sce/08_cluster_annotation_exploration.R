@@ -17,68 +17,67 @@ sce <- loadHDF5SummarizedExperiment(dir = here("processed-data","12_snRNA",
                                                "sce_clustered"))
 
 dim(sce)
-#[1]  36601 105433
+#[1]  36601 103785
 
 identical(rownames(colData(sce)),colnames(sce))
 #[1] TRUE
 
 sce
 # class: SingleCellExperiment 
-# dim: 36601 105433 
+# dim: 36601 103785 
 # metadata(1): Samples
 # assays(3): counts binomial_pearson_residuals logcounts
 # rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
 # ENSG00000277196
 # rowData names(7): source type ... gene_type binomial_deviance
-# colnames(105433): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
+# colnames(103785): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
 # 20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
-# colData names(38): Sample Barcode ... k_50_louvain_pt25 sizeFactor
+# colData names(39): Sample Barcode ... k_50_louvain_pt25 sizeFactor
 # reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
 # mainExpName: NULL
 # altExpNames(0):
-###############
 
-#Load in the preliminary DEGs
-load(here("processed-data","12_snRNA","markers_pairwise_list_k_10_louvain_pt25.rda"),verbose = TRUE)
-# Loading objects:
-#     markers_pairwise
+#load get mean ratio output to tryt and figure out what cluster 17 is
+load(here("processed-data","12_snRNA","broad_clustering_meanratio_preannotation.rds"),
+     verbose = TRUE)
 
-#Check top 40 markers. 
-lapply(markers_pairwise,FUN = function(x){head(x["gene_name"],n=40)})
-
-table(sce$k_10_louvain_pt25)
-#     1     2     3     4     5     6     7     8     9    10    11    12    13 
-# 17652 22976  4436  3680 22633   942 10027  7932  1005  1985  1648  1876  2470 
-#  14    15    16    17    18 
-# 701  1464  2188  1561   257 
+seventeen <- subset(gmr_pt25,subset=(cellType.target == 17))
 
 #Broad Cluster Annotations
 # 1 - Oligo
 # 2 - DRD1_MSN_A
-# 3 - Microglia 
+# 3 - Microglia
 # 4 - Polydendrocyte
 # 5 - DRD2_MSN_A
 # 6 - Ependymal
 # 7 - Astrocyte
-# 8 - DRD1_MSN_B (Probable Islands)
+# 8 - DRD1_MSN_B
 # 9 - Endothelial
 # 10 - PVALB_Inh
-# 11 - IEG_neurons
-# 12 - DRD2_MSN_B
-# 13 - DRD1_MSN_C
-# 14 - VIP_Inh
-# 15 - GLP1R_Inh_A
-# 16 - Interneuron_Inh
-# 17 - Glutamatergic
-# 18 - GABA_Undefined
+# 11 - DRD2_MSN_B
+# 12 - DRD1_MSN_C
+# 13 - VIP_CCK_Inh
+# 14 - GLP1R_Inh
+# 15 - GABA_Glut
+# 16 - SST_Inh
+# 17 - T-Cells4
+
+plotReducedDim(object = sce,
+               dimred = "tSNE_HARMONY",
+               colour_by = "SLC17A7",
+               swap_rownames = "gene_name") +
+    scale_color_gradientn(colours = c("lightgrey","red")) +
+    ggtitle("SLC17A7") +
+    theme(plot.title = element_text(hjust = 0.5))
+
 
 ###Annotation
-annotation_df <- data.frame(cluster= 1:18,
+annotation_df <- data.frame(cluster= 1:17,
                             celltype = c("Oligo","DRD1_MSN_A","Microglia","Polydendrocyte",
                                          "DRD2_MSN_A","Ependymal","Astrocyte","DRD1_MSN_B",
-                                         "Endothelial","PVALB_Inh","IEG_neurons","DRD2_MSN_B",
-                                         "DRD1_MSN_C","VIP_Inh","GLP1R_Inh_A","Interneuron_Inh",
-                                         "Glutamatergic","GABA_Undefined"))
+                                         "Endothelial","PVALB_Inh","DRD2_MSN_B","DRD1_MSN_C",
+                                         "VIP_CCK_Inh","GLP1R_Inh","GABA_Glut","SST_Inh",
+                                         "T_Cells"))
 
 #add celltype info
 sce$CellType.Broad <- annotation_df$celltype[match(sce$k_10_louvain_pt25,
@@ -87,10 +86,9 @@ sce$CellType.Broad <- annotation_df$celltype[match(sce$k_10_louvain_pt25,
 sce$CellType.Broad <- factor(sce$CellType.Broad,
                              levels = c("DRD1_MSN_A","DRD1_MSN_B","DRD1_MSN_C",
                                         "DRD2_MSN_A","DRD2_MSN_B",
-                                        "GLP1R_Inh_A","PVALB_Inh","VIP_Inh","Interneuron_Inh",
-                                        "Glutamatergic","GABA_Undefined","IEG_neurons",
-                                      "Astrocyte","Ependymal","Microglia",
-                                        "Oligo","Polydendrocyte","Endothelial"))
+                                        "GLP1R_Inh","PVALB_Inh","VIP_CCK_Inh","SST_Inh","GABA_Glut",
+                                        "Astrocyte","Ependymal","Oligo","Polydendrocyte","Microglia",
+                                        "Endothelial","T_Cells"))
 
 #Set up new cluster colors. 
 cluster_cols <- Polychrome::createPalette(length(unique(sce$CellType.Broad)),
@@ -204,7 +202,64 @@ Num_Nucs <- table(sce$CellType.Broad) %>% as.data.frame() %>%
 ggsave(plot = Num_Nucs,
        filename = here("plots","12_snRNA","Broad_CellType_NumberofNuclei_Bargraph.png"))
 
-#Get the cell IDs of the IEG_Neurons to remove them. 
-IEG_cells <- rownames(colData(sce)[which(sce$CellType.Broad == "IEG_neurons"),])
-save(IEG_cells,file = here("processed-data","12_snRNA","IEG_neurons_to_remove.rds"))
+# #Get the cell IDs of the IEG_Neurons to remove them. 
+# IEG_cells <- rownames(colData(sce)[which(sce$CellType.Broad == "IEG_neurons"),])
+# save(IEG_cells,file = here("processed-data","12_snRNA","IEG_neurons_to_remove.rds"))
 
+#Make a colData column for neurons or glia
+sce$Neuron_NonNeuron <- ifelse(sce$CellType.Broad %in% c("DRD1_MSN_A","DRD1_MSN_B","DRD1_MSN_C",
+                                                         "DRD2_MSN_A","DRD2_MSN_B","GLP1R_Inh",
+                                                         "PVALB_Inh","VIP_CCK_Inh","SST_Inh",
+                                                         "GABA_Glut"),
+                               "Neuron",
+                               "NonNeuron")
+
+table(sce$Neuron_NonNeuron)
+# Neuron NonNeuron 
+# 66042     37743
+
+
+Neuron_NonNeuron_bar <- table(sce$Neuron_NonNeuron) %>% as.data.frame() %>% 
+    ggplot(aes(x = Var1, y = Freq, fill = Var1)) +
+    geom_bar(stat = "identity") +
+    labs(x = "Cell Class",
+         y = "Number of Nuclei") +
+    theme_bw() +
+    theme(legend.position = "none") 
+ggsave(plot = Neuron_NonNeuron_bar,
+       filename = here("plots","12_snRNA","NeuronNonNeuron_Bargraph.png"))
+
+
+#Load in the object with QC metrics to make some additional plots showing which cells are removed. 
+load(here("processed-data","12_snRNA","sce_emptyDrops_removed_withQC.rds"),verbose = TRUE)
+
+sce
+# class: SingleCellExperiment 
+# dim: 36601 120449 
+# metadata(1): Samples
+# assays(1): counts
+# rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
+# ENSG00000277196
+# rowData names(6): source type ... gene_name gene_type
+# colnames(120449): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
+# 20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
+# colData names(30): Sample Barcode ... IEG_cells discard
+# reducedDimNames(0):
+#     mainExpName: NULL
+# altExpNames(0):
+
+#library size
+lib_size_qc <- plotColData(object = sce,y = "sum",x = "Sample",colour_by = "discard_sum_detected") +
+    scale_y_continuous(trans = "log10") +
+    ggtitle("Library Size") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.title = element_text(hjust = 0.5)) 
+ggsave(plot = lib_size_qc,filename = here("plots","12_snRNA","nuclei_QC","lib_size_QC.png"))
+
+#detected features
+genes_qc <- plotColData(object = sce,y = "detected",x = "Sample",colour_by = "discard_sum_detected") +
+    scale_y_continuous(trans = "log10") +
+    ggtitle("Detected Features") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.title = element_text(hjust = 0.5)) 
+ggsave(plot = genes_qc,filename = here("plots","12_snRNA","nuclei_QC","detected_features_QC.png"))
