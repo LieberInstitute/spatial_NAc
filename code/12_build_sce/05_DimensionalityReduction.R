@@ -21,7 +21,7 @@ sce
 hdgs <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:2000]
 hdgs.symbols <- rowData(sce)$gene_name[match(hdgs, rowData(sce)$gene_id)]
 
-#Checkl if Dopamine receptors and PPP1R1B are among the highly deviant genes
+#Check if Dopamine receptors and PPP1R1B are among the highly deviant genes
 c("DRD1","DRD2","PPP1R1B") %in% hdgs.symbols
 
 print("Running PCA")
