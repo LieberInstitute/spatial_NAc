@@ -22,7 +22,7 @@ gmr_pt25 <- get_mean_ratio2(sce,
                             assay_name = "logcounts",
                             add_symbol = FALSE)
 
-save(sce,
+save(gmr_pt25,
      file = here("processed-data","12_snRNA","broad_clustering_meanratio_preannotation.rds"))
 
 print("Reproducibility information:")
