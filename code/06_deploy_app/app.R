@@ -2,9 +2,6 @@ library("spatialLIBD")
 library("HDF5Array")
 library("markdown")
 
-spe_dir <- here("code", "06_deploy_app", "spe_shiny")
-docs_dir <- here("code", "06_deploy_app", "www")
-
 ## spatialLIBD uses golem
 options("golem.app.prod" = TRUE)
 
@@ -12,7 +9,7 @@ options("golem.app.prod" = TRUE)
 options(repos = BiocManager::repositories())
 
 ## Load the data
-spe <- loadHDF5SummarizedExperiment(spe_dir)
+spe <- loadHDF5SummarizedExperiment("spe_shiny")
 vars <- colnames(colData(spe))
 spe$exclude_overlapping <- as.factor(spe$exclude_overlapping)
 
@@ -37,5 +34,5 @@ spatialLIBD::run_app(
     ),
     default_cluster = "10x_graphclust",
     auto_crop_default = FALSE,
-    docs_path = docs_dir
+    docs_path = "www"
 )
