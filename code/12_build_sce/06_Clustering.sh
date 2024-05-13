@@ -4,7 +4,7 @@
 #SBATCH --output=logs/06_clustering.log
 #SBATCH --error=logs/06_clustering.log
 #SBATCH -p shared
-#SBATCH --mem=25G
+#SBATCH --mem=150G
 
 echo "********* Job Starts *********"
 date

@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=2
 #
 # Mimimum memory required per allocated  CPU
-#SBATCH --mem-per-cpu=80G
+#SBATCH --mem-per-cpu=35G
 #
 # Send mail to the email address when the job fails
 #SBATCH --mail-type=FAIL
