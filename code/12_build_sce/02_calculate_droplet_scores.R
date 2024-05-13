@@ -13,7 +13,7 @@ library(tidyverse)
 sample_i <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID"))
 
 #### Load & Subset raw data ####
-load(here("processed-data","12_snRNA","sce_raw.rds"),verbose = TRUE)
+sce <- readRDS(here("processed-data","12_snRNA","sce_raw.Rds"))
 
 #Print some info about sce object
 as.data.frame(unique(colData(sce)[,c("Sample","Raw_data_path")]))
