@@ -41,16 +41,16 @@ map(e.out, ~ addmargins(table(Signif = .x$FDR <= 0.001, Limited = .x$Limited)))
 std_out <- list.files(here("code", "12_build_sce", "logs"), pattern = "emptydrops", full.names = TRUE)
 std_out <- map(std_out, readLines)
 
-#162 line of each iteration of the list is the knee_lower value
-knee_lower <- as.character(lapply(X = std_out,"[",162))
+#160th line of each iteration of the list is the knee_lower value
+knee_lower <- as.character(lapply(X = std_out,"[",160))
 knee_lower
 
 #Just keep the values
 knee_lower <- as.numeric(lapply(strsplit(knee_lower,split = "="),"[",2))
 
 
-#153rd element of the std_out list contains the sample na,e
-sample_name <- as.character(lapply(std_out,"[",153))
+#151st element of the std_out list contains the sample na,e
+sample_name <- as.character(lapply(std_out,"[",151))
 sample_name
 
 sample_name <- as.character(lapply(strsplit(sample_name,split = " "),"[",3))
@@ -93,7 +93,7 @@ ggsave(plot = droplet_barplot,filename = here("plots","12_snRNA","droplet_barplo
 print("Droplet barplot complete")
 
 #Load in the sce object
-load(here("processed-data","12_snRNA","sce_raw.rds"),verbose = TRUE)
+sce <- readRDS(here("processed-data","12_snRNA","sce_raw.Rds"))
 
 dim(sce)
 
@@ -104,7 +104,7 @@ sce <- sce[, which(e.out.all$FDR <= 0.001)]
 dim(sce)
 
 #Save object
-save(sce,file = here("processed-data","12_snRNA","sce_emptyDrops_removed.rds"))
+saveRDS(sce,file = here("processed-data","12_snRNA","sce_emptyDrops_removed.Rds"))
 
 ####Begin QC
 sce <- scuttle::addPerCellQC(sce,subsets = list(Mito=which(seqnames(sce) == "chrM")))
@@ -471,7 +471,10 @@ qc_doublet <- sce$doubletScore >= 5
 #Previous clustering analysis identified low-quality neurons that express far fewer genes and exhbiti
 #significant enrichment of immediate early genes such as Fos and NPAS4. I saved the IDs of these cells 
 #and will remove them as part of the QC. 
-load(here("processed-data","12_snRNA","IEG_neurons_to_remove.rds"),verbose = TRUE)
+load(here("processed-data","12_snRNA","IEG_neurons_to_remove.rda"),verbose = TRUE)
+
+head(IEG_cells)
+
 #add unique rowname column to the colData
 colData(sce)$unique_rowname <- rownames(colData(sce))
 #Add TRUE/FALSE statement for whether cell is in the IEG_cells vector
@@ -504,8 +507,7 @@ print("How many cells identified as low quality cells are doublets?")
 table(sce$discard,sce$doubletScore >= 5)
 
 #Save object
-save(sce,
-     file = here("processed-data","12_snRNA","sce_emptyDrops_removed_withQC.rds"))
+saveRDS(sce,file = here("processed-data","12_snRNA","sce_emptyDrops_removed_withQC.Rds"))
 
 #Remove the cells that don't meet the basic QC cutoffs 
 sce <- sce[,!sce$discard]
@@ -516,8 +518,7 @@ print("SCE object with low quality cells and doublets removed")
 sce
 
 #Save object
-save(sce,
-     file = here("processed-data","12_snRNA","sce_clean.rds"))
+saveRDS(sce,file = here("processed-data","12_snRNA","sce_clean.Rds"))
 
 print("Reproducibility information:")
 Sys.time()
