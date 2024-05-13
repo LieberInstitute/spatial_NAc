@@ -88,8 +88,8 @@ sce
 #Empty droplets have not been removed. Will be the next step of the analysis. 
 
 #Save object. 
-save(sce,
-     file = here("processed-data","12_snRNA","sce_raw.rds"))
+saveRDS(sce,
+        file = here("processed-data","12_snRNA","sce_raw.Rds"))
 
 ## Reproducibility information
 print("Reproducibility information:")
