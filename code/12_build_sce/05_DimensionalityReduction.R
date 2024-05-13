@@ -3,7 +3,6 @@
 
 library(SingleCellExperiment)
 library(sessioninfo)
-library(HDF5Array)
 library(ggplot2)
 library(harmony)
 library(scater)
@@ -13,12 +12,12 @@ library(here)
 
 
 #Load sce 
-load(here("processed-data","12_snRNA","sce_featureselection.rds"),verbose = TRUE)
+sce <- readRDS(here("processed-data","12_snRNA","sce_featureselection.Rds"))
 
 sce
 
-#Take top 2000 highly deviant genes
-hdgs <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:2000]
+#Take top 4000 highly deviant genes
+hdgs <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:4000]
 hdgs.symbols <- rowData(sce)$gene_name[match(hdgs, rowData(sce)$gene_id)]
 
 #Check if Dopamine receptors and PPP1R1B are among the highly deviant genes
@@ -42,12 +41,12 @@ PCA_plots <- plotReducedDim(sce,
 ggsave(PCA_plots,filename = here("plots","12_snRNA","Dim_Red","Top6_PCAs.png"))
 print("PCA Complete")
 
-#t-SNE with top 50 dimensions.
+#t-SNE with 100 dimensions.
 print("Running tSNE") 
 set.seed(1010)
 sce <- runTSNE(sce,
                dimred = "GLMPCA_approx",
-               n_dimred = 50,
+               n_dimred = 100,
                name = "tSNE")
 print("tSNE complete")
 
@@ -91,12 +90,12 @@ sce <- RunHarmony(sce,group.by.vars = "Sample",verbose = TRUE)
 #Remove the redundant PCA reducedDim
 reducedDim(sce, "PCA") <- NULL
 
-#tSNE post-mnn with top 50 dimensions
+#tSNE post-mnn with top 100 dimensions (or all that were calculated during PCA step)
 print("Running tSNE post-Harmony")
 set.seed(1001)
 sce <- runTSNE(sce,
                dimred = "HARMONY",
-               n_dimred = 50,
+               n_dimred = 100,
                name = "tSNE_HARMONY")
 
 #Corrected tSNE by Sample 
@@ -132,13 +131,53 @@ ggsave(tsne_HARMONY_sort,filename = here("plots","12_snRNA","Dim_Red","tSNE_Sort
 
 print("tSNE_HARMONY complete")
 
+#UMAP post Harmony with 100 dimensions
+print("Running UMAP post-HARMONY")
+sce <- runUMAP(sce,
+               dimred = "HARMONY",
+               n_dimred = 100,,
+               name = "umap_HARMONY")
+
+#Corrected tSNE by Sample 
+umap_HARMONY_Sample <- plotReducedDim(sce,
+                                      dimred = "umap_HARMONY",
+                                      colour_by = "Sample",
+                                      point_alpha = 0.3)
+ggsave(umap_HARMONY_Sample,
+       filename = here("plots","12_snRNA","Dim_Red","umap_Sample_HARMONY.png"))
+
+#Corrected tSNE by Brain_ID 
+umap_HARMONY_BrainID <- plotReducedDim(sce,
+                                       dimred = "umap_HARMONY",
+                                       colour_by = "Brain_ID",
+                                       point_alpha = 0.3)
+ggsave(umap_HARMONY_BrainID,
+       filename = here("plots","12_snRNA","Dim_Red","umap_BrainID_HARMONY.png"))
+
+#Plot by snRNA_date
+#Misspelled as snRNA_data, will fix later. 
+umap_HARMONY_snRNA_date <- plotReducedDim(sce,
+                                          dimred = "umap_HARMONY",
+                                          colour_by = "snRNA_data",
+                                          point_alpha = 0.3)
+ggsave(umap_HARMONY_snRNA_date,filename = here("plots","12_snRNA","Dim_Red","umap_snRNA_date_HARMONY.png"))
+
+#Plot by sort type
+umap_HARMONY_sort <- plotReducedDim(sce,
+                            dimred = "umap_HARMONY",
+                            colour_by = "Sort",
+                            point_alpha = 0.3)
+ggsave(umap_HARMONY_sort,filename = here("plots","12_snRNA","Dim_Red","umap_SortType_HARMONY.png"))
+
+print("umap_HARMONY complete")
+
 #Save object with Dimensionality Reduction
 #Switching to save with HDF5 here because at this point there is so much information within the sce
 print("Saving sce object")
-saveHDF5SummarizedExperiment(sce,
-                             here("processed-data","12_snRNA",
-                                  "sce_DimRed"),
-                             replace = TRUE)
+saveRDS(sce,
+        file = here("processed-data","12_snRNA","sce_DimRed.Rds"))
+
+###Reproduciblity
 print("Object saved")
 print("Reproducibility information:")
 Sys.time()
