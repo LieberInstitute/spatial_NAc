@@ -10,7 +10,7 @@ library(scry)
 library(here)
 
 #Load the QCed sce object
-load(here("processed-data","12_snRNA","sce_clean.rds"),verbose = TRUE)
+sce <- readRDS(here("processed-data","12_snRNA","sce_clean.Rds"))
 
 dim(sce)
 
@@ -42,8 +42,8 @@ size_sce <- object.size(sce)
 print(size_sce, units = "auto", standard = "IEC") 
 
 #Save object
-save(sce,
-     file = here("processed-data","12_snRNA","sce_featureselection.rds"))
+saveRDS(sce,
+        file = here("processed-data","12_snRNA","sce_featureselection.Rds"))
 
 print("Reproducibility information:")
 Sys.time()
