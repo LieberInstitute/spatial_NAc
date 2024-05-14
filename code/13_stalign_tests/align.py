@@ -197,6 +197,15 @@ A = STalign.to_A(torch.tensor(L),torch.tensor(T))
 
 AI = STalign.transform_image_source_with_A(A, [YI,XI], I, [YJ,XJ])
 
+#   Cropping does indeed occur when applying affine transforms to the source
+#   image
+(
+    Image.fromarray(np.moveaxis(np.array(255 * AI, dtype = np.uint8), 0, 2))
+    .save(
+        plot_dir / (capture_areas[0] + f'_{resolution}_aligned.png')
+    )
+)
+
 #   Apply affine transform to source spatial coordinates
 affine = np.matmul(
     np.array(A.cpu()),
