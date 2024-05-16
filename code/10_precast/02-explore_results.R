@@ -10,12 +10,27 @@ library(purrr)
 library(ggpubr)
 library(ggsci)
 library(dittoSeq)
+library(getopt)
+library(pheatmap)
 
-out_path <- here("processed-data", "10_precast", "nnSVG_precast", "PRECAST_k%s.csv")
+spec <- matrix(
+    c("nnSVG_type", "n", 1, "logical", "Use nnSVGs identified by controlling for PRECAST k = 2 clusters?"),
+    byrow = TRUE, ncol = 5
+)
+opt <- getopt(spec)
+
+if(opt$nnSVG_type){
+    out_path <- here("processed-data", "10_precast", "nnSVG_precast", "PRECAST_k%s.csv")
+    plot_dir <- here("plots", "10_precast", "nnSVG_precast")
+}else{
+    out_path <- here("processed-data", "10_precast", "nnSVG_default", "PRECAST_k%s.csv")
+    plot_dir <- here("plots", "10_precast", "nnSVG_default")
+}
+
 spe_dir <- here(
     "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
 )
-plot_dir <- here("plots", "10_precast", "nnSVG_precast")
+
 
 #   List of genes provided by Svitlana, named by the subregion they're markers
 #   for
@@ -240,11 +255,11 @@ rownames(spe) <- rowData(spe)$gene_name
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
-    p_list[[index]] <- dittoPlot(spe, subregion_genes$shell, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
-    adjustment = "z-score")
+    cat(k, "\n")
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$shell, group.by = paste0("precast_k", k), plots = "vlnplot", assay = "logcounts", vlnplot.lineweight = 0.3)
     index <- index + 1
 }
-pdf(file.path(plot_dir, "shell_marker_expression.pdf"), width = 20, height = 7)
+pdf(file.path(plot_dir, "shell_marker_expression.pdf"), width = 20, height = 10)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -253,11 +268,11 @@ dev.off()
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
-    p_list[[index]] <- dittoPlot(spe, subregion_genes$core, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
-    adjustment = "z-score")
+    cat(k, "\n")
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$core, group.by = paste0("precast_k", k), plots = "vlnplot", assay = "logcounts", vlnplot.lineweight = 0.3)
     index <- index + 1
 }
-pdf(file.path(plot_dir, "core_marker_expression.pdf"), width = 20, height = 7)
+pdf(file.path(plot_dir, "core_marker_expression.pdf"), width = 20, height = 10)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -266,11 +281,11 @@ dev.off()
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
-    p_list[[index]] <- dittoPlot(spe, subregion_genes$white_matter, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
-    adjustment = "z-score")
+    cat(k, "\n")
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$white_matter, group.by = paste0("precast_k", k), plots = "vlnplot", assay = "logcounts", vlnplot.lineweight = 0.3)
     index <- index + 1
 }
-pdf(file.path(plot_dir, "WM_marker_expression.pdf"), width = 20, height = 7)
+pdf(file.path(plot_dir, "WM_marker_expression.pdf"), width = 20, height = 10)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -279,11 +294,11 @@ dev.off()
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
-    p_list[[index]] <- dittoPlot(spe, subregion_genes$D1_islands, group.by = paste0("precast_k", k), plots = "ridgeplot", assay = "logcounts",
-    adjustment = "z-score")
+    cat(k, "\n")
+    p_list[[index]] <- dittoPlot(spe, subregion_genes$D1_islands, group.by = paste0("precast_k", k), plots = "vlnplot", assay = "logcounts", vlnplot.lineweight = 0.3)
     index <- index + 1
 }
-pdf(file.path(plot_dir, "D1_islands_marker_expression.pdf"), width = 20, height = 7)
+pdf(file.path(plot_dir, "D1_islands_marker_expression.pdf"), width = 20, height = 10)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -294,11 +309,12 @@ dev.off()
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
+    cat(k, "\n")
     p_list[[index]] <- dittoHeatmap(spe, subregion_genes$shell, group.by = paste0("precast_k", k), 
-     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50))
     index <- index + 1
 }
-pdf(file.path(plot_dir, "shell_marker_expression.pdf"), width = 15, height = 10)
+pdf(file.path(plot_dir, "shell_marker_expression_heatmap.pdf"), width = 15, height = 10)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -307,11 +323,12 @@ dev.off()
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
+    cat(k, "\n")
     p_list[[index]] <- dittoHeatmap(spe, subregion_genes$core, group.by = paste0("precast_k", k), 
-     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50))
     index <- index + 1
 }
-pdf(file.path(plot_dir, "core_marker_expression.pdf"), width = 20, height = 7)
+pdf(file.path(plot_dir, "core_marker_expression_heatmap.pdf"), width = 20, height = 7)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -320,11 +337,12 @@ dev.off()
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
+    cat(k, "\n")
     p_list[[index]] <- dittoHeatmap(spe, subregion_genes$white_matter, group.by = paste0("precast_k", k), 
-     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50))
     index <- index + 1
 }
-pdf(file.path(plot_dir, "WM_marker_expression.pdf"), width = 20, height = 7)
+pdf(file.path(plot_dir, "WM_marker_expression_heatmap.pdf"), width = 20, height = 7)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -333,11 +351,12 @@ dev.off()
 p_list <- list()
 index <- 1
 for(k in c(3:28)){
+    cat(k, "\n")
     p_list[[index]] <- dittoHeatmap(spe, subregion_genes$D1_islands, group.by = paste0("precast_k", k), 
-     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50)
+     order.by = paste0("precast_k", k), scale = "none", heatmap.colors = colorRampPalette(c("white", "red"))(50))
     index <- index + 1
 }
-pdf(file.path(plot_dir, "D1_islands_marker_expression.pdf"), width = 20, height = 7)
+pdf(file.path(plot_dir, "D1_islands_marker_expression_heatmap.pdf"), width = 20, height = 7)
 for(k in 1:length(p_list)){
     print(p_list[[k]])
 }
@@ -507,14 +526,8 @@ Sys.time() - b
 #   Bring in the subset of the logcounts that we'll use, as this seems to be
 #   significantly faster than repeatedly performing HDF5-backed, chunked
 #   operations
-assay_subset <- Matrix(
-    assays(spe)$logcounts[match(unlist(subregion_genes), rowData(spe)$gene_name), ],
-    sparse = TRUE,
-    nrow = length(unlist(subregion_genes)),
-    dimnames = list(unlist(subregion_genes), colnames(spe))
-)
-
-cor_mat <- matrix(0, nrow = length(subregion_genes), ncol = 4)
+nClust <- 8
+cor_mat <- matrix(0, nrow = length(subregion_genes), ncol = nClust)
 rownames(cor_mat) <- names(subregion_genes)
 for (subregion in names(subregion_genes)) {
     #   For each spot, average expression Z-scores across the subregion.
@@ -525,7 +538,7 @@ for (subregion in names(subregion_genes)) {
 
     #   Now compute correlation between cluster identity (in a boolean sense--
     #   belonging or not belonging in the cluster) and the averaged Z-score
-    for (cluster_identity in 1:8) {
+    for (cluster_identity in 1:nClust) {
         cor_mat[match(subregion, names(subregion_genes)), cluster_identity] <-
             cor(
                 gene_z, spe$precast_k8 == cluster_identity,
@@ -536,5 +549,10 @@ for (subregion in names(subregion_genes)) {
 
 message("Correlation of subregion markers with clusters in k=8:")
 print(cor_mat)
+
+p <- pheatmap(cor_mat)
+pdf(file.path(plot_dir, "Correlation_of_gene_scores_with_clustering_k8.pdf"))
+print(p)
+dev.off()
 
 session_info()

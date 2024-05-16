@@ -2,11 +2,12 @@
 
 #SBATCH -p shared
 #SBATCH -c 1
+#SBATCH --time=24:0:0
 #SBATCH --mem=60G
 #SBATCH --job-name=01-run_precast_default
 #SBATCH -o ../../processed-data/10_precast/logs/01-run_precast_default_%a.log
 #SBATCH -e ../../processed-data/10_precast/logs/01-run_precast_default_%a.log
-#SBATCH --array=3-28%15
+#SBATCH --array=22
 
 #   'TRUE' or 'FALSE': if TRUE, use nnSVGs which were obtained after controlling for precast k = 2 clusters, else use default
 nnSVG_TYPE=FALSE

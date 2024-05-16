@@ -43,10 +43,10 @@ if (opt$nnSVG_type) {
         "summary_across_samples.csv"
     )
     if(opt$specify_k){
-        out_path <- here("processed-data", "10_precast", "nnSVG_precast", paste0("PRECAST_k", k, ".csv"))
+        out_path <- here("processed-data", "10_precast", "nnSVG_precast")
         plot_dir <- here('plots', '10_precast', 'nnSVG_precast', paste0("cluster_k_", k))}
     else{
-        out_path <- here("processed-data", "10_precast", "nnSVG_precast", paste0("PRECAST.csv"))
+        out_path <- here("processed-data", "10_precast", "nnSVG_precast")
         plot_dir <- here('plots', '10_precast', 'nnSVG_precast', 'BIC_select')
     }
 } else {
@@ -55,10 +55,10 @@ if (opt$nnSVG_type) {
         "summary_across_samples.csv"
     )
     if(opt$specify_k){
-        out_path <- here("processed-data", "10_precast", "nnSVG_default", paste0("PRECAST_k", k, ".csv"))
+        out_path <- here("processed-data", "10_precast", "nnSVG_default")
         plot_dir <- here('plots', '10_precast', 'nnSVG_default', paste0("cluster_k_", k))} 
     else {
-        out_path <- here("processed-data", "10_precast", "nnSVG_default", paste0("PRECAST.csv"))
+        out_path <- here("processed-data", "10_precast", "nnSVG_default")
         plot_dir <- here('plots', '10_precast', 'nnSVG_default', 'BIC_select')
     }
 }
@@ -134,6 +134,7 @@ pre_obj <- AddParSetting(
 #   Fit model
 pre_obj <- PRECAST(pre_obj, K = k)
 resList <- pre_obj@resList
+
 pre_obj <- SelectModel(pre_obj, return_para_est=TRUE)
 pre_obj <- IntegrateSpaData(pre_obj, species = "Human")
 
@@ -144,7 +145,7 @@ precast_results <- pre_obj@meta.data |>
     select(-orig.ident) |>
     rename_with(~ sub("_PRE_CAST", "", .x))
 
-write_csv(precast_results, out_path)
+write_csv(precast_results, file.path(out_path, sprintf("PRECAST_k%s.csv", k)))
 
 cols_cluster <- get_palette(palette = "default", k)
 
@@ -161,7 +162,8 @@ pdf(file.path(plot_dir, "/precast_tSNE.pdf"), width = 12, height = 8)
 plot_grid(p1, p2, ncol = 2)
 dev.off()
 
-dat_deg <- FindAllMarkers(pre_obj)
+dat_deg <- FindAllMarkers(pre_obj, logfc.threshold = 0.1, only.pos = TRUE)
+write_csv(dat_deg, file.path(out_path, sprintf("PRECAST_k%s_marker_genes.csv", k)))
 n <- 10
 dat_deg %>%
     group_by(cluster) %>%
@@ -200,5 +202,7 @@ dev.off()
 pdf(file.path(plot_dir, "PCA_precast_clusters.pdf"), width = 6, height = 6)
 plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "precast_cluster")
 dev.off()
+
+saveRDS(pre_obj, file.path(out_path, sprintf("/PRECAST_k%s_integrated.rds", k)))
 
 session_info()
