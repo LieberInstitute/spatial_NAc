@@ -28,7 +28,6 @@ out_dir = Path(here('processed-data', '13_stalign_tests'))
 plot_dir = Path(here('plots', '13_stalign_tests'))
 capture_areas = ['V12D07-078_B1', 'V12D07-078_D1']
 resolution = 'lowres'
-rasterize = False
 
 out_dir.mkdir(parents = False, exist_ok = True)
 plot_dir.mkdir(parents = False, exist_ok = True)
@@ -79,32 +78,17 @@ for i in range(2):
 #   Read in source and target images and normalize
 ################################################################################
 
-if rasterize:
-    coldata = pd.read_csv(coldata_path, index_col = 'key')
-    #
-    img_arrs = []
-    for pos in tissue_positions_list:
-        pos['sum_umi'] = coldata['sum_umi']
-        #
-        XI, YI, I, fig = STalign.rasterize(
-            x = pos['x'], y = pos['y'], g = pos['sum_umi']
-        )
-        img_arrs.append(I)
-    #
-    I = img_arrs[0]
-    J = img_arrs[1]
-else:
-    img_paths = [
-        str(here(x, f'tissue_{resolution}_image.png'))
-        for x in sample_info.loc[capture_areas, 'spaceranger_dir']
-    ]
-    img_arrs = [
-        STalign.normalize(np.array(Image.open(x), dtype = np.float64) / 256)
-        for x in img_paths
-    ]
-    #
-    I = np.moveaxis(img_arrs[0], 2, 0)
-    J = np.moveaxis(img_arrs[1], 2, 0)
+img_paths = [
+    str(here(x, f'tissue_{resolution}_image.png'))
+    for x in sample_info.loc[capture_areas, 'spaceranger_dir']
+]
+img_arrs = [
+    STalign.normalize(np.array(Image.open(x), dtype = np.float64) / 256)
+    for x in img_paths
+]
+#
+I = np.moveaxis(img_arrs[0], 2, 0)
+J = np.moveaxis(img_arrs[1], 2, 0)
 
 XI = np.array(range(I.shape[2])) * 1.
 YI = np.array(range(I.shape[1])) * 1.
