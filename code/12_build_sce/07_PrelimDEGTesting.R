@@ -4,15 +4,14 @@
 library(SingleCellExperiment)
 library(DeconvoBuddies)
 library(sessioninfo)
-library(HDF5Array)
 library(scran)
 library(here)
 
 ##############
 #Load sce
 print("Loading SCE")
-sce <- loadHDF5SummarizedExperiment(dir = here("processed-data","12_snRNA",
-                                               "sce_clustered"))
+Sys.time()
+sce <- readRDS(here("processed-data","12_snRNA","sce_clustered_log.Rds"))
 
 dim(sce)
 
@@ -26,7 +25,7 @@ mod <- mod[ , -1, drop=F] # intercept otherwise automatically dropped by `findMa
 
 # Run pairwise t-tests
 markers_pairwise <- findMarkers(sce, 
-                                groups=sce$k_10_louvain_pt25,
+                                groups=sce$k_20_walktrap,
                                 assay.type="logcounts", 
                                 design=mod, 
                                 test="t",
@@ -47,7 +46,7 @@ for(i in names(markers_pairwise)){
 }
 
 
-save(markers_pairwise,file = here("processed-data","12_snRNA","markers_pairwise_list_k_10_louvain_pt25.rda"))
+save(markers_pairwise,file = here("processed-data","12_snRNA","markers_pairwise_list_k_20_walktrap.rda"))
 
 print("Reproducibility information:")
 Sys.time()

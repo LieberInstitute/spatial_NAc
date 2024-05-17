@@ -2,13 +2,12 @@
 #module load r_nac
 library(SingleCellExperiment)
 library(DeconvoBuddies)
-library(HDF5Array)
 library(here)
 
 #Load sce
 print("Loading SCE")
-sce <- loadHDF5SummarizedExperiment(dir = here("processed-data","12_snRNA",
-                                               "sce_clustered"))
+Sys.time()
+sce <- readRDS(here("processed-data","12_snRNA","sce_clustered_log.Rds"))
 dim(sce)
 
 stopifnot(identical(rownames(colData(sce)),colnames(sce)))
@@ -17,13 +16,13 @@ sce
 ######################
 
 #Run mean ratio
-gmr_pt25 <- get_mean_ratio2(sce,
-                            cellType_col = "k_10_louvain_pt25",
-                            assay_name = "logcounts",
-                            add_symbol = FALSE)
+gmr_1 <- get_mean_ratio2(sce,
+                         cellType_col = "k_20_walktrap",
+                         assay_name = "logcounts",
+                         add_symbol = FALSE)
 
-save(gmr_pt25,
-     file = here("processed-data","12_snRNA","broad_clustering_meanratio_preannotation.rds"))
+save(gmr_1,
+     file = here("processed-data","12_snRNA","broad_clustering_meanratio_preannotation_k20_walktrap.rda"))
 
 print("Reproducibility information:")
 Sys.time()
