@@ -9,7 +9,7 @@ import os
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
 )
-out_dir = Path(here('processed-data', '13_stalign_tests'))
+out_dir = Path(here('processed-data', '13_stalign_tests', 'two_sections'))
 capture_areas = ['V12D07-078_B1', 'V12D07-078_D1']
 
 out_dir.mkdir(parents = False, exist_ok = True)
@@ -37,5 +37,5 @@ extentJ = STalign.extent_from_x((YJ,XJ))
 extentI = STalign.extent_from_x((YI,XI))
 
 #   Save images in format expected by 'point_annotator.py'
-np.savez(out_dir / 'src_image_hires', x = XI, y = YI, I = I)
-np.savez(out_dir / 'target_image_hires', x = XJ, y = YJ, I = J)
+np.savez(out_dir / 'src_image', x = XI, y = YI, I = I)
+np.savez(out_dir / 'target_image', x = XJ, y = YJ, I = J)
