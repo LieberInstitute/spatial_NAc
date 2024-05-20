@@ -14,6 +14,8 @@ import os
 import json
 import pickle
 
+Image.MAX_IMAGE_PIXELS = None
+
 #   Set a non-interactive backend for writing figures to a file
 import matplotlib
 matplotlib.use('agg')
@@ -27,7 +29,9 @@ coldata_path = here(
 out_dir = Path(here('processed-data', '13_stalign_tests'))
 plot_dir = Path(here('plots', '13_stalign_tests'))
 capture_areas = ['V12D07-078_B1', 'V12D07-078_D1']
-resolution = 'lowres'
+
+#   "lowres", "hires", or "fullres"
+resolution = 'fullres'
 
 out_dir.mkdir(parents = False, exist_ok = True)
 plot_dir.mkdir(parents = False, exist_ok = True)
@@ -35,9 +39,10 @@ plot_dir.mkdir(parents = False, exist_ok = True)
 sample_info = pd.read_csv(sample_info_path, index_col = 0)
 
 ################################################################################
-#   Read in tissue positions for source capture area and scale to highres
+#   Read in tissue positions for source capture area and scale, if applicable
 ################################################################################
 
+spaceranger_json_list = []
 tissue_positions_list = []
 for i in range(2):
     pattern = re.compile(r'^tissue_positions(_list|)\.csv$')
@@ -65,11 +70,12 @@ for i in range(2):
     #
     sf_json_path = os.path.join(this_dir, 'scalefactors_json.json')
     with open(sf_json_path, 'r') as f:
-        spaceranger_json = json.load(f)
+        spaceranger_json_list.append(json.load(f))
     #
-    #   Scale spatial coordinates to high or lowres
-    tissue_positions['x'] *= spaceranger_json[f'tissue_{resolution}_scalef']
-    tissue_positions['y'] *= spaceranger_json[f'tissue_{resolution}_scalef']
+    if resolution != "fullres":
+        #   Scale spatial coordinates to high or lowres
+        tissue_positions['x'] *= spaceranger_json_list[-1][f'tissue_{resolution}_scalef']
+        tissue_positions['y'] *= spaceranger_json_list[-1][f'tissue_{resolution}_scalef']
     #
     tissue_positions.index += '_' + capture_areas[i]
     tissue_positions_list.append(tissue_positions)
@@ -78,10 +84,14 @@ for i in range(2):
 #   Read in source and target images and normalize
 ################################################################################
 
-img_paths = [
-    str(here(x, f'tissue_{resolution}_image.png'))
-    for x in sample_info.loc[capture_areas, 'spaceranger_dir']
-]
+if resolution == "fullres":
+    img_paths = sample_info.loc[capture_areas, 'raw_image_path'].tolist()
+else:
+    img_paths = [
+        str(here(x, f'tissue_{resolution}_image.png'))
+        for x in sample_info.loc[capture_areas, 'spaceranger_dir']
+    ]
+
 img_arrs = [
     STalign.normalize(np.array(Image.open(x), dtype = np.float64) / 256)
     for x in img_paths
@@ -108,12 +118,19 @@ np.savez(out_dir / f'target_image_{resolution}', x = XJ, y = YJ, I = J)
 ################################################################################
 #   Read in landmarks as done in the tutorial
 ################################################################################
- 
+
+#   Read in low-res landmarks then just scale up to full resolution, if fullres
+#   is selected
+if resolution == "fullres":
+    this_res = "lowres"
+else:
+    this_res = resolution
+
 pointsIlist = np.load(
-        out_dir / f'src_image_{resolution}_points.npy', allow_pickle=True
+        out_dir / f'src_image_{this_res}_points.npy', allow_pickle=True
     ).tolist()
 pointsJlist = np.load(
-        out_dir / f'target_image_{resolution}_points.npy', allow_pickle=True
+        out_dir / f'target_image_{this_res}_points.npy', allow_pickle=True
     ).tolist()
 
 pointsI = []
@@ -128,6 +145,10 @@ for i in pointsJlist.keys():
 
 pointsI = np.array(pointsI)
 pointsJ = np.array(pointsJ)
+
+if resolution == "fullres":
+    pointsI /= spaceranger_json_list[0][f'tissue_{this_res}_scalef']
+    pointsJ /= spaceranger_json_list[1][f'tissue_{this_res}_scalef']
 
 ################################################################################
 #   Plot capture areas with landmarks overlayed
