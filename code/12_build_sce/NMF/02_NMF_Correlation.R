@@ -165,7 +165,79 @@ head(onehot_CellType)
 # 5                            0     0   0      0
 # 6                            0     0   0      0
 
+rownames(onehot_CellType) <- onehot_CellType[,1]
+onehot_CellType[,1] <- as.numeric(onehot_CellType[,1])
+onehot_CellType <- onehot_CellType[order(onehot_CellType[,1],decreasing=FALSE),]
 
+head(onehot_CellType)
+# rownames(ct_data) Astrocyte_A Astrocyte_B DRD1_MSN_A DRD1_MSN_B DRD1_MSN_C
+# 1                 1           0           0          0          0          0
+# 2                 2           0           0          0          0          0
+# 3                 3           0           0          0          0          1
+# 4                 4           0           0          0          0          0
+# 5                 5           0           0          0          0          0
+# 6                 6           0           0          0          0          1
+# DRD1_MSN_D DRD2_MSN_A DRD2_MSN_B Ependymal Excitatory Inh_A Inh_B Inh_C Inh_D
+# 1          0          0          0         0          0     0     0     0     0
+# 2          0          0          0         0          0     0     0     0     0
+# 3          0          0          0         0          0     0     0     0     0
+# 4          0          0          0         0          0     0     0     0     0
+# 5          0          0          0         0          0     0     0     0     0
+# 6          0          0          0         0          0     0     0     0     0
+# Inh_E Inh_F Inh_G Inh_H Inh_I Macrophage Microglia
+# 1     0     0     0     0     0          0         0
+# 2     0     0     0     0     0          0         0
+# 3     0     0     0     0     0          0         0
+# 4     0     0     0     0     0          0         1
+# 5     0     0     0     0     0          1         0
+# 6     0     0     0     0     0          0         0
+# Mural_Endothelial_Fibroblast Oligo OPC T-Cell
+# 1                            0     1   0      0
+# 2                            0     1   0      0
+# 3                            0     0   0      0
+# 4                            0     0   0      0
+# 5                            0     0   0      0
+# 6                            0     0   0      0
+
+onehot_CellType[,1]<-NULL
+
+
+###correlate with nmf patterns
+pdf(here("plots","12_snRNA","NMF","NMF_CellType_correlation_heatmap.pdf"))
+pheatmap(cor(t(nmf_res@h),onehot_CellType), fontsize_row = 5)
+dev.off()
+
+########### Aggregate NMF patterns #########
+# create dataframe
+aggr_data <- data.frame(colData(sce), t(nmf_res@h))
+
+# aggregate NMF patterns across cell types
+# grep "NMF" to get all NMF patterns
+aggr_data2 <- aggregate(x = aggr_data[,grep("nmf", colnames(aggr_data))],
+                        by = list(aggr_data$CellType.Final),
+                        FUN = mean)
+
+aggr_data2[1:5,1:5]
+# Group.1         nmf1         nmf2         nmf3         nmf4
+# 1 Astrocyte_A 1.202200e-05 5.851288e-08 8.490542e-08 2.945811e-06
+# 2 Astrocyte_B 9.471367e-06 4.281921e-08 5.002034e-08 2.788676e-06
+# 3  DRD1_MSN_A 1.200896e-05 5.516762e-07 9.030000e-07 1.318676e-05
+# 4  DRD1_MSN_B 1.045089e-05 2.072535e-06 1.241188e-05 9.116840e-06
+# 5  DRD1_MSN_C 7.855158e-06 2.406406e-05 3.603876e-05 1.644265e-05
+#aggr_data2 contains mean nmf values by CellType.Final
+
+# move Group.1 to row names, then drop
+rownames(aggr_data2) <- aggr_data2$Group.1
+aggr_data2 <- aggr_data2[,-1]
+
+pdf(here("plots","12_snRNA","NMF","NMF_CellType_correlation_aggregated_heatmap.pdf"))
+pheatmap(aggr_data2,
+               color=colorRampPalette(c("blue","white","red"))(100),
+               cluster_cols=T,
+               cluster_rows=T,
+               scale="column",
+               fontsize_col = 5)
+dev.off()
 
 
 
