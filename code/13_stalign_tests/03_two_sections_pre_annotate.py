@@ -4,7 +4,6 @@ from STalign import STalign
 from pathlib import Path
 from pyhere import here
 from PIL import Image
-import os
 
 sample_info_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
