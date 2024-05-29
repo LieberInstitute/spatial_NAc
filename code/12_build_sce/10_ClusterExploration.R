@@ -37,6 +37,170 @@ sce$CellType.Final <- factor(x = sce$CellType.Final,
                                         "OPC","Microglia","Macrophage","T-Cell",
                                         "Mural_Endothelial_Fibroblast"))
 
+sce$CellType.Final <- factor(x = sce$CellType.Final,
+                             levels = c("DRD1_MSN_A","DRD1_MSN_B","DRD1_MSN_C","DRD1_MSN_D",
+                                        "DRD2_MSN_A","DRD2_MSN_B","Inh_A","Inh_B",
+                                        "Inh_C","Inh_D","Inh_E","Inh_F",
+                                        "Inh_G","Inh_H","Inh_I","Excitatory",
+                                        "Astrocyte_A","Astrocyte_B","Ependymal","Oligo",
+                                        "OPC","Microglia","Macrophage","T-Cell",
+                                        "Mural_Endothelial_Fibroblast"))
+
+
+####Remake BrainID by cluster with new order. 
+#Calculate cluster percentage by BrainID
+brain_by_cluster <- as.data.frame.matrix(table(sce$Brain_ID,sce$CellType.Final))
+
+#Calculate percentages 
+brain_by_cluster_pct <- sweep(brain_by_cluster,MARGIN = 2,colSums(brain_by_cluster),"/") * 100
+brain_by_cluster_pct$brain <- rownames(brain_by_cluster_pct)
+
+#Melt dataframe and plot
+brain_by_cluster_pct_melt <- reshape2::melt(brain_by_cluster_pct)
+
+#make some new brain colors
+brain_cols <- Polychrome::createPalette(length(unique(sce$Brain_ID)),
+                                        c("#D81B60", "#1E88E5","#004D40"))
+names(brain_cols) <- unique(sce$Brain_ID)
+
+brain_cluster_bar <- ggplot(data = brain_by_cluster_pct_melt,aes(x = variable,y = value,fill = brain)) +
+  geom_bar(position = "stack",stat = "identity") +
+  scale_fill_manual(values = brain_cols) +
+  labs(x = "CellType",
+       y = "Percent") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(plot = brain_cluster_bar,
+       filename = here("plots","12_snRNA","Dim_Red","BrainID_by_CellType_Final_Ordered.pdf"),
+       height = 12,
+       width = 12)
+
+#Remake the above plot with donor on the x-axis. 
+cluster_by_brain <- as.data.frame.matrix(table(sce$CellType.Final,sce$Brain_ID))
+
+#Calculate percentages 
+cluster_by_brain_pct <- sweep(cluster_by_brain,MARGIN = 2,colSums(cluster_by_brain),"/") * 100
+cluster_by_brain_pct$CellType <- rownames(cluster_by_brain_pct)
+
+#Melt dataframe and plot
+cluster_by_brain_pct_melt <- reshape2::melt(cluster_by_brain_pct)
+
+#load the colors
+load(here("processed-data","12_snRNA","CellType_Final_Cluster_Cols.rda"),verbose = TRUE)
+# Loading objects:
+#   cluster_cols
+
+cluster_brain_bar <- ggplot(data = cluster_by_brain_pct_melt,aes(x = variable,y = value,fill = CellType)) +
+  geom_bar(position = "stack",stat = "identity") +
+  scale_fill_manual(values = cluster_cols) +
+  labs(x = "Donor",
+       y = "Proportion") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+ggsave(plot = cluster_brain_bar,
+       filename = here("plots","12_snRNA","Dim_Red","CellType_Final_By_BrainID_Ordered.pdf"),
+       height = 12,
+       width = 12)
+
+
+####Sort by celltype
+#Calculate cluster percentage by sort
+sort_by_cluster <- as.data.frame.matrix(table(sce$Sort,sce$CellType.Final))
+
+#Calculate percentages 
+sort_by_cluster_pct <- sweep(sort_by_cluster,MARGIN = 2,colSums(sort_by_cluster),"/") * 100
+sort_by_cluster_pct$Sort <- rownames(sort_by_cluster_pct)
+
+#Melt dataframe and plot
+sort_by_cluster_pct_melt <- reshape2::melt(sort_by_cluster_pct)
+
+#make some new sort colors
+sort_cols <- Polychrome::createPalette(length(unique(sce$Sort)),
+                                        c("#D81B60","#004D40"))
+names(sort_cols) <- unique(sce$Sort)
+
+sort_cluster_bar <- ggplot(data = sort_by_cluster_pct_melt,aes(x = variable,y = value,fill = Sort)) +
+  geom_bar(position = "stack",stat = "identity") +
+  scale_fill_manual(values = sort_cols) +
+  labs(x = "CellType",
+       y = "Percent") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave(plot = sort_cluster_bar,
+       filename = here("plots","12_snRNA","Dim_Red","Sort_by_CellType_Final_Ordered.pdf"),
+       height = 12,
+       width = 12)
+
+#Remake above plot but with sort on the x-axis and celltype proportion on y-axis
+cluster_by_sort <- as.data.frame.matrix(table(sce$CellType.Final,sce$Sort))
+
+#Calculate percentages 
+cluster_by_sort_pct <- sweep(cluster_by_sort,MARGIN = 2,colSums(cluster_by_sort),"/") * 100
+cluster_by_sort_pct$CellType <- rownames(cluster_by_sort_pct)
+
+#Melt dataframe and plot
+cluster_by_sort_pct_melt <- reshape2::melt(cluster_by_sort_pct)
+
+#Make the bargraph.
+sort_cluster_bar <- ggplot(data = cluster_by_sort_pct_melt,aes(x = variable,y = value,fill = CellType)) +
+  geom_bar(position = "stack",stat = "identity") +
+  scale_fill_manual(values = cluster_cols) +
+  labs(x = "Sort",
+       y = "Proportion") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+ggsave(plot = sort_cluster_bar,
+       filename = here("plots","12_snRNA","Dim_Red","CellType_By_Sort_Final_Ordered.pdf"),
+       height = 12,
+       width = 12)
+
+
+###Save umap as PDF
+umap_harmony_pdf <- plotReducedDim(object = sce,dimred = "umap_HARMONY",
+               colour_by = "CellType.Final") +
+  scale_color_manual(values = cluster_cols) +
+  theme_void() +
+  theme(legend.position = "none") 
+
+ggsave(plot = umap_harmony_pdf,
+       filename = here("plots","12_snRNA","Dim_Red","umap_HARMONY_Final_noText.pdf"),
+       height = 12,
+       width = 12)
+
+#Also as png. 
+ggsave(plot = umap_harmony_pdf,
+       filename = here("plots","12_snRNA","Dim_Red","umap_HARMONY_Final_noText.png"),
+       height = 12,
+       width = 12)
+
+#Violin of general marker genes. 
+gen_vln <- plotExpression(object = sce,
+               features = c("RBFOX3","GJA1","MOBP","PDGFRA","C3","CD163","GRAP2","EBF1"),
+               swap_rownames = "gene_name",
+               x = "CellType.Final", colour_by = "CellType.Final",
+               ncol = 1,) +
+  scale_color_manual(values = cluster_cols) +
+  stat_summary(fun = median, 
+               fun.min = median, 
+               fun.max = median,
+               geom = "crossbar", 
+               width = 0.3) +
+  theme_void() +
+  theme(legend.position = "none") 
+
+ggsave(plot = gen_vln,
+       filename = here("plots","12_snRNA","Expression","General_Violin_Figure1.pdf"))
+
+ggsave(plot = gen_vln,
+       filename = here("plots","12_snRNA","Expression","General_Violin_Figure1.png"))
+
+
 ### Read in the DEGs
 load(here("processed-data","markers_1vAll_CellType_Final.rda"),verbose = TRUE)
 # Loading objects:
