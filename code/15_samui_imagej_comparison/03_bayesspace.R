@@ -3,7 +3,6 @@ library(sessioninfo)
 library(here)
 library(SpatialExperiment)
 library(BayesSpace)
-library(Polychrome)
 library(tidyverse)
 library(HDF5Array)
 
@@ -37,8 +36,16 @@ dir.create(dirname(out_path), showWarnings = FALSE)
 
 spe = loadHDF5SummarizedExperiment(spe_dir)
 
+#   Since BayesSpace considers all donors at once, we need to separate donors
+#   spatially. Do this by adding a donor-specific offset to the array row. Note
+#   here that 'array_row' is not constrained to have max value 77; we instead
+#   find the largest 'array_row' value of any donor, and use it to ensure donors
+#   are at least 5 rows apart
+offset_row <- as.numeric(factor(spe$sample_id)) *
+    (max(spe[[paste0('array_row_', opt$final_step)]]) + 5)
+
 #   Set array coordinates based on final step (ImageJ or Samui)
-spe$array_row = spe[[paste0('array_row_', opt$final_step)]]
+spe$array_row = spe[[paste0('array_row_', opt$final_step)]] + offset_row
 spe$array_col = spe[[paste0('array_col_', opt$final_step)]]
 
 ## Set the BayesSpace metadata using code from

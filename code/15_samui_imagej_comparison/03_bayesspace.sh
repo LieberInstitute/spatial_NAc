@@ -6,7 +6,7 @@
 #SBATCH -t 2-00:00:00
 #SBATCH -o /dev/null
 #SBATCH -e /dev/null
-#SBATCH --array=1-8%20
+#SBATCH --array=1%20
 
 ## Define loops and appropriately subset each variable for the array task ID
 all_final_step=(imagej samui)
