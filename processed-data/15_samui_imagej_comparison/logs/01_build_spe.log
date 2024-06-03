@@ -1,10 +1,10 @@
 **** Job starts ****
-Thu May 30 02:00:46 PM EDT 2024
+Mon Jun  3 10:34:31 AM EDT 2024
 **** JHPCE info ****
 User: neagles
-Job id: 7075543
+Job id: 7221748
 Job name: 01_build_spe
-Node name: compute-106
+Node name: compute-116
 Task id: 
 Unloading conda_R/4.4
 Loading conda_R/4.4
@@ -195,13 +195,18 @@ The following object is masked from ‘package:rhdf5’:
 
     h5ls
 
+Loading required package: Rcpp
 New names:
 • `` -> `...1`
-NULL
 There were 16 warnings (use warnings() to see them)
-NULL
 Building SpatialExperiment using capture area as sample ID
 Overwriting imgData(spe) with merged images (one per group)
+Warning messages:
+1: Quick-TRANSfer stage steps exceeded maximum (= 6916950) 
+2: Quick-TRANSfer stage steps exceeded maximum (= 6916950) 
+3: Quick-TRANSfer stage steps exceeded maximum (= 6916950) 
+4: Quick-TRANSfer stage steps exceeded maximum (= 6916950) 
+5: Quick-TRANSfer stage steps exceeded maximum (= 6916950) 
 ─ Session info ───────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.4.0 Patched (2024-05-22 r86590)
@@ -212,7 +217,7 @@ Overwriting imgData(spe) with merged images (one per group)
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-05-30
+ date     2024-06-03
  pandoc   3.1.13 @ /jhpce/shared/community/core/conda_R/4.4/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -291,6 +296,7 @@ Overwriting imgData(spe) with merged images (one per group)
  golem                  0.4.1       2023-06-05 [2] CRAN (R 4.4.0)
  gridExtra              2.3         2017-09-09 [2] CRAN (R 4.4.0)
  gtable                 0.3.5       2024-04-22 [2] CRAN (R 4.4.0)
+ harmony              * 1.2.0       2023-11-29 [2] CRAN (R 4.4.0)
  HDF5Array            * 1.32.0      2024-04-30 [2] Bioconductor 3.19 (R 4.4.0)
  here                 * 1.0.1       2020-12-13 [2] CRAN (R 4.4.0)
  hms                    1.1.3       2023-03-21 [2] CRAN (R 4.4.0)
@@ -352,7 +358,7 @@ Overwriting imgData(spe) with merged images (one per group)
  RANN                   2.6.1       2019-01-08 [2] CRAN (R 4.4.0)
  rappdirs               0.3.3       2021-01-31 [2] CRAN (R 4.4.0)
  RColorBrewer           1.1-3       2022-04-03 [2] CRAN (R 4.4.0)
- Rcpp                   1.0.12      2024-01-09 [2] CRAN (R 4.4.0)
+ Rcpp                 * 1.0.12      2024-01-09 [2] CRAN (R 4.4.0)
  RcppAnnoy              0.0.22      2024-01-23 [2] CRAN (R 4.4.0)
  RcppHNSW               0.6.0       2024-02-04 [2] CRAN (R 4.4.0)
  RCurl                  1.98-1.14   2024-01-09 [2] CRAN (R 4.4.0)
@@ -365,6 +371,7 @@ Overwriting imgData(spe) with merged images (one per group)
  rhdf5                * 2.48.0      2024-04-30 [2] Bioconductor 3.19 (R 4.4.0)
  rhdf5filters           1.16.0      2024-04-30 [2] Bioconductor 3.19 (R 4.4.0)
  Rhdf5lib               1.26.0      2024-04-30 [2] Bioconductor 3.19 (R 4.4.0)
+ RhpcBLASctl            0.23-42     2023-02-11 [2] CRAN (R 4.4.0)
  rjson                * 0.2.21      2022-01-09 [2] CRAN (R 4.4.0)
  rlang                  1.1.3       2024-01-10 [2] CRAN (R 4.4.0)
  ROCR                   1.0-11      2020-05-02 [2] CRAN (R 4.4.0)
@@ -423,7 +430,7 @@ Overwriting imgData(spe) with merged images (one per group)
  vipor                  0.4.7       2023-12-18 [2] CRAN (R 4.4.0)
  viridis                0.6.5       2024-01-29 [2] CRAN (R 4.4.0)
  viridisLite            0.4.2       2023-05-02 [2] CRAN (R 4.4.0)
- visiumStitched       * 0.99.0      2024-05-29 [1] Github (LieberInstitute/visiumStitched@be5d24a)
+ visiumStitched       * 0.99.0      2024-06-03 [1] Github (LieberInstitute/visiumStitched@8006932)
  vroom                  1.6.5       2023-12-05 [2] CRAN (R 4.4.0)
  withr                  3.0.0       2024-01-16 [2] CRAN (R 4.4.0)
  XML                    3.99-0.16.1 2024-01-22 [2] CRAN (R 4.4.0)
@@ -440,4 +447,4 @@ Overwriting imgData(spe) with merged images (one per group)
 
 ──────────────────────────────────────────────────────────────────────────────
 **** Job ends ****
-Thu May 30 02:34:31 PM EDT 2024
+Mon Jun  3 10:58:53 AM EDT 2024
