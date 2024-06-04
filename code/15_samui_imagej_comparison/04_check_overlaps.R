@@ -17,7 +17,10 @@ precast_cluster_path = here(
 )
 plot_dir = here('plots', '15_samui_imagej_comparison')
 final_steps = c('imagej', 'samui')
+best_sample_id = 'Br8492'
 k_values = c(2, 10, 19, 28)
+
+dir.create(plot_dir, showWarnings = FALSE)
 
 ################################################################################
 #   Read in cluster assignments
@@ -62,7 +65,7 @@ for (this_k in k_values) {
 cluster_df = do.call(rbind, cluster_df_list)
 
 ################################################################################
-#   Read in SPE, add overlap info, and extract necessary colData
+#   Read in SPE, add overlap info, and merge with cluster assignments
 ################################################################################
 
 spe = loadHDF5SummarizedExperiment(spe_dir)
@@ -105,11 +108,7 @@ col_data = colData(spe) |>
         capture_area, key, donor
     )
 
-################################################################################
-#   Merge and explore data at overlaps
-################################################################################
-
-overlap_df = cluster_df |>
+cluster_df = cluster_df |>
     left_join(col_data, by = "key") |>
     #   Only take the array coordinates and overlap info related to the final
     #   step in each row
@@ -132,13 +131,69 @@ overlap_df = cluster_df |>
             matches('^array_(row|col)_(imagej|samui)$'),
             matches('^(exclude_overlapping|overlap_key)_(imagej|samui)$')
         )
-    ) |>
+    )
+
+################################################################################
+#   Plot clustering results spatially
+################################################################################
+
+for (this_final_step in final_steps) {
+    for (this_k in k_values) {
+        for (this_method in c('PRECAST', 'BayesSpace')) {
+            #   Add clustering results to the SPE for this combination of
+            #   parameters
+            temp = colData(spe) |>
+                as_tibble() |>
+                select(key, sample_id) |>
+                left_join(
+                    cluster_df |>
+                        filter(
+                            final_step == this_final_step,
+                            k == this_k,
+                            method == this_method
+                        ) |>
+                        select(
+                            key, cluster_assignment, exclude_overlapping,
+                            array_row, array_col
+                        ),
+                    by = "key"
+                ) |>
+                DataFrame()
+            rownames(temp) = colnames(spe)
+            colData(spe) = temp
+
+            p = spot_plot(
+                spe, sample_id = best_sample_id,
+                var_name = 'cluster_assignment', is_discrete = TRUE
+            )
+            pdf(
+                file.path(
+                    plot_dir,
+                    sprintf(
+                        '%s_%s_%s_%s.pdf',
+                        best_sample_id, this_method, this_k, this_final_step
+                    )
+                )
+            )
+            print(p)
+            dev.off()
+        }
+    }
+}
+
+################################################################################
+#   Merge and explore data at overlaps
+################################################################################
+
+overlap_df = cluster_df |>
     #   Only take spots overlapping other spots   
     filter(overlap_key != "") |>
     #   Add cluster assignment of the overlapping spot
+    group_by(method) |>
     mutate(
         overlap_cluster_assignment = cluster_assignment[match(overlap_key, key)]
     ) |>
+    ungroup() |>
     #   Remove duplicate pairs and uncommon cases where the overlapping spot
     #   was dropped before clustering
     filter(!(key %in% overlap_key), !is.na(overlap_cluster_assignment))
@@ -159,8 +214,10 @@ p = overlap_df |>
             y = "Proportion agreement at overlaps",
             color = "Final alignment step"
         ) +
-        theme_bw(base_size = 15)
+        theme_bw(base_size = 18)
 
-pdf(file.path(plot_dir, 'all_overlaps.pdf'))
+pdf(file.path(plot_dir, 'all_overlaps.pdf'), width = 10, height = 7)
 print(p)
 dev.off()
+
+session_info()
