@@ -45,8 +45,8 @@ offset_row <- as.numeric(factor(spe$sample_id)) *
     (max(spe[[paste0('array_row_', opt$final_step)]]) + 5)
 
 #   Set array coordinates based on final step (ImageJ or Samui)
-spe$array_row = spe[[paste0('array_row_', opt$final_step)]] + offset_row
-spe$array_col = spe[[paste0('array_col_', opt$final_step)]]
+spe$row = spe[[paste0('array_row_', opt$final_step)]] + offset_row
+spe$col = spe[[paste0('array_col_', opt$final_step)]]
 
 ## Set the BayesSpace metadata using code from
 ## https://github.com/edward130603/BayesSpace/blob/master/R/spatialPreprocess.R#L43-L46
@@ -55,7 +55,7 @@ metadata(spe)$BayesSpace.data <- list(platform = "Visium", is.enhanced = FALSE)
 #   Run main clustering step
 message("Running spatialCluster()")
 Sys.time()
-spe <- spatialCluster(spe, use.dimred = "HARMONY", q = k, nrep = 10000)
+spe <- spatialCluster(spe, use.dimred = "HARMONY", q = opt$k, nrep = 10000)
 Sys.time()
 
 #   Write cluster assigments (along with spot key) to CSV

@@ -3,10 +3,10 @@
 #SBATCH --mem=30G
 #SBATCH --job-name=02_precast
 #SBATCH -c 1
-#SBATCH -t 2-00:00:00
+#SBATCH -t 1-00:00:00
 #SBATCH -o /dev/null
 #SBATCH -e /dev/null
-#SBATCH --array=1-8%20
+#SBATCH --array=1-3,8%4
 
 ## Define loops and appropriately subset each variable for the array task ID
 all_final_step=(imagej samui)
