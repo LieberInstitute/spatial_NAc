@@ -110,7 +110,7 @@ col_data = colData(spe) |>
 
 cluster_df = cluster_df |>
     left_join(col_data, by = "key") |>
-    #   Only take the array coordinates and overlap info related to the final
+    #   Only take the spot coordinates and overlap info related to the final
     #   step in each row
     mutate(
         array_row = ifelse(
@@ -118,6 +118,12 @@ cluster_df = cluster_df |>
         ),
         array_col = ifelse(
             final_step == 'imagej', array_col_imagej, array_col_samui
+        ),
+        pxl_row_in_fullres = ifelse(
+            final_step == 'imagej', pxl_row_in_fullres_imagej, pxl_row_in_fullres_samui
+        ),
+        pxl_col_in_fullres = ifelse(
+            final_step == 'imagej', pxl_col_in_fullres_imagej, pxl_col_in_fullres_samui
         ),
         exclude_overlapping = ifelse(
             final_step == 'imagej', exclude_overlapping_imagej, exclude_overlapping_samui
@@ -129,6 +135,7 @@ cluster_df = cluster_df |>
     select(
         -c(
             matches('^array_(row|col)_(imagej|samui)$'),
+            matches('^pixel_(row|col)_in_fullres_(imagej|samui)$'),
             matches('^(exclude_overlapping|overlap_key)_(imagej|samui)$')
         )
     )
@@ -154,13 +161,18 @@ for (this_final_step in final_steps) {
                         ) |>
                         select(
                             key, cluster_assignment, exclude_overlapping,
-                            array_row, array_col
+                            array_row, array_col, pxl_row_in_fullres,
+                            pxl_col_in_fullres
                         ),
                     by = "key"
                 ) |>
                 DataFrame()
             rownames(temp) = colnames(spe)
             colData(spe) = temp
+
+            #   Also use the appropriate spot coords for plotting
+            spatialCoords(spe)[,'pxl_row_in_fullres'] = spe$pxl_row_in_fullres
+            spatialCoords(spe)[,'pxl_col_in_fullres'] = spe$pxl_col_in_fullres
 
             p = spot_plot(
                 spe, sample_id = best_sample_id,

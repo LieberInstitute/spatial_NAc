@@ -88,16 +88,21 @@ spe_filtered <- RunHarmony(spe_filtered, "sample_id_original", verbose = FALSE)
 #   Harmony reducedDims for BayesSpace and PRECAST
 assays(spe_filtered) = list(counts = assays(spe_filtered)$counts)
 
-#   Include both versions of the array coordinates, the only spatial information
-#   PRECAST or BayesSpace uses when clustering
+#   Include both versions of the spot coordinates-- pixel coords for plotting
+#   and array coords for clustering with PRECAST or BayesSpace
 temp = colData(spe_filtered) |>
     as_tibble() |>
     dplyr::rename(
-        array_row_samui = array_row, array_col_samui = array_col
+        array_row_samui = array_row,
+        array_col_samui = array_col,
+        pxl_row_in_fullres_samui = pxl_row_in_fullres_transformed,
+        pxl_col_in_fullres_samui = pxl_col_in_fullres_transformed
     ) |>
     mutate(
         array_row_imagej = spe_imagej$array_row,
-        array_col_imagej = spe_imagej$array_col
+        array_col_imagej = spe_imagej$array_col,
+        pxl_row_in_fullres_imagej = spe_imagej$pxl_row_in_fullres_transformed,
+        pxl_col_in_fullres_imagej = spe_imagej$pxl_col_in_fullres_transformed
     ) |>
     DataFrame()
 rownames(temp) = colnames(spe_filtered)
