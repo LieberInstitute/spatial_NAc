@@ -5,6 +5,7 @@ library(rjson)
 library(SpatialExperiment)
 library(HDF5Array)
 library(sessioninfo)
+library(harmony)
 
 info_in_path = here(
     'processed-data', '02_image_stitching', 'sample_info_clean.csv'
@@ -22,6 +23,8 @@ spe_in_dir = here(
     'processed-data', '05_harmony_BayesSpace', '03-filter_normalize_spe',
     'spe_filtered_hdf5'
 )
+
+set.seed(1)
 
 sample_info = read_csv(info_in_path, show_col_types = FALSE) |>
     filter(`In analysis`) |>
@@ -76,6 +79,10 @@ spe_filtered = loadHDF5SummarizedExperiment(spe_in_dir)
 common_spots = intersect(spe_filtered$key, spe_imagej$key)
 spe_filtered = spe_filtered[, common_spots]
 spe_imagej = spe_imagej[, common_spots]
+
+#   Run Harmony-- BayesSpace will use its dimensions for clustering. Plotted
+#   convergence interactively to verify quality of results, despite warnings
+spe_filtered <- RunHarmony(spe_filtered, "sample_id_original", verbose = FALSE)
 
 #   Reduce the size of the object, since we'll only need the raw counts and
 #   Harmony reducedDims for BayesSpace and PRECAST
