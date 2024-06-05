@@ -104,6 +104,7 @@ col_data = colData(spe) |>
     as_tibble() |>
     select(
         matches('^array_(row|col)_(imagej|samui)$'),
+        matches('^pxl_(row|col)_in_fullres_(imagej|samui)$'),
         matches('^(exclude_overlapping|overlap_key)_(imagej|samui)$'),
         capture_area, key, donor
     )
@@ -135,7 +136,7 @@ cluster_df = cluster_df |>
     select(
         -c(
             matches('^array_(row|col)_(imagej|samui)$'),
-            matches('^pixel_(row|col)_in_fullres_(imagej|samui)$'),
+            matches('^pxl_(row|col)_in_fullres_(imagej|samui)$'),
             matches('^(exclude_overlapping|overlap_key)_(imagej|samui)$')
         )
     )
@@ -173,6 +174,8 @@ for (this_final_step in final_steps) {
             #   Also use the appropriate spot coords for plotting
             spatialCoords(spe)[,'pxl_row_in_fullres'] = spe$pxl_row_in_fullres
             spatialCoords(spe)[,'pxl_col_in_fullres'] = spe$pxl_col_in_fullres
+            spe$pxl_row_in_fullres = NULL
+            spe$pxl_col_in_fullres = NULL
 
             p = spot_plot(
                 spe, sample_id = best_sample_id,
