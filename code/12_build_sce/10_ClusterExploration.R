@@ -37,15 +37,6 @@ sce$CellType.Final <- factor(x = sce$CellType.Final,
                                         "OPC","Microglia","Macrophage","T-Cell",
                                         "Mural_Endothelial_Fibroblast"))
 
-sce$CellType.Final <- factor(x = sce$CellType.Final,
-                             levels = c("DRD1_MSN_A","DRD1_MSN_B","DRD1_MSN_C","DRD1_MSN_D",
-                                        "DRD2_MSN_A","DRD2_MSN_B","Inh_A","Inh_B",
-                                        "Inh_C","Inh_D","Inh_E","Inh_F",
-                                        "Inh_G","Inh_H","Inh_I","Excitatory",
-                                        "Astrocyte_A","Astrocyte_B","Ependymal","Oligo",
-                                        "OPC","Microglia","Macrophage","T-Cell",
-                                        "Mural_Endothelial_Fibroblast"))
-
 
 ####Remake BrainID by cluster with new order. 
 #Calculate cluster percentage by BrainID
@@ -206,6 +197,20 @@ load(here("processed-data","markers_1vAll_CellType_Final.rda"),verbose = TRUE)
 # Loading objects:
 #   markers_1vALL_df
 
+plotExpression(object = sce,features = c("GFRA2","GLP1R"),
+               x = "CellType.Final",
+               colour_by = "CellType.Final",
+               swap_rownames = "gene_name",ncol = 1) +
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = "none") +
+  stat_summary(fun = median,
+               fun.min = median,
+               fun.max = median,
+               geom = "crossbar",
+               width = 0.3)
+  
+
 ###########Complext heatmap of basic markers
 #Code from https://github.com/LieberInstitute/septum_lateral/blob/main/snRNAseq_mouse/code/02_analyses/Complex%20Heatmap.R
 splitit <- function(x) split(seq(along = x), x)
@@ -214,66 +219,87 @@ cell_idx <- splitit(sce$CellType.Final)
 
 ############set up columns for heatmaps. 
 #Set marker genes to be included on the heatmap.  
-markers_all <- c("RBFOX3","SNAP25","SYT1", #Pan neuronal  3
-                 "GAD1","GAD2","SLC32A1", #GABAergic
-                 "PPP1R1B","BCL11B","RARB", #MSN
-                 "DRD1","DRD2", #Dopamine receptor MSNs
-                 "SLC17A7", #Exctitatory
+markers_all <- c("DRD1","RXFP1", #D1/D1 Islands
+                 "CPNE4",#D1_A,
+                 "TAFA1","RXFP2", #D1_B
+                 "RELN","CNTNAP3B", #D1_C 
+                 "VWC2L","NPFFR2",#D1_D
+                 "DRD2","ADORA2A", #General D2
+                 "CLMP","TTN", #D2_A
+                 "HTR2C","HTR4", #D2_B,
+                 "GFRA2","GLP1R", #Inh_A
+                 "SST","CORT", #Inh_B
+                 "CHAT","SLC5A7", #Inh_C
+                 "ANK1","KCNC2", #Inh_D
+                 "IL1RAPL2","KIT", #Inh_E
+                 "VIP","LYPD6B", #Inh_F
+                 "CCK","SERTM1", #Inh_G
+                 "TACR3","NPY", #Inh_H
+                 "GRIN3A","PNOC", #Inh_I
+                 "SLC17A7","TBR1", #Exctitatory
                  "AQP4","GFAP", #Astrocyte
+                 "SLC1A2","TNC", #Astro subs 
                  "FOXJ1","CFAP44", #Ependymal
                  "C3","ARHGAP15",#Microglia
                  "MBP","MOBP", #Oligodendrocyte
-                 "PDGFRA",#OPC
-                 "CD163", #Macrophage
-                 "CD2", #T-Cell
-                 "CLDN5") #Mural_Endothelial_Fibroblast
+                 "PDGFRA","VCAN",#OPC
+                 "CD163","MS4A4A",#Macrophage
+                 "CD2","GRAP2",#T-Cell
+                 "DCN","CLDN5") #Mural_Endothelial_Fibroblast
 
 #marker labels
-marker_labels <- c(rep("Neuronal",3),
-                   rep("GABAergic",3),
-                   rep("MSN",5),
-                   rep("Excitatory",1),
-                   rep("Astrocyte",2),
+marker_labels <- c(rep("D1_MSN",9),
+                   rep("D2_MSN",6),
+                   rep("Inhibitory",18),
+                   rep("Excitatory",2),
+                   rep("Astrocyte",4),
                    rep("Ependymal",2),
                    rep("Microglia",2),
                    rep("Oligo",2),
-                   rep("OPC",1),
-                   rep("Other",3))
+                   rep("OPC",2),
+                   rep("Macrophage",2),
+                   rep("T_Cell",2),
+                   rep("Mural_Fibro_Endo",2))
 
 marker_labels <- factor(x = marker_labels,
                         levels =  unique(marker_labels))
 
-colors_markers <- list(marker = c(Neuronal = "black",
-                                  GABAergic = "#8C564B",
-                                  MSN = "#1F77B4",
+colors_markers <- list(marker = c(D1_MSN = "#332288",
+                                  D2_MSN = "#117733",
+                                  Inhibitory = "#44AA99",
+                                  Excitatory = "#88CCEE",
+                                  Astrocyte = "#DDCC77",
+                                  Ependymal = "#8C564B",
                                   Excitatory = "#D81B60",
-                                  Astrocyte = "#FFC107",
-                                  Ependymal = "#009E73",
-                                  Microglia = "#88CCEE",
-                                  Oligo = "#2af7db",
-                                  OPC = "#ff9c1e",
-                                  Other = "#b11eff"))
+                                  Microglia = "#CC6677",
+                                  Oligo = "#AA4499",
+                                  OPC = "#882255",
+                                  Macrophage = "#FE6100",
+                                  T_Cell = "#FFB000",
+                                  Mural_Fibro_Endo = "#1E88E5"))
 
 col_ha <- ComplexHeatmap::columnAnnotation(marker = marker_labels,
                                            show_annotation_name = FALSE,
-                                           show_legend = FALSE,
+                                           show_legend = TRUE,
                                            col = colors_markers)
 
 ###########set up rows for heatmap. 
 # cluster labels
-cluster_pops <- list(GABAergic = c("Inh_A","Inh_B","Inh_C",
+cluster_pops <- list(D1_MSN = c("DRD1_MSN_A","DRD1_MSN_B",
+                                "DRD1_MSN_C","DRD1_MSN_D"),
+                     D2_MSN = c("DRD2_MSN_A","DRD2_MSN_B"),
+                     Inhibitory = c("Inh_A","Inh_B","Inh_C",
                                    "Inh_D","Inh_E","Inh_F",
                                    "Inh_G","Inh_H","Inh_I"),
-                     MSN = c("DRD1_MSN_A","DRD1_MSN_B","DRD1_MSN_C",
-                             "DRD1_MSN_D","DRD2_MSN_A","DRD2_MSN_B"),
                      Excitatory = "Excitatory",
                      Astrocyte = c("Astrocyte_A","Astrocyte_B"),
                      Ependymal = "Ependymal",
                      Microglia = "Microglia",
                      Oligo = "Oligo",
                      OPC = "OPC",
-                     Other = c("Macrophage","T-Cell",
-                               "Mural_Endothelial_Fibroblast"))
+                     Macrophage = "Macrophage",
+                     T_Cell = "T-Cell",
+                     Mural_Fibro_Endo = "Mural_Endothelial_Fibroblast")
 
 # cluster labels order
 # # cluster labels order
@@ -287,7 +313,8 @@ names(cluster_pops_rev) <- unname(unlist(cluster_pops))
 cluster_pops_rev <- factor(cluster_pops_rev, levels = names(cluster_pops))
 
 # second set of cluster labels
-neuron_pops <- ifelse(cluster_pops_rev %in% c("GABAergic","MSN","Excitatory"),
+neuron_pops <- ifelse(cluster_pops_rev %in% c("Inhibitory","D1_MSN",
+                                              "D2_MSN","Excitatory"),
                       "Neuron",
                       "Non-neuron")
 
@@ -296,27 +323,37 @@ neuron_pops <- factor(x = neuron_pops,levels = c("Neuron","Non-neuron"))
 colors_neurons <- list(class = c(Neuron = "black",
                                  `Non-neuron` = "gray65"))
 
-n <- table(sce$CellType.Final)
+#n <- table(sce$CellType.Final)
 
 #row annotation dataframe. 
 # row annotation
-pop_markers <- list(population = c(GABAergic = "#8C564B",
-                                   MSN = "#1F77B4",
+pop_markers <- list(population = c(D1_MSN = "#332288",
+                                   D2_MSN = "#117733",
+                                   Inhibitory = "#44AA99",
+                                   Excitatory = "#88CCEE",
+                                   Astrocyte = "#DDCC77",
+                                   Ependymal = "#8C564B",
                                    Excitatory = "#D81B60",
-                                   Astrocyte = "#FFC107",
-                                   Ependymal = "#009E73",
-                                   Microglia = "#88CCEE",
-                                   Oligo = "#2af7db",
-                                   OPC = "#ff9c1e",
-                                   Other = "#b11eff"))
+                                   Microglia = "#CC6677",
+                                   Oligo = "#AA4499",
+                                   OPC = "#882255",
+                                   Macrophage = "#FE6100",
+                                   T_Cell = "#FFB000",
+                                   Mural_Fibro_Endo = "#1E88E5"))
 
 
-row_ha <- rowAnnotation(n = anno_barplot(as.numeric(n[names(cluster_pops_rev)]), 
-                                         gp = gpar(fill = "navy"), 
-                                         border = FALSE),
-                        class = neuron_pops,
+# row_ha <- rowAnnotation(n = anno_barplot(as.numeric(n[names(cluster_pops_rev)]), 
+#                                          gp = gpar(fill = "navy"), 
+#                                          border = FALSE),
+#                         class = neuron_pops,
+#                         population = cluster_pops_rev,
+#                         show_annotation_name = FALSE,
+#                         col = colors_neurons)
+
+row_ha <- rowAnnotation(class = neuron_pops,
                         population = cluster_pops_rev,
                         show_annotation_name = FALSE,
+                        show_legend = FALSE,
                         col = c(pop_markers,colors_neurons))
 
 
@@ -328,8 +365,13 @@ dat <- dat[markers_all,]
 dim(dat)
 dat <- as.matrix(dat)
 
-hm_mat <- scale(t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers_all, i])))))
+hm_mat <- scale(t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers_all, i])))),
+                center = TRUE,
+                scale = TRUE)
+#hm_mat <- t(do.call(cbind, lapply(cell_idx, function(i) rowMeans(dat[markers_all, i]))))
 hm_mat <- hm_mat[names(cluster_pops_rev),]
+
+col_fun <- circlize::colorRamp2(c(-2,0,6),c("blue","white","red"))
 
 hm <- ComplexHeatmap::Heatmap(matrix = hm_mat,
                               name = "centered,scaled",
@@ -342,11 +384,12 @@ hm <- ComplexHeatmap::Heatmap(matrix = hm_mat,
                               column_split = marker_labels,
                               row_split = cluster_pops_rev,
                               row_title = NULL,
-                              rect_gp = gpar(col = "gray50", lwd = 0.5))
+                              rect_gp = gpar(col = "gray50", lwd = 0.5),
+                              col = col_fun)
 
 
-png(filename = here("plots","12_snRNA","Expression","CellType_Final_Heatmap_BroadMarkers.png"),
-    width = 12,
-    height = 12,units = "in",res = 100)
+pdf(file = here("plots","12_snRNA","Expression","CellType_Final_Heatmap_BroadMarkers.pdf"),
+    width = 16,
+    height = 12)
 draw(hm)
 dev.off()
