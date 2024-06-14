@@ -197,6 +197,15 @@ load(here("processed-data","markers_1vAll_CellType_Final.rda"),verbose = TRUE)
 # Loading objects:
 #   markers_1vALL_df
 
+#Make CSVs for the marker genes. 
+for(i in unique(markers_1vALL_df$cellType.target)){
+  print(i)
+  x <- subset(markers_1vALL_df,subset=(cellType.target == i))
+  write.csv(x = x,
+            file = here("processed-data","12_snRNA","DEG_CSVs","1vALL",paste0(i,"_1vALL.csv")))
+}
+
+
 plotExpression(object = sce,features = c("GFRA2","GLP1R"),
                x = "CellType.Final",
                colour_by = "CellType.Final",
