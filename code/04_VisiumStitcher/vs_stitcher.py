@@ -11,7 +11,7 @@ from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 
 # Read in the .csv with sample key
-homeDir = "/data/abattle4/prashanthi/spatial_NAc/"
+homeDir = "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/"
 sample_key = pd.read_csv(homeDir + "raw-data/sample_key_spatial_NAc.csv")
 transforms_all = pd.read_csv(homeDir + "processed-data/02_image_stitching/adjusted_transforms_highres.csv")
 sample_key = sample_key[sample_key['In analysis'] == "Yes"]
@@ -23,14 +23,14 @@ for brain in sample_key.Brain.unique():
     sample_key_brain = sample_key.loc[sample_key.Brain == brain].copy()
     sample_key_brain = sample_key_brain.reset_index(drop = True)
     adatas = []
-    # Read in the data from all capture areas correspnding to the brain and specify the corrected transforms
+    # Read in the data from all capture areas corresponding to the brain and specify the corrected transforms
     for i in range(sample_key_brain.shape[0]):
         adata = sc.read_visium(homeDir + "processed-data/01_spaceranger_reorg/" +
                        sample_key_brain.Slide[i] + "/outs", count_file="raw_feature_bc_matrix.h5")
         adata.var_names_make_unique()
         adata.obs_names = [sample_key_brain.Slide[i]+j for j in adata.obs_names]
         adata.obs['sample'] = sample_key_brain.Slide[i]
-        adata = adata[adata.obs.in_tissue == 1]
+        #adata = adata[adata.obs.in_tissue == 1]
         if(sample_key_brain.loc[i, 'Refined transforms'] == 'No'):
             transform = vs.transform_finder(homeDir + sample_key_brain['XML file name'][i])
             adata.uns['transform'] = transform[sample_key_brain['Transform_index'][i]]
@@ -89,8 +89,8 @@ for brain in sample_key.Brain.unique():
     for i in sample_key_brain.Slide.values:
         for j in sample_key_brain.Slide.values:
             if(i != j):
-                N_ibj = sum(adata.obs.sample_overlap == (i + "_Overlap_" + j))
-                N_jbi = sum(adata.obs.sample_overlap == (j + "_Overlap_" + i))
+                N_ibj = np.min(adata.obs.total_counts[(adata.obs.sample_overlap == (i + "_Overlap_" + j)) & (adata.obs.in_tissue == 1)])
+                N_jbi = np.min(adata.obs.total_counts[(adata.obs.sample_overlap == (j + "_Overlap_" + i)) & (adata.obs.in_tissue == 1)])
                 if(N_ibj >= N_jbi):
                     ind_i = np.where(sample_order == i)[0][0]
                     ind_j = np.where(sample_order == j)[0][0]
@@ -133,12 +133,12 @@ for brain in sample_key.Brain.unique():
     brain_ad.var = adatas[0].var
     sc.pl.spatial(brain_ad, color="sample", show = False)
     plt.tight_layout()
-    plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/all_spots.pdf", dpi = 200)
+    plt.savefig(homeDir + "plots/04_VisiumStitcher/"+ brain + "/all_spots.pdf", dpi = 200)
     sc.pl.spatial(brain_ad[~brain_ad.obs["overlap"]], color="sample", show = False)
     plt.tight_layout()
-    plt.savefig("/data/abattle4/prashanthi/spatial_NAc/plots/04_VisiumStitcher/"+ brain + "/non-overlapping_spots.pdf", dpi = 200)
+    plt.savefig(homeDir + "plots/04_VisiumStitcher/"+ brain + "/non-overlapping_spots.pdf", dpi = 200)
     # Write the data
-    saveDir = "/data/abattle4/prashanthi/spatial_NAc/processed-data/04_VisiumStitcher/" + brain + "/"
+    saveDir = homeDir + "processed-data/04_VisiumStitcher/" + brain + "/"
     brain_ad.obs.rename(columns={'Overlap': 'overlap_slide', 'overlap': 'exclude_overlapping'}, inplace=True)
     brain_ad.obs.drop(['in_tissue','array_row', 'array_col'], axis=1).to_csv(saveDir + "vs_stitcher.csv")
     # and delete individual datasets to save space
