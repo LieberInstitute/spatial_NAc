@@ -1,0 +1,2351 @@
+**** Job starts ****
+Tue Jun 18 01:20:17 PM EDT 2024
+**** JHPCE info ****
+User: pravicha
+Job id: 7631566
+Job name: 01-run_precast_random
+Node name: compute-062
+Task id: 4
+Unloading LIBD SLURM module for r_nac/1.0
+Loading LIBD SLURM module for r_nac/1.0
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+Loading required package: parallel
+Loading required package: gtools
+PRECAST :  An efficient data integration method is provided for multiple spatial transcriptomics data with non-cluster-relevant effects such as the complex batch effects. It unifies spatial factor analysis simultaneously with spatial clustering and embedding alignment, requiring only partially shared cell/domain clusters across datasets. More details can be referred to Wei Liu, et al. (2023) <doi:10.1038/s41467-023-35947-w>.   Check out our Package website (https://feiyoung.github.io/PRECAST/index.html) for a more complete description of the methods and analyses
+Loading required package: DelayedArray
+Loading required package: stats4
+Loading required package: Matrix
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:Matrix’:
+
+    expand, unname
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: S4Arrays
+Loading required package: abind
+
+Attaching package: ‘S4Arrays’
+
+The following object is masked from ‘package:abind’:
+
+    abind
+
+The following object is masked from ‘package:base’:
+
+    rowsum
+
+Loading required package: SparseArray
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:base’:
+
+    apply, scale, sweep
+
+Loading required package: rhdf5
+
+Attaching package: ‘HDF5Array’
+
+The following object is masked from ‘package:rhdf5’:
+
+    h5ls
+
+Loading required package: SeuratObject
+Loading required package: sp
+
+Attaching package: ‘sp’
+
+The following object is masked from ‘package:IRanges’:
+
+    %over%
+
+
+Attaching package: ‘SeuratObject’
+
+The following object is masked from ‘package:IRanges’:
+
+    intersect
+
+The following object is masked from ‘package:S4Vectors’:
+
+    intersect
+
+The following object is masked from ‘package:BiocGenerics’:
+
+    intersect
+
+The following object is masked from ‘package:base’:
+
+    intersect
+
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:IRanges’:
+
+    collapse, desc, intersect, setdiff, slice, union
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, intersect, rename, setdiff, setequal, union
+
+The following object is masked from ‘package:matrixStats’:
+
+    count
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ lubridate 1.9.3     ✔ tibble    3.2.1
+✔ purrr     1.0.2     ✔ tidyr     1.3.0
+✔ readr     2.1.4     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ lubridate::%within%() masks IRanges::%within%()
+✖ dplyr::collapse()     masks IRanges::collapse()
+✖ dplyr::combine()      masks BiocGenerics::combine()
+✖ dplyr::count()        masks matrixStats::count()
+✖ dplyr::desc()         masks IRanges::desc()
+✖ tidyr::expand()       masks S4Vectors::expand(), Matrix::expand()
+✖ dplyr::filter()       masks stats::filter()
+✖ dplyr::first()        masks S4Vectors::first()
+✖ dplyr::lag()          masks stats::lag()
+✖ tidyr::pack()         masks Matrix::pack()
+✖ ggplot2::Position()   masks BiocGenerics::Position(), base::Position()
+✖ purrr::reduce()       masks IRanges::reduce()
+✖ dplyr::rename()       masks S4Vectors::rename()
+✖ lubridate::second()   masks S4Vectors::second()
+✖ lubridate::second<-() masks S4Vectors::second<-()
+✖ purrr::simplify()     masks DelayedArray::simplify()
+✖ dplyr::slice()        masks IRanges::slice()
+✖ lubridate::stamp()    masks cowplot::stamp()
+✖ tidyr::unpack()       masks Matrix::unpack()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Loading required package: SingleCellExperiment
+Loading required package: SummarizedExperiment
+Loading required package: GenomicRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:SparseArray’:
+
+    rowMedians
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘SummarizedExperiment’
+
+The following object is masked from ‘package:Seurat’:
+
+    Assays
+
+The following object is masked from ‘package:SeuratObject’:
+
+    Assays
+
+
+Attaching package: ‘ggpubr’
+
+The following object is masked from ‘package:cowplot’:
+
+    get_legend
+
+Loading required package: scuttle
+[1] "Output saved at:"
+[1] "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/10_precast/nnSVG_precast"
+[1] "Spatially variable genes obtained from:"
+[1] "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/05_harmony_BayesSpace/07-run_nnSVG/nnSVG_precast_out/summary_across_samples.csv"
+[1] "Plots saved at:"
+[1] "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/plots/10_precast/nnSVG_precast/cluster_k_4"
+Br2720 
+22368 19666 
+Br8492 
+22368 16876 
+Br8325 
+22368 22221 
+Br6471 
+22368 18995 
+Filter spots and features from Raw count data...
+ 
+ 
+2024-06-18 13:29:02.10655 : ***** Filtering step for raw count data finished!, 0.415 mins elapsed.
+Select the variable genes for each data batch...
+CreatePRECASTObject: remove genes:SLC47A2  C11orf88  MYLK3  CCDC114  FAM92B  IGFBP7-AS1  PCDH11Y  SOX2-OT  NKX6-2  HLA-B  HLA-DPA1  HLA-DRA  HLA-DPB1  XIST  HLA-DRB1  HLA-A  HLA-E  HLA-C  OIP5-AS1  with low count reads in seuList.
+2024-06-18 13:29:02.132212 : ***** Gene selection finished!, 0 mins elapsed.
+Filter spots and features from SVGs(HVGs) count data...
+Normalizing layer: counts
+Performing log-normalization
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Normalizing layer: counts
+Performing log-normalization
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Normalizing layer: counts
+Performing log-normalization
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Normalizing layer: counts
+Performing log-normalization
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+2024-06-18 13:29:36.497529 : ***** Filtering step for count data with variable genes finished!, 0.428 mins elapsed.
+Neighbors were identified for 19663 out of 19665 spots.
+Neighbors were identified for 16873 out of 16876 spots.
+Neighbors were identified for 22220 out of 22221 spots.
+Neighbors were identified for 18995 out of 18995 spots.
+Random seed =  
+1 
+-----Intergrative data info.: 4 samples, 1981 genes X 77757 spots------
+-----PRECAST model setting: error_heter=TRUE, Sigma_equal=FALSE, Sigma_diag=TRUE, mix_prop_heter=TRUE
+Start computing intial values... 
+
+fitting ...
+  |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
+2024-06-18 13:37:12.116734 : ***** Initialization finished!, 6.278 mins elapsed.
+----Fitting PRECAST model----------------
+
+variable initialize finish! 
+predict Y and V! 
+diff Energy = 50.009740 
+diff Energy = 93.790097 
+diff Energy = 113.335581 
+diff Energy = 35.210794 
+Finish ICM step! 
+iter = 2, loglik= -50015232.000000, dloglik=0.976710 
+predict Y and V! 
+diff Energy = 76.905465 
+diff Energy = 146.218062 
+diff Energy = 159.781541 
+diff Energy = 103.514276 
+Finish ICM step! 
+iter = 3, loglik= -49639604.000000, dloglik=0.007510 
+predict Y and V! 
+diff Energy = 83.132547 
+diff Energy = 134.417064 
+diff Energy = 97.084075 
+diff Energy = 119.135946 
+Finish ICM step! 
+iter = 4, loglik= -49490768.000000, dloglik=0.002998 
+predict Y and V! 
+diff Energy = 53.360710 
+diff Energy = 129.596519 
+diff Energy = 91.517336 
+diff Energy = 122.981669 
+Finish ICM step! 
+iter = 5, loglik= -49413668.000000, dloglik=0.001558 
+predict Y and V! 
+diff Energy = 64.814002 
+diff Energy = 108.192060 
+diff Energy = 60.754712 
+diff Energy = 73.302919 
+Finish ICM step! 
+iter = 6, loglik= -49368860.000000, dloglik=0.000907 
+predict Y and V! 
+diff Energy = 89.284944 
+diff Energy = 89.816397 
+diff Energy = 9.029984 
+diff Energy = 55.505533 
+Finish ICM step! 
+iter = 7, loglik= -49340236.000000, dloglik=0.000580 
+predict Y and V! 
+diff Energy = 72.816260 
+diff Energy = 56.188255 
+diff Energy = 16.080569 
+diff Energy = 47.941878 
+Finish ICM step! 
+iter = 8, loglik= -49320276.000000, dloglik=0.000405 
+predict Y and V! 
+diff Energy = 58.360310 
+diff Energy = 64.002935 
+diff Energy = 9.714357 
+diff Energy = 41.719034 
+Finish ICM step! 
+iter = 9, loglik= -49305340.000000, dloglik=0.000303 
+predict Y and V! 
+diff Energy = 19.103794 
+diff Energy = 19.118214 
+diff Energy = 22.846170 
+diff Energy = 58.075088 
+Finish ICM step! 
+iter = 10, loglik= -49293408.000000, dloglik=0.000242 
+predict Y and V! 
+diff Energy = 33.663625 
+diff Energy = 4.606601 
+diff Energy = 19.230299 
+diff Energy = 8.134478 
+Finish ICM step! 
+iter = 11, loglik= -49283528.000000, dloglik=0.000200 
+predict Y and V! 
+diff Energy = 46.579205 
+diff Energy = 1.845544 
+diff Energy = 6.648106 
+diff Energy = 30.868847 
+Finish ICM step! 
+iter = 12, loglik= -49275160.000000, dloglik=0.000170 
+predict Y and V! 
+diff Energy = 20.127904 
+diff Energy = 33.793228 
+diff Energy = 33.440783 
+diff Energy = 25.963288 
+Finish ICM step! 
+iter = 13, loglik= -49267740.000000, dloglik=0.000151 
+predict Y and V! 
+diff Energy = 34.698109 
+diff Energy = 7.231314 
+diff Energy = 11.313885 
+diff Energy = 41.742422 
+Finish ICM step! 
+iter = 14, loglik= -49261232.000000, dloglik=0.000132 
+predict Y and V! 
+diff Energy = 52.737826 
+diff Energy = 11.252120 
+diff Energy = 21.670075 
+diff Energy = 4.934171 
+Finish ICM step! 
+iter = 15, loglik= -49255856.000000, dloglik=0.000109 
+predict Y and V! 
+diff Energy = 15.502954 
+diff Energy = 12.134053 
+diff Energy = 17.003985 
+diff Energy = 9.459634 
+Finish ICM step! 
+iter = 16, loglik= -49250980.000000, dloglik=0.000099 
+predict Y and V! 
+diff Energy = 49.382947 
+diff Energy = 18.640402 
+diff Energy = 5.543717 
+diff Energy = 6.602765 
+Finish ICM step! 
+iter = 17, loglik= -49246512.000000, dloglik=0.000091 
+predict Y and V! 
+diff Energy = 19.069808 
+diff Energy = 14.296413 
+diff Energy = 11.854246 
+diff Energy = 14.624794 
+Finish ICM step! 
+iter = 18, loglik= -49242376.000000, dloglik=0.000084 
+predict Y and V! 
+diff Energy = 50.113908 
+diff Energy = 9.193430 
+diff Energy = 27.918044 
+diff Energy = 10.077414 
+Finish ICM step! 
+iter = 19, loglik= -49238836.000000, dloglik=0.000072 
+predict Y and V! 
+diff Energy = 8.283772 
+diff Energy = 16.279639 
+diff Energy = 4.881882 
+diff Energy = 9.897046 
+Finish ICM step! 
+iter = 20, loglik= -49235236.000000, dloglik=0.000073 
+predict Y and V! 
+diff Energy = 6.385199 
+diff Energy = 58.087104 
+diff Energy = 8.245303 
+diff Energy = 11.462060 
+Finish ICM step! 
+iter = 21, loglik= -49232248.000000, dloglik=0.000061 
+predict Y and V! 
+diff Energy = 8.090927 
+diff Energy = 14.835802 
+diff Energy = 19.049048 
+diff Energy = 10.124574 
+Finish ICM step! 
+iter = 22, loglik= -49229344.000000, dloglik=0.000059 
+predict Y and V! 
+diff Energy = 0.732313 
+diff Energy = 18.636568 
+diff Energy = 5.929252 
+diff Energy = 9.290208 
+Finish ICM step! 
+iter = 23, loglik= -49226728.000000, dloglik=0.000053 
+predict Y and V! 
+diff Energy = 9.431172 
+diff Energy = 13.677986 
+diff Energy = 1.053057 
+diff Energy = 57.086993 
+Finish ICM step! 
+iter = 24, loglik= -49224304.000000, dloglik=0.000049 
+predict Y and V! 
+diff Energy = 12.295854 
+diff Energy = 14.009052 
+diff Energy = 7.437478 
+diff Energy = 8.832930 
+Finish ICM step! 
+iter = 25, loglik= -49222280.000000, dloglik=0.000041 
+predict Y and V! 
+diff Energy = 6.074161 
+diff Energy = 6.276070 
+diff Energy = 2.705207 
+diff Energy = 6.138848 
+Finish ICM step! 
+iter = 26, loglik= -49219964.000000, dloglik=0.000047 
+predict Y and V! 
+diff Energy = 10.482760 
+diff Energy = 11.327844 
+diff Energy = 0.790806 
+diff Energy = 6.709123 
+Finish ICM step! 
+iter = 27, loglik= -49217852.000000, dloglik=0.000043 
+predict Y and V! 
+diff Energy = 8.596497 
+diff Energy = 15.890263 
+diff Energy = 0.770830 
+diff Energy = 9.198642 
+Finish ICM step! 
+iter = 28, loglik= -49215904.000000, dloglik=0.000040 
+predict Y and V! 
+diff Energy = 14.681163 
+diff Energy = 13.924923 
+diff Energy = 5.055342 
+diff Energy = 7.802418 
+Finish ICM step! 
+iter = 29, loglik= -49213860.000000, dloglik=0.000042 
+predict Y and V! 
+diff Energy = 3.208732 
+diff Energy = 2.287339 
+diff Energy = 1.158375 
+diff Energy = 9.509938 
+Finish ICM step! 
+iter = 30, loglik= -49211584.000000, dloglik=0.000046 
+predict Y and V! 
+diff Energy = 8.972704 
+diff Energy = 6.759965 
+diff Energy = 10.207505 
+diff Energy = 10.196417 
+Finish ICM step! 
+iter = 31, loglik= -49209188.000000, dloglik=0.000049 
+predict Y and V! 
+diff Energy = 0.880021 
+diff Energy = 2.420840 
+diff Energy = 1.564542 
+diff Energy = 9.179493 
+Finish ICM step! 
+iter = 32, loglik= -49206524.000000, dloglik=0.000054 
+predict Y and V! 
+diff Energy = 3.505756 
+diff Energy = 2.394668 
+diff Energy = 2.025677 
+diff Energy = 9.234548 
+Finish ICM step! 
+iter = 33, loglik= -49203748.000000, dloglik=0.000056 
+predict Y and V! 
+diff Energy = 4.413848 
+diff Energy = 1.476995 
+diff Energy = 5.080204 
+diff Energy = 6.371946 
+Finish ICM step! 
+iter = 34, loglik= -49200792.000000, dloglik=0.000060 
+predict Y and V! 
+diff Energy = 8.257798 
+diff Energy = 2.954685 
+diff Energy = 3.807731 
+diff Energy = 5.446500 
+Finish ICM step! 
+iter = 35, loglik= -49197740.000000, dloglik=0.000062 
+predict Y and V! 
+diff Energy = 3.213108 
+diff Energy = 9.496093 
+diff Energy = 1.202803 
+diff Energy = 6.250101 
+Finish ICM step! 
+iter = 36, loglik= -49194656.000000, dloglik=0.000063 
+predict Y and V! 
+diff Energy = 7.756118 
+diff Energy = 4.788679 
+diff Energy = 6.195799 
+diff Energy = 10.385351 
+Finish ICM step! 
+iter = 37, loglik= -49191716.000000, dloglik=0.000060 
+predict Y and V! 
+diff Energy = 3.297617 
+diff Energy = 7.224444 
+diff Energy = 89.218121 
+diff Energy = 2.355034 
+Finish ICM step! 
+iter = 38, loglik= -49188312.000000, dloglik=0.000069 
+predict Y and V! 
+diff Energy = 3.927595 
+diff Energy = 4.062435 
+diff Energy = 7.242064 
+Finish ICM step! 
+iter = 39, loglik= -49184452.000000, dloglik=0.000078 
+predict Y and V! 
+diff Energy = 4.245210 
+diff Energy = 5.951055 
+diff Energy = 1.677171 
+diff Energy = 12.096283 
+Finish ICM step! 
+iter = 40, loglik= -49180280.000000, dloglik=0.000085 
+predict Y and V! 
+diff Energy = 6.519836 
+diff Energy = 0.391027 
+diff Energy = 2.155262 
+diff Energy = 6.051926 
+Finish ICM step! 
+iter = 41, loglik= -49175232.000000, dloglik=0.000103 
+predict Y and V! 
+diff Energy = 2.310379 
+diff Energy = 4.358341 
+diff Energy = 8.350705 
+diff Energy = 3.542690 
+Finish ICM step! 
+iter = 42, loglik= -49169328.000000, dloglik=0.000120 
+predict Y and V! 
+diff Energy = 2.490375 
+diff Energy = 7.121341 
+diff Energy = 4.827264 
+diff Energy = 10.760888 
+Finish ICM step! 
+iter = 43, loglik= -49163052.000000, dloglik=0.000128 
+predict Y and V! 
+diff Energy = 3.249003 
+diff Energy = 1.543384 
+diff Energy = 3.087289 
+diff Energy = 10.754196 
+Finish ICM step! 
+iter = 44, loglik= -49156692.000000, dloglik=0.000129 
+predict Y and V! 
+diff Energy = 3.758400 
+diff Energy = 1.402703 
+diff Energy = 7.130552 
+diff Energy = 14.083394 
+Finish ICM step! 
+iter = 45, loglik= -49150456.000000, dloglik=0.000127 
+predict Y and V! 
+diff Energy = 5.025308 
+diff Energy = 8.008963 
+diff Energy = 9.126154 
+diff Energy = 11.595401 
+Finish ICM step! 
+iter = 46, loglik= -49144536.000000, dloglik=0.000120 
+predict Y and V! 
+diff Energy = 5.828537 
+diff Energy = 3.981375 
+diff Energy = 0.216044 
+diff Energy = 1.027937 
+Finish ICM step! 
+iter = 47, loglik= -49139012.000000, dloglik=0.000112 
+predict Y and V! 
+diff Energy = 8.861660 
+diff Energy = 2.494357 
+diff Energy = 0.234144 
+diff Energy = 15.383155 
+Finish ICM step! 
+iter = 48, loglik= -49134072.000000, dloglik=0.000101 
+predict Y and V! 
+diff Energy = 6.919671 
+diff Energy = 2.413192 
+diff Energy = 9.807302 
+Finish ICM step! 
+iter = 49, loglik= -49129300.000000, dloglik=0.000097 
+predict Y and V! 
+diff Energy = 2.971909 
+diff Energy = 1.104254 
+diff Energy = 7.352488 
+diff Energy = 16.072191 
+Finish ICM step! 
+iter = 50, loglik= -49124984.000000, dloglik=0.000088 
+predict Y and V! 
+diff Energy = 6.318124 
+diff Energy = 4.819604 
+diff Energy = 0.195869 
+diff Energy = 7.498279 
+Finish ICM step! 
+iter = 51, loglik= -49120540.000000, dloglik=0.000090 
+predict Y and V! 
+diff Energy = 8.407179 
+diff Energy = 1.141683 
+diff Energy = 4.181438 
+Finish ICM step! 
+iter = 52, loglik= -49116256.000000, dloglik=0.000087 
+predict Y and V! 
+diff Energy = 2.240673 
+diff Energy = 2.135742 
+diff Energy = 2.173864 
+diff Energy = 8.168612 
+Finish ICM step! 
+iter = 53, loglik= -49112464.000000, dloglik=0.000077 
+predict Y and V! 
+diff Energy = 1.850792 
+diff Energy = 8.440975 
+diff Energy = 8.095768 
+Finish ICM step! 
+iter = 54, loglik= -49108380.000000, dloglik=0.000083 
+predict Y and V! 
+diff Energy = 7.459485 
+diff Energy = 0.639468 
+diff Energy = 14.010438 
+Finish ICM step! 
+iter = 55, loglik= -49104376.000000, dloglik=0.000082 
+predict Y and V! 
+diff Energy = 5.796681 
+diff Energy = 2.229506 
+diff Energy = 5.187530 
+diff Energy = 16.264290 
+Finish ICM step! 
+iter = 56, loglik= -49100256.000000, dloglik=0.000084 
+predict Y and V! 
+diff Energy = 3.679165 
+diff Energy = 4.650642 
+diff Energy = 5.685606 
+Finish ICM step! 
+iter = 57, loglik= -49095528.000000, dloglik=0.000096 
+predict Y and V! 
+diff Energy = 1.123638 
+diff Energy = 2.405739 
+diff Energy = 7.382238 
+Finish ICM step! 
+iter = 58, loglik= -49090280.000000, dloglik=0.000107 
+predict Y and V! 
+diff Energy = 4.267783 
+diff Energy = 0.067506 
+diff Energy = 6.747535 
+diff Energy = 0.354681 
+Finish ICM step! 
+iter = 59, loglik= -49084124.000000, dloglik=0.000125 
+predict Y and V! 
+diff Energy = 13.850550 
+diff Energy = 4.120442 
+diff Energy = 7.896195 
+diff Energy = 17.849780 
+Finish ICM step! 
+iter = 60, loglik= -49077196.000000, dloglik=0.000141 
+predict Y and V! 
+diff Energy = 4.899336 
+diff Energy = 4.333378 
+diff Energy = 13.076544 
+Finish ICM step! 
+iter = 61, loglik= -49069664.000000, dloglik=0.000153 
+predict Y and V! 
+diff Energy = 4.924085 
+diff Energy = 3.251373 
+diff Energy = 0.878009 
+diff Energy = 5.488187 
+Finish ICM step! 
+iter = 62, loglik= -49061992.000000, dloglik=0.000156 
+predict Y and V! 
+diff Energy = 8.591829 
+diff Energy = 8.259679 
+diff Energy = 4.153182 
+Finish ICM step! 
+iter = 63, loglik= -49053968.000000, dloglik=0.000164 
+predict Y and V! 
+diff Energy = 5.872388 
+diff Energy = 1.632582 
+diff Energy = 4.766790 
+Finish ICM step! 
+iter = 64, loglik= -49045908.000000, dloglik=0.000164 
+predict Y and V! 
+diff Energy = 4.454311 
+diff Energy = 7.081781 
+diff Energy = 4.352354 
+Finish ICM step! 
+iter = 65, loglik= -49037984.000000, dloglik=0.000162 
+predict Y and V! 
+diff Energy = 6.220175 
+diff Energy = 8.979855 
+diff Energy = 2.028656 
+Finish ICM step! 
+iter = 66, loglik= -49030328.000000, dloglik=0.000156 
+predict Y and V! 
+diff Energy = 3.091363 
+diff Energy = 4.983208 
+diff Energy = 0.906264 
+diff Energy = 2.518767 
+Finish ICM step! 
+iter = 67, loglik= -49023108.000000, dloglik=0.000147 
+predict Y and V! 
+diff Energy = 9.568500 
+diff Energy = 3.368141 
+diff Energy = 1.066300 
+diff Energy = 4.580929 
+Finish ICM step! 
+iter = 68, loglik= -49016100.000000, dloglik=0.000143 
+predict Y and V! 
+diff Energy = 8.412398 
+diff Energy = 2.476330 
+Finish ICM step! 
+iter = 69, loglik= -49009512.000000, dloglik=0.000134 
+predict Y and V! 
+diff Energy = 4.684528 
+diff Energy = 9.482049 
+diff Energy = 0.052027 
+Finish ICM step! 
+iter = 70, loglik= -49003472.000000, dloglik=0.000123 
+predict Y and V! 
+diff Energy = 2.503721 
+diff Energy = 2.765531 
+diff Energy = 3.506549 
+diff Energy = 0.173404 
+Finish ICM step! 
+iter = 71, loglik= -48997604.000000, dloglik=0.000120 
+predict Y and V! 
+diff Energy = 5.435320 
+diff Energy = 0.082462 
+diff Energy = 3.859747 
+Finish ICM step! 
+iter = 72, loglik= -48991760.000000, dloglik=0.000119 
+predict Y and V! 
+diff Energy = 6.749382 
+diff Energy = 5.167873 
+diff Energy = 0.910836 
+Finish ICM step! 
+iter = 73, loglik= -48986436.000000, dloglik=0.000109 
+predict Y and V! 
+diff Energy = 5.080802 
+diff Energy = 1.282496 
+Finish ICM step! 
+iter = 74, loglik= -48981284.000000, dloglik=0.000105 
+predict Y and V! 
+diff Energy = 1.390663 
+diff Energy = 0.388426 
+diff Energy = 3.158130 
+Finish ICM step! 
+iter = 75, loglik= -48976672.000000, dloglik=0.000094 
+predict Y and V! 
+diff Energy = 7.080701 
+diff Energy = 1.019676 
+diff Energy = 1.005035 
+Finish ICM step! 
+iter = 76, loglik= -48972116.000000, dloglik=0.000093 
+predict Y and V! 
+diff Energy = 3.348232 
+diff Energy = 4.521994 
+Finish ICM step! 
+iter = 77, loglik= -48967128.000000, dloglik=0.000102 
+predict Y and V! 
+diff Energy = 4.282873 
+diff Energy = 3.093641 
+diff Energy = 0.185556 
+diff Energy = 0.967122 
+Finish ICM step! 
+iter = 78, loglik= -48963156.000000, dloglik=0.000081 
+predict Y and V! 
+diff Energy = 0.401184 
+diff Energy = 0.084111 
+Finish ICM step! 
+iter = 79, loglik= -48958060.000000, dloglik=0.000104 
+predict Y and V! 
+diff Energy = 0.228121 
+diff Energy = 1.035397 
+diff Energy = 1.691792 
+diff Energy = 0.523158 
+Finish ICM step! 
+iter = 80, loglik= -48953848.000000, dloglik=0.000086 
+predict Y and V! 
+diff Energy = 0.271116 
+diff Energy = 4.556469 
+diff Energy = 0.231616 
+diff Energy = 1.696966 
+Finish ICM step! 
+iter = 81, loglik= -48948872.000000, dloglik=0.000102 
+predict Y and V! 
+diff Energy = 0.408376 
+diff Energy = 0.023152 
+diff Energy = 0.282248 
+Finish ICM step! 
+iter = 82, loglik= -48944300.000000, dloglik=0.000093 
+predict Y and V! 
+diff Energy = 0.171531 
+diff Energy = 5.775448 
+Finish ICM step! 
+iter = 83, loglik= -48939604.000000, dloglik=0.000096 
+predict Y and V! 
+diff Energy = 2.871480 
+diff Energy = 0.516503 
+Finish ICM step! 
+iter = 84, loglik= -48935384.000000, dloglik=0.000086 
+predict Y and V! 
+diff Energy = 0.176139 
+diff Energy = 0.344828 
+Finish ICM step! 
+iter = 85, loglik= -48932108.000000, dloglik=0.000067 
+predict Y and V! 
+diff Energy = 0.280694 
+Finish ICM step! 
+iter = 86, loglik= -48928220.000000, dloglik=0.000079 
+predict Y and V! 
+diff Energy = 6.449629 
+diff Energy = 0.373504 
+Finish ICM step! 
+iter = 87, loglik= -48924584.000000, dloglik=0.000074 
+predict Y and V! 
+diff Energy = 1.082061 
+Finish ICM step! 
+iter = 88, loglik= -48920636.000000, dloglik=0.000081 
+predict Y and V! 
+diff Energy = 2.942114 
+diff Energy = 1.480134 
+Finish ICM step! 
+iter = 89, loglik= -48917036.000000, dloglik=0.000074 
+predict Y and V! 
+diff Energy = 2.833794 
+diff Energy = 2.932753 
+diff Energy = 1.025656 
+Finish ICM step! 
+iter = 90, loglik= -48912492.000000, dloglik=0.000093 
+predict Y and V! 
+diff Energy = 0.111850 
+diff Energy = 1.145602 
+diff Energy = 1.130429 
+Finish ICM step! 
+iter = 91, loglik= -48908636.000000, dloglik=0.000079 
+predict Y and V! 
+diff Energy = 1.742658 
+diff Energy = 7.523454 
+Finish ICM step! 
+iter = 92, loglik= -48904532.000000, dloglik=0.000084 
+predict Y and V! 
+diff Energy = 0.422267 
+Finish ICM step! 
+iter = 93, loglik= -48900948.000000, dloglik=0.000073 
+predict Y and V! 
+diff Energy = 5.363872 
+diff Energy = 5.392430 
+Finish ICM step! 
+iter = 94, loglik= -48898180.000000, dloglik=0.000057 
+predict Y and V! 
+diff Energy = 1.556913 
+Finish ICM step! 
+iter = 95, loglik= -48894376.000000, dloglik=0.000078 
+predict Y and V! 
+diff Energy = 1.693413 
+Finish ICM step! 
+iter = 96, loglik= -48891396.000000, dloglik=0.000061 
+predict Y and V! 
+diff Energy = 0.639829 
+diff Energy = 1.683463 
+diff Energy = 1.694003 
+Finish ICM step! 
+iter = 97, loglik= -48887512.000000, dloglik=0.000079 
+predict Y and V! 
+diff Energy = 4.463013 
+Finish ICM step! 
+iter = 98, loglik= -48883292.000000, dloglik=0.000086 
+predict Y and V! 
+diff Energy = 6.971691 
+diff Energy = 2.234279 
+Finish ICM step! 
+iter = 99, loglik= -48880252.000000, dloglik=0.000062 
+predict Y and V! 
+diff Energy = 1.162190 
+diff Energy = 9.570727 
+diff Energy = 0.669171 
+Finish ICM step! 
+iter = 100, loglik= -48876468.000000, dloglik=0.000077 
+predict Y and V! 
+diff Energy = 0.946059 
+Finish ICM step! 
+iter = 101, loglik= -48873144.000000, dloglik=0.000068 
+predict Y and V! 
+diff Energy = 0.451308 
+diff Energy = 2.891647 
+Finish ICM step! 
+iter = 102, loglik= -48870076.000000, dloglik=0.000063 
+predict Y and V! 
+diff Energy = 2.060967 
+diff Energy = 4.340982 
+diff Energy = 0.018434 
+Finish ICM step! 
+iter = 103, loglik= -48866800.000000, dloglik=0.000067 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 18.612673 
+diff Energy = 0.064521 
+diff Energy = 0.344143 
+Finish ICM step! 
+iter = 104, loglik= -48862764.000000, dloglik=0.000083 
+predict Y and V! 
+diff Energy = 2.084807 
+diff Energy = 0.407072 
+diff Energy = 1.668931 
+diff Energy = 1.001791 
+Finish ICM step! 
+iter = 105, loglik= -48858684.000000, dloglik=0.000083 
+predict Y and V! 
+diff Energy = 0.069431 
+diff Energy = 5.388422 
+diff Energy = 5.675837 
+Finish ICM step! 
+iter = 106, loglik= -48854348.000000, dloglik=0.000089 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 1.053536 
+diff Energy = 2.992403 
+diff Energy = 0.484937 
+diff Energy = 1.484168 
+Finish ICM step! 
+iter = 107, loglik= -48850656.000000, dloglik=0.000076 
+predict Y and V! 
+diff Energy = 7.498019 
+diff Energy = 3.202406 
+diff Energy = 2.503980 
+diff Energy = 3.087629 
+Finish ICM step! 
+iter = 108, loglik= -48847740.000000, dloglik=0.000060 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 5.084686 
+diff Energy = 1.896998 
+diff Energy = 1.039036 
+Finish ICM step! 
+iter = 109, loglik= -48844100.000000, dloglik=0.000075 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 1.938303 
+diff Energy = 2.719602 
+diff Energy = 1.738463 
+diff Energy = 0.174799 
+Finish ICM step! 
+iter = 110, loglik= -48839912.000000, dloglik=0.000086 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.363846 
+diff Energy = 8.576069 
+diff Energy = 0.148546 
+Finish ICM step! 
+iter = 111, loglik= -48835964.000000, dloglik=0.000081 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 3.236685 
+diff Energy = 4.629670 
+diff Energy = 0.411796 
+Finish ICM step! 
+iter = 112, loglik= -48832612.000000, dloglik=0.000069 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.730621 
+diff Energy = 1.340409 
+Finish ICM step! 
+iter = 113, loglik= -48829320.000000, dloglik=0.000067 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.675254 
+diff Energy = 0.486885 
+diff Energy = 0.248324 
+Finish ICM step! 
+iter = 114, loglik= -48826012.000000, dloglik=0.000068 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.749237 
+diff Energy = 2.123422 
+diff Energy = 2.197536 
+diff Energy = 5.780913 
+Finish ICM step! 
+iter = 115, loglik= -48823812.000000, dloglik=0.000045 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.651043 
+diff Energy = 3.835752 
+diff Energy = 2.032422 
+diff Energy = 0.476613 
+Finish ICM step! 
+iter = 116, loglik= -48820996.000000, dloglik=0.000058 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 10.190371 
+diff Energy = 0.236480 
+diff Energy = 2.167287 
+Finish ICM step! 
+iter = 117, loglik= -48817772.000000, dloglik=0.000066 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 1.743599 
+diff Energy = 0.657541 
+diff Energy = 2.423990 
+Finish ICM step! 
+iter = 118, loglik= -48815896.000000, dloglik=0.000038 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.466687 
+diff Energy = 0.670006 
+diff Energy = 0.564885 
+diff Energy = 4.660810 
+Finish ICM step! 
+iter = 119, loglik= -48813480.000000, dloglik=0.000049 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.729369 
+diff Energy = 2.611393 
+diff Energy = 5.646582 
+Finish ICM step! 
+iter = 120, loglik= -48810504.000000, dloglik=0.000061 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.810484 
+diff Energy = 5.216819 
+diff Energy = 0.162525 
+Finish ICM step! 
+iter = 121, loglik= -48806340.000000, dloglik=0.000085 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.424759 
+diff Energy = 4.446199 
+diff Energy = 0.622634 
+Finish ICM step! 
+iter = 122, loglik= -48803692.000000, dloglik=0.000054 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.923677 
+diff Energy = 3.205329 
+Finish ICM step! 
+iter = 123, loglik= -48800004.000000, dloglik=0.000076 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 2.466355 
+diff Energy = 3.446746 
+diff Energy = 0.352827 
+diff Energy = 0.485292 
+Finish ICM step! 
+iter = 124, loglik= -48798668.000000, dloglik=0.000027 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 0.731713 
+diff Energy = 3.308477 
+Finish ICM step! 
+iter = 125, loglik= -48794620.000000, dloglik=0.000083 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.199099 
+diff Energy = 4.658969 
+diff Energy = 1.351451 
+diff Energy = 0.528702 
+Finish ICM step! 
+iter = 126, loglik= -48793428.000000, dloglik=0.000024 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.240824 
+diff Energy = 0.744990 
+diff Energy = 0.263632 
+Finish ICM step! 
+iter = 127, loglik= -48789712.000000, dloglik=0.000076 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.744219 
+diff Energy = 0.311039 
+diff Energy = 0.949441 
+diff Energy = 2.148392 
+Finish ICM step! 
+iter = 128, loglik= -48787248.000000, dloglik=0.000051 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 1.261799 
+diff Energy = 3.935217 
+diff Energy = 0.668209 
+Finish ICM step! 
+iter = 129, loglik= -48783948.000000, dloglik=0.000068 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.127902 
+diff Energy = 0.772374 
+diff Energy = 1.328856 
+Finish ICM step! 
+iter = 130, loglik= -48781148.000000, dloglik=0.000057 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.086207 
+diff Energy = 0.428029 
+diff Energy = 2.936598 
+Finish ICM step! 
+iter = 131, loglik= -48778976.000000, dloglik=0.000045 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 2.436722 
+diff Energy = 1.618623 
+Finish ICM step! 
+iter = 132, loglik= -48777232.000000, dloglik=0.000036 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 1.100485 
+Finish ICM step! 
+iter = 133, loglik= -48776072.000000, dloglik=0.000024 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 0.695739 
+diff Energy = 0.613327 
+Finish ICM step! 
+iter = 134, loglik= -48773692.000000, dloglik=0.000049 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 0.539470 
+diff Energy = 0.050425 
+Finish ICM step! 
+iter = 135, loglik= -48770064.000000, dloglik=0.000074 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+diff Energy = 1.029134 
+diff Energy = 1.939442 
+Finish ICM step! 
+iter = 136, loglik= -48767768.000000, dloglik=0.000047 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 0.401179 
+diff Energy = 1.218258 
+diff Energy = 0.439795 
+diff Energy = 2.900533 
+Finish ICM step! 
+iter = 137, loglik= -48763976.000000, dloglik=0.000078 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 0.240469 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 0.992806 
+diff Energy = 3.279661 
+diff Energy = 1.157303 
+Finish ICM step! 
+iter = 138, loglik= -48760868.000000, dloglik=0.000064 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 3.933171 
+diff Energy = 1.108575 
+Finish ICM step! 
+iter = 139, loglik= -48758216.000000, dloglik=0.000054 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+predict Y and V! 
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+
+warning: inv_sympd(): given matrix is not symmetric
+diff Energy = 1.038000 
+diff Energy = 0.918169 
+diff Energy = 0.495560 
+Finish ICM step! 
+2024-06-18 16:14:28.352046 : ***** PRECAST model fitting finished!, 157.271 mins elapsed.
+─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.2 (2023-10-31)
+ os       Rocky Linux 9.2 (Blue Onyx)
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       US/Eastern
+ date     2024-06-18
+ pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
+
+─ Packages ───────────────────────────────────────────────────────────────────
+ package                * version   date (UTC) lib source
+ abind                  * 1.4-5     2016-07-21 [1] CRAN (R 4.3.2)
+ AnnotationDbi            1.64.1    2023-11-03 [1] Bioconductor
+ AnnotationHub            3.10.0    2023-10-24 [1] Bioconductor
+ attempt                  0.3.1     2020-05-03 [1] CRAN (R 4.3.2)
+ backports                1.4.1     2021-12-13 [1] CRAN (R 4.3.0)
+ beachmat                 2.18.0    2023-10-24 [1] Bioconductor
+ beeswarm                 0.4.0     2021-06-01 [1] CRAN (R 4.3.2)
+ benchmarkme              1.0.8     2022-06-12 [1] CRAN (R 4.3.2)
+ benchmarkmeData          1.0.4     2020-04-23 [1] CRAN (R 4.3.2)
+ Biobase                * 2.62.0    2023-10-24 [1] Bioconductor
+ BiocFileCache            2.10.1    2023-10-26 [1] Bioconductor
+ BiocGenerics           * 0.48.1    2023-11-01 [1] Bioconductor
+ BiocIO                   1.12.0    2023-10-24 [1] Bioconductor
+ BiocManager              1.30.22   2023-08-08 [1] CRAN (R 4.3.2)
+ BiocNeighbors            1.20.2    2024-01-07 [1] Bioconductor 3.18 (R 4.3.2)
+ BiocParallel             1.36.0    2023-10-24 [1] Bioconductor
+ BiocSingular             1.18.0    2023-10-24 [1] Bioconductor
+ BiocVersion              3.18.1    2023-11-15 [1] Bioconductor
+ Biostrings               2.70.1    2023-10-25 [1] Bioconductor
+ bit                      4.0.5     2022-11-15 [1] CRAN (R 4.3.0)
+ bit64                    4.0.5     2020-08-30 [1] CRAN (R 4.3.0)
+ bitops                   1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
+ blob                     1.2.4     2023-03-17 [1] CRAN (R 4.3.0)
+ bluster                  1.11.4    2024-02-02 [1] Github (LTLA/bluster@17dd9c8)
+ broom                    1.0.5     2023-06-09 [1] CRAN (R 4.3.0)
+ bslib                    0.6.1     2023-11-28 [1] CRAN (R 4.3.2)
+ cachem                   1.0.8     2023-05-01 [1] CRAN (R 4.3.0)
+ car                      3.1-2     2023-03-30 [1] CRAN (R 4.3.2)
+ carData                  3.0-5     2022-01-06 [1] CRAN (R 4.3.2)
+ cli                      3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
+ cluster                  2.1.6     2023-12-01 [1] CRAN (R 4.3.2)
+ codetools                0.2-19    2023-02-01 [1] CRAN (R 4.3.0)
+ colorspace               2.1-0     2023-01-23 [1] CRAN (R 4.3.0)
+ CompQuadForm             1.4.3     2017-04-12 [1] CRAN (R 4.3.2)
+ config                   0.3.2     2023-08-30 [1] CRAN (R 4.3.2)
+ cowplot                * 1.1.1     2020-12-30 [1] CRAN (R 4.3.2)
+ crayon                   1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
+ curl                     5.2.0     2023-12-08 [1] CRAN (R 4.3.2)
+ data.table               1.14.10   2023-12-08 [1] CRAN (R 4.3.2)
+ DBI                      1.1.3     2022-06-18 [1] CRAN (R 4.3.0)
+ dbplyr                   2.4.0     2023-10-26 [1] CRAN (R 4.3.1)
+ DelayedArray           * 0.28.0    2023-10-24 [1] Bioconductor
+ DelayedMatrixStats       1.24.0    2023-10-24 [1] Bioconductor
+ deldir                   2.0-2     2023-11-23 [1] CRAN (R 4.3.2)
+ digest                   0.6.33    2023-07-07 [1] CRAN (R 4.3.0)
+ doParallel               1.0.17    2022-02-07 [1] CRAN (R 4.3.2)
+ dotCall64                1.1-1     2023-11-28 [1] CRAN (R 4.3.2)
+ dplyr                  * 1.1.4     2023-11-17 [1] CRAN (R 4.3.2)
+ dqrng                    0.3.2     2023-11-29 [1] CRAN (R 4.3.2)
+ DR.SC                    3.3       2023-08-09 [1] CRAN (R 4.3.2)
+ DT                       0.31      2023-12-09 [1] CRAN (R 4.3.2)
+ edgeR                    4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
+ ellipsis                 0.3.2     2021-04-29 [1] CRAN (R 4.3.0)
+ ExperimentHub            2.10.0    2023-10-24 [1] Bioconductor
+ fansi                    1.0.6     2023-12-08 [1] CRAN (R 4.3.2)
+ fastDummies              1.7.3     2023-07-06 [1] CRAN (R 4.3.2)
+ fastmap                  1.1.1     2023-02-24 [1] CRAN (R 4.3.0)
+ fields                   15.2      2023-08-17 [1] CRAN (R 4.3.2)
+ filelock                 1.0.3     2023-12-11 [1] CRAN (R 4.3.2)
+ fitdistrplus             1.1-11    2023-04-25 [1] CRAN (R 4.3.2)
+ forcats                * 1.0.0     2023-01-29 [1] CRAN (R 4.3.0)
+ foreach                  1.5.2     2022-02-02 [1] CRAN (R 4.3.0)
+ future                   1.33.0    2023-07-01 [1] CRAN (R 4.3.0)
+ future.apply             1.11.0    2023-05-21 [1] CRAN (R 4.3.0)
+ generics                 0.1.3     2022-07-05 [1] CRAN (R 4.3.0)
+ GenomeInfoDb           * 1.38.1    2023-11-08 [1] Bioconductor
+ GenomeInfoDbData         1.2.11    2023-12-12 [1] Bioconductor
+ GenomicAlignments        1.38.0    2023-10-24 [1] Bioconductor
+ GenomicRanges          * 1.54.1    2023-10-29 [1] Bioconductor
+ getopt                 * 1.20.4    2023-10-01 [1] CRAN (R 4.3.2)
+ ggbeeswarm               0.7.2     2023-04-29 [1] CRAN (R 4.3.2)
+ ggplot2                * 3.4.4     2023-10-12 [1] CRAN (R 4.3.2)
+ ggpubr                 * 0.6.0     2023-02-10 [1] CRAN (R 4.3.2)
+ ggrepel                  0.9.4     2023-10-13 [1] CRAN (R 4.3.2)
+ ggridges                 0.5.4     2022-09-26 [1] CRAN (R 4.3.2)
+ ggsci                  * 3.0.1     2024-03-02 [1] CRAN (R 4.3.2)
+ ggsignif                 0.6.4     2022-10-13 [1] CRAN (R 4.3.2)
+ ggthemes                 5.1.0     2024-02-10 [1] CRAN (R 4.3.2)
+ GiRaF                    1.0.1     2020-10-14 [1] CRAN (R 4.3.2)
+ globals                  0.16.2    2022-11-21 [1] CRAN (R 4.3.0)
+ glue                     1.7.0     2024-01-09 [1] CRAN (R 4.3.2)
+ goftest                  1.2-3     2021-10-07 [1] CRAN (R 4.3.2)
+ golem                    0.4.1     2023-06-05 [1] CRAN (R 4.3.2)
+ gridExtra                2.3       2017-09-09 [1] CRAN (R 4.3.2)
+ gtable                   0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
+ gtools                 * 3.9.5     2023-11-20 [1] CRAN (R 4.3.2)
+ HDF5Array              * 1.30.0    2023-10-24 [1] Bioconductor
+ here                   * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
+ hms                      1.1.3     2023-03-21 [1] CRAN (R 4.3.0)
+ htmltools                0.5.7     2023-11-03 [1] CRAN (R 4.3.2)
+ htmlwidgets              1.6.4     2023-12-06 [1] CRAN (R 4.3.2)
+ httpuv                   1.6.13    2023-12-06 [1] CRAN (R 4.3.2)
+ httr                     1.4.7     2023-08-15 [1] CRAN (R 4.3.1)
+ ica                      1.0-3     2022-07-08 [1] CRAN (R 4.3.2)
+ igraph                   2.0.3     2024-03-13 [1] CRAN (R 4.3.2)
+ interactiveDisplayBase   1.40.0    2023-10-24 [1] Bioconductor
+ IRanges                * 2.36.0    2023-10-24 [1] Bioconductor
+ irlba                    2.3.5.1   2022-10-03 [1] CRAN (R 4.3.2)
+ iterators                1.0.14    2022-02-05 [1] CRAN (R 4.3.0)
+ jquerylib                0.1.4     2021-04-26 [1] CRAN (R 4.3.0)
+ jsonlite                 1.8.8     2023-12-04 [1] CRAN (R 4.3.2)
+ KEGGREST                 1.42.0    2023-10-24 [1] Bioconductor
+ KernSmooth               2.23-22   2023-07-10 [1] CRAN (R 4.3.0)
+ later                    1.3.2     2023-12-06 [1] CRAN (R 4.3.2)
+ lattice                  0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
+ lazyeval                 0.2.2     2019-03-15 [1] CRAN (R 4.3.0)
+ leiden                   0.4.3.1   2023-11-17 [1] CRAN (R 4.3.2)
+ lifecycle                1.0.4     2023-11-07 [1] CRAN (R 4.3.2)
+ limma                    3.58.1    2023-10-31 [1] Bioconductor
+ listenv                  0.9.0     2022-12-16 [1] CRAN (R 4.3.0)
+ lmtest                   0.9-40    2022-03-21 [1] CRAN (R 4.3.2)
+ locfit                   1.5-9.8   2023-06-11 [1] CRAN (R 4.3.2)
+ lubridate              * 1.9.3     2023-09-27 [1] CRAN (R 4.3.1)
+ magick                   2.8.1     2023-10-22 [1] CRAN (R 4.3.2)
+ magrittr                 2.0.3     2022-03-30 [1] CRAN (R 4.3.0)
+ maps                     3.4.1.1   2023-11-03 [1] CRAN (R 4.3.2)
+ MASS                     7.3-60    2023-05-04 [1] CRAN (R 4.3.0)
+ Matrix                 * 1.6-4     2023-11-30 [1] CRAN (R 4.3.2)
+ MatrixGenerics         * 1.14.0    2023-10-24 [1] Bioconductor
+ matrixStats            * 1.2.0     2023-12-11 [1] CRAN (R 4.3.2)
+ mclust                   6.0.1     2023-11-15 [1] CRAN (R 4.3.2)
+ memoise                  2.0.1     2021-11-26 [1] CRAN (R 4.3.0)
+ metapod                  1.10.0    2023-10-24 [1] Bioconductor
+ mime                     0.12      2021-09-28 [1] CRAN (R 4.3.0)
+ miniUI                   0.1.1.1   2018-05-18 [1] CRAN (R 4.3.2)
+ munsell                  0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
+ nlme                     3.1-164   2023-11-27 [1] CRAN (R 4.3.2)
+ paletteer                1.6.0     2024-01-21 [1] CRAN (R 4.3.2)
+ parallelly               1.36.0    2023-05-26 [1] CRAN (R 4.3.0)
+ patchwork                1.1.3     2023-08-14 [1] CRAN (R 4.3.2)
+ pbapply                  1.7-2     2023-06-27 [1] CRAN (R 4.3.2)
+ pillar                   1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
+ pkgconfig                2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
+ plotly                   4.10.3    2023-10-21 [1] CRAN (R 4.3.2)
+ plyr                     1.8.9     2023-10-02 [1] CRAN (R 4.3.1)
+ png                      0.1-8     2022-11-29 [1] CRAN (R 4.3.2)
+ polyclip                 1.10-6    2023-09-27 [1] CRAN (R 4.3.2)
+ PRECAST                * 1.6.4     2024-01-25 [1] CRAN (R 4.3.2)
+ progressr                0.14.0    2023-08-10 [1] CRAN (R 4.3.1)
+ promises                 1.2.1     2023-08-10 [1] CRAN (R 4.3.1)
+ purrr                  * 1.0.2     2023-08-10 [1] CRAN (R 4.3.1)
+ R6                       2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
+ RANN                     2.6.1     2019-01-08 [1] CRAN (R 4.3.2)
+ rappdirs                 0.3.3     2021-01-31 [1] CRAN (R 4.3.0)
+ RColorBrewer             1.1-3     2022-04-03 [1] CRAN (R 4.3.0)
+ Rcpp                     1.0.12    2024-01-09 [1] CRAN (R 4.3.2)
+ RcppAnnoy                0.0.21    2023-07-02 [1] CRAN (R 4.3.2)
+ RcppHNSW                 0.5.0     2023-09-19 [1] CRAN (R 4.3.2)
+ RCurl                    1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
+ readr                  * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
+ rematch2                 2.1.2     2020-05-01 [1] CRAN (R 4.3.0)
+ reshape2                 1.4.4     2020-04-09 [1] CRAN (R 4.3.0)
+ restfulr                 0.0.15    2022-06-16 [1] CRAN (R 4.3.2)
+ reticulate               1.34.0    2023-10-12 [1] CRAN (R 4.3.2)
+ rhdf5                  * 2.46.1    2023-11-29 [1] Bioconductor 3.18 (R 4.3.2)
+ rhdf5filters             1.14.1    2023-11-06 [1] Bioconductor
+ Rhdf5lib                 1.24.1    2023-12-11 [1] Bioconductor 3.18 (R 4.3.2)
+ rjson                    0.2.21    2022-01-09 [1] CRAN (R 4.3.2)
+ rlang                    1.1.3     2024-01-10 [1] CRAN (R 4.3.2)
+ ROCR                     1.0-11    2020-05-02 [1] CRAN (R 4.3.2)
+ rprojroot                2.0.4     2023-11-05 [1] CRAN (R 4.3.2)
+ Rsamtools                2.18.0    2023-10-24 [1] Bioconductor
+ RSpectra                 0.16-1    2022-04-24 [1] CRAN (R 4.3.2)
+ RSQLite                  2.3.4     2023-12-08 [1] CRAN (R 4.3.2)
+ rstatix                  0.7.2     2023-02-01 [1] CRAN (R 4.3.2)
+ rsvd                     1.0.5     2021-04-16 [1] CRAN (R 4.3.2)
+ rtracklayer              1.62.0    2023-10-24 [1] Bioconductor
+ Rtsne                    0.17      2023-12-07 [1] CRAN (R 4.3.2)
+ S4Arrays               * 1.2.0     2023-10-24 [1] Bioconductor
+ S4Vectors              * 0.40.2    2023-11-23 [1] Bioconductor 3.18 (R 4.3.2)
+ sass                     0.4.8     2023-12-06 [1] CRAN (R 4.3.2)
+ ScaledMatrix             1.10.0    2023-10-24 [1] Bioconductor
+ scales                   1.3.0     2023-11-28 [1] CRAN (R 4.3.2)
+ scater                 * 1.30.1    2023-11-16 [1] Bioconductor
+ scattermore              1.2       2023-06-12 [1] CRAN (R 4.3.2)
+ scran                  * 1.30.0    2023-10-24 [1] Bioconductor
+ sctransform              0.4.1     2023-10-19 [1] CRAN (R 4.3.2)
+ scuttle                * 1.12.0    2023-10-24 [1] Bioconductor
+ sessioninfo            * 1.2.2     2021-12-06 [1] CRAN (R 4.3.2)
+ Seurat                 * 5.0.1     2023-11-17 [1] CRAN (R 4.3.2)
+ SeuratObject           * 5.0.1     2023-11-17 [1] CRAN (R 4.3.2)
+ shiny                    1.8.0     2023-11-17 [1] CRAN (R 4.3.2)
+ shinyWidgets             0.8.0     2023-08-30 [1] CRAN (R 4.3.2)
+ SingleCellExperiment   * 1.24.0    2023-10-24 [1] Bioconductor
+ sp                     * 2.1-2     2023-11-26 [1] CRAN (R 4.3.2)
+ spam                     2.10-0    2023-10-23 [1] CRAN (R 4.3.2)
+ SparseArray            * 1.2.2     2023-11-07 [1] Bioconductor
+ sparseMatrixStats        1.14.0    2023-10-24 [1] Bioconductor
+ SpatialExperiment      * 1.12.0    2023-10-24 [1] Bioconductor
+ spatialLIBD            * 1.17.0    2024-05-20 [1] Github (LieberInstitute/spatialLIBD@f25860f)
+ spatialNAcUtils        * 0.99.0    2023-12-12 [1] Github (LieberInstitute/spatialNAcUtils@24c45ac)
+ spatstat.data            3.0-3     2023-10-24 [1] CRAN (R 4.3.2)
+ spatstat.explore         3.2-5     2023-10-22 [1] CRAN (R 4.3.2)
+ spatstat.geom            3.2-7     2023-10-20 [1] CRAN (R 4.3.2)
+ spatstat.random          3.2-2     2023-11-29 [1] CRAN (R 4.3.2)
+ spatstat.sparse          3.0-3     2023-10-24 [1] CRAN (R 4.3.2)
+ spatstat.utils           3.0-4     2023-10-24 [1] CRAN (R 4.3.2)
+ statmod                  1.5.0     2023-01-06 [1] CRAN (R 4.3.2)
+ stringi                  1.8.3     2023-12-11 [1] CRAN (R 4.3.2)
+ stringr                * 1.5.1     2023-11-14 [1] CRAN (R 4.3.2)
+ SummarizedExperiment   * 1.32.0    2023-10-24 [1] Bioconductor
+ survival                 3.5-7     2023-08-14 [1] CRAN (R 4.3.1)
+ tensor                   1.5       2012-05-05 [1] CRAN (R 4.3.2)
+ tibble                 * 3.2.1     2023-03-20 [1] CRAN (R 4.3.0)
+ tidyr                  * 1.3.0     2023-01-24 [1] CRAN (R 4.3.0)
+ tidyselect               1.2.0     2022-10-10 [1] CRAN (R 4.3.0)
+ tidyverse              * 2.0.0     2023-02-22 [1] CRAN (R 4.3.0)
+ timechange               0.2.0     2023-01-11 [1] CRAN (R 4.3.0)
+ tzdb                     0.4.0     2023-05-12 [1] CRAN (R 4.3.0)
+ utf8                     1.2.4     2023-10-22 [1] CRAN (R 4.3.1)
+ uwot                     0.1.16    2023-06-29 [1] CRAN (R 4.3.2)
+ vctrs                    0.6.5     2023-12-01 [1] CRAN (R 4.3.2)
+ vipor                    0.4.5     2017-03-22 [1] CRAN (R 4.3.2)
+ viridis                  0.6.4     2023-07-22 [1] CRAN (R 4.3.2)
+ viridisLite              0.4.2     2023-05-02 [1] CRAN (R 4.3.0)
+ withr                    2.5.2     2023-10-30 [1] CRAN (R 4.3.1)
+ XML                      3.99-0.16 2023-11-29 [1] CRAN (R 4.3.2)
+ xtable                   1.8-4     2019-04-21 [1] CRAN (R 4.3.0)
+ XVector                  0.42.0    2023-10-24 [1] Bioconductor
+ yaml                     2.3.8     2023-12-11 [1] CRAN (R 4.3.2)
+ zlibbioc                 1.48.0    2023-10-24 [1] Bioconductor
+ zoo                      1.8-12    2023-04-13 [1] CRAN (R 4.3.0)
+
+ [1] /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/R/library
+
+──────────────────────────────────────────────────────────────────────────────
+**** Job ends ****
+Tue Jun 18 04:17:04 PM EDT 2024
