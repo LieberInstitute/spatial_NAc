@@ -77,7 +77,6 @@ for(k in c(1:K)){
   
     pHits[[k]] <- ggplot(nHits, aes(x = Method, y = nHits_FDR_0.001, fill = Method)) + geom_bar(stat="identity") + ggtitle(paste0("Cluster_", k))
 
-
     T <- min(dim(spot_enr)[1], dim(donor_enr)[1], dim(capture_area_enr)[1])
     ind <- 1
     spot_and_donor <- c()
@@ -85,13 +84,13 @@ for(k in c(1:K)){
     spot_and_capture_area <- c()
     all_methods <- c()
     if(T < 100){
-      stepSize <- 10
-    }
-    if(T >= 100 & T < 500){
       stepSize <- 20
     }
+    if(T >= 100 & T < 500){
+      stepSize <- 10
+    }
     if(T >= 500){
-      stepSize <- 50
+      stepSize <- 8
     }
     for(t in as.integer(seq(T/stepSize, T, T/stepSize))){
         spot_and_donor[ind] <- length(intersect(spot_enr$gene[1:t], donor_enr$gene[1:t]))
@@ -101,7 +100,7 @@ for(k in c(1:K)){
         ind <- ind+1
     }
 
-    summary_res <- data.frame("Cutoffs" = seq(100, T, 100), "Spot_and_donor" = spot_and_donor, "Donor_and_capture_area" = donor_and_capture_area, 
+    summary_res <- data.frame("Cutoffs" = as.integer(seq(T/stepSize, T, T/stepSize)), "Spot_and_donor" = spot_and_donor, "Donor_and_capture_area" = donor_and_capture_area, 
     "Spot_and_capture_area" = spot_and_capture_area, "All_methods" = all_methods)
     summary_res$Spot_and_donor <- summary_res$Spot_and_donor/summary_res$Cutoffs
     summary_res$Donor_and_capture_area <- summary_res$Donor_and_capture_area/summary_res$Cutoffs
@@ -111,18 +110,18 @@ for(k in c(1:K)){
     colnames(summary_res) <- c("Cutoffs", "Comparison", "Fraction_overlap")
     summary_res$Comparison <- factor(summary_res$Comparison, levels = c("Donor_and_capture_area", "Spot_and_donor", "Spot_and_capture_area", "All_methods"))
 
-    pOverlap[[k]] <- ggplot(summary_res, aes(x = Cutoffs, y = Fraction_overlap, color = Comparison, fill = Comparison)) + geom_bar(position="dodge", stat="identity") + ggtitle(paste0("Cluster_", k))
+    pOverlap[[k]] <- ggplot(summary_res, aes(x = Cutoffs, y = Fraction_overlap, color = Comparison, fill = Comparison)) + geom_bar(stat = "identity", position = "dodge") + ggtitle(paste0("Cluster_", k))
 }
 
-pdf(file.path(plotDir, "overlap_across_methods.pdf"))
+pdf(file.path(plotDir, "overlap_across_methods.pdf"), width = 8, height = 4)
 for(k in 1:length(pOverlap)){
-  print(pOverlap[[k]])
+  print(pOverlap[[k]] + theme_classic())
 }
 dev.off()
 
-pdf(file.path(plotDir, "nHits_across_methods.pdf"))
+pdf(file.path(plotDir, "nHits_across_methods.pdf"), width = 6, height = 4)
 for(k in 1:length(pHits)){
-  print(pHits[[k]])
+  print(pHits[[k]]+ theme_classic())
 }
 dev.off()
 

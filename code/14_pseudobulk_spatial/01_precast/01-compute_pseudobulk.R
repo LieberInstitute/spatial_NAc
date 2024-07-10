@@ -65,19 +65,7 @@ if(opt$agg_level == "sample_id_original"){
     spe, DataFrame(cluster = spe[[cluster_col]], sample_id = colData(spe)$sample_id))
     colnames(spe_pseudo) <- paste0(spe_pseudo$sample_id, "_", spe_pseudo[[cluster_col]])
 }
-spe_pseudo = registration_pseudobulk(
-spe,
-var_registration = cluster_col,
-var_sample_id = "sample_id_original",
-min_ncells = 0)
 
-    dim(spe_pseudo)
-colnames(spe_pseudo) <-
-            paste0(
-                spe_pseudo$registration_sample_id,
-                "_",
-                spe_pseudo$registration_variable
-            )
 #   Simplify colData to key, sample-level information
 colData(spe_pseudo) = colData(spe_pseudo)[
     , sort(c("sample_id", "sample_id_original", "slide_num", "in_tissue", "slide_num", "donor",  "Age", "Sex", cluster_col, "Diagnosis", "ncells"))
