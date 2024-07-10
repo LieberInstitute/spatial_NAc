@@ -20,7 +20,7 @@ spec <- matrix(
 opt <- getopt(spec)
 
 if(opt$nnSVG_type){
-    out_path <- here("processed-data", "10_precast", "nnSVG_precast", "PRECAST_k%s.csv")
+    out_path <- here("processed-data", "10_precast", "nnSVG_precast")
     plot_dir <- here("plots", "10_precast", "nnSVG_precast")
 }else{
     out_path <- here("processed-data", "10_precast", "nnSVG_default", "PRECAST_k%s.csv")

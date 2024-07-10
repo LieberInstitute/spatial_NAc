@@ -66,11 +66,69 @@ degree_freedom <- function(K, paraList){
   return(dfree)
 }
 
-clust_fn <- here("processed-data", "10_precast", "nnSVG_precast", "PRECAST_BIC.rds")
-res_fn <- here("processed-data", "10_precast", "nnSVG_precast", "resList_BIC.rds")
+resDir <- here("processed-data", "10_precast", "nnSVG_precast")
+nRandom_starts <- 3
+K <- seq(3, 15, 1)
+precast_results <- lapply(c(1:nRandom_starts), function(rs){
+  cat(rs, "\n")
+  lapply(K, function(k){
+    readRDS(paste0(resDir, "/random_start_", rs, "/pre_obj_k", k, ".rds"))
+  })
+})
+
+para_settings <- lapply(precast_results, function(pre_list){
+  lapply(pre_list, function(pre_obj){
+    attr(pre_obj@resList, 'para_settings')
+  })
+})
+
+pen_const <- 50
+final_ll_df <- list()
+for(i in c(1:nRandom_starts)){
+  ll <- lapply(precast_results[[i]], function(pre_obj){
+    pre_obj@resList[[1]]$loglik
+  })
+  K <- lapply(para_settings[[i]], function(para_setting){
+    para_setting$K
+  })
+  n <- lapply(para_settings[[i]], function(para_setting){
+    para_setting$n
+  })
+  p <- lapply(para_settings[[i]], function(para_setting){
+    para_setting$p
+  })
+  ll <- unlist(ll)
+  K <- unlist(K)
+  n <- unlist(n)
+  p <- unlist(p)
+  nK <- length(K)
+  MAIC_vec <-  rep(Inf, nK)
+  AIC_vec <-  rep(Inf, nK)
+  MBIC_vec <-  rep(Inf, nK)
+  BIC_vec <-  rep(Inf, nK)
+ 
+  for(j in c(1:nK)){
+     dfree <- degree_freedom(K[j], para_settings[[i]][[j]])
+     MAIC_vec[j] = -2.0*ll[j] + dfree*2*log(log(p[j]+n[j]))*pen_const
+     AIC_vec[j] <- -2.0*ll[j] + dfree*2
+     MBIC_vec[j] <-  -2.0*ll[j] + dfree*log(n[j])*log(log(p[j]+n[j]))*pen_const
+     BIC_vec[j] <-  -2.0*ll[j] + dfree*log(n[j])*log(log(p[j]+n[j]))*pen_const
+  }
+
+  final_ll_df[[i]] <-  data.frame("K" = K, "random_start" = i, "LL_model" = ll, "n" = n, "p" = p,
+                                  "MAIC" = MAIC_vec, "AIC" = AIC_vec, "MBIC" = MBIC_vec, "BIC" = BIC_vec)
+}
+
+
+ll_df <- do.call(rbind, final_ll_df)
+ll_df$random_start <- factor(ll_df$random_start, levels = c(1:nRandom_starts))
+
 plotDir <- here("plots", "10_precast", "nnSVG_precast", "BIC_select")
-pre_obj <- readRDS(clust_fn)
-res_obj <- readRDS(res_fn)
+pdf(file.path(plotDir, "loglikelihood_vs_K.pdf"), height = 4, width = 6)
+ggplot(ll_df, aes(x = K, y = BIC, color = random_start, fill = random_start)) + geom_point() + geom_line() + theme_classic()
+dev.off()
+
+
 
 if(!inherits(res_obj, 'SeqK_PRECAST_Object')) stop('res_obj must be "SeqK_PRECAST_Object"!\n')
 para_settings <- attr(res_obj, 'para_settings')
@@ -82,7 +140,27 @@ MBIC_vec <-  rep(Inf, nK)
 BIC_vec <-  rep(Inf, nK)
 if(length(res_obj) != nK) stop("The length of obj must be equal to length of K!")
 n <- para_settings$n; p <- para_settings$p
-pen_const <- 150
+
+
+ll_final <- lapply(res_obj, function(resList){
+  resList$loglik
+})
+ll_final <- unlist(ll_final)
+final_ll_df <- data.frame("K" = K_set, "LL_model" = ll_final)
+pdf(file.path(plotDir, "loglikelihood_vs_K.pdf"), height = 4, width = 6)
+ggplot(final_ll_df, aes(x = K, y = LL_model)) + geom_point() + geom_line() + theme_classic()
+dev.off()
+
+for(i in c(1:nRandom_starts)){
+ nK <- dim(final_ll_df[[i]])[1]
+ MAIC_vec <- rep(NA, nK)
+ AIC_vec <- rep(NA, nK)
+ BIC_vec <- rep(NA, nK)
+ pre_list <- precast_results[[i]]
+ for(j in c(1:nK)){
+   resList <- pre_list[[j]]@resList[[1]]
+ }
+}
 
 for(k in 1:nK){
     cat(k, "\n")
