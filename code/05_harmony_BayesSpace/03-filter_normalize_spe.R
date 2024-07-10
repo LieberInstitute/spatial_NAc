@@ -20,6 +20,7 @@ library(ggExtra)
 library(edgeR)
 library(cowplot)
 library(ggsci)
+library(dittoSeq)
 
 processed_dir = here("processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe")
 qc_hdf5_dir = here(
@@ -182,18 +183,48 @@ plot_grid(ggMarginal(p3, type='histogram', margins = 'both'), nrow = 1, ncol = 1
 
 dev.off()
 
+spe$low_umi <- spe$sum_umi < 250
+spe$low_gene <- spe$sum_gene < 250
+spe$low_gene_edge_spot <- spe$low_umi & spe$edge_distance < 6
+
+pdf(width = 8, height = 8, paste0(plot_dir, "/spots_low_ngenes.pdf"))
+spot_plot(spe, "Br2720", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2743", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br3942", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6423", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6432", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6471", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6522", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8325", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8492", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8667", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+dev.off()
+
+pdf(width = 8, height = 8, paste0(plot_dir, "/spots_low_umi.pdf"))
+spot_plot(spe, "Br2720", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2743", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br3942", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6423", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6432", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6471", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6522", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8325", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8492", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8667", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+dev.off()
+
 # Visualize edge spots that are low library size and would be exckuded
 pdf(width = 8, height = 8, paste0(plot_dir, "/edge_spots_low_lib_size.pdf"))
-spot_plot(spe, "Br2720", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br2743", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br3942", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6423", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6432", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6471", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6522", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8325", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8492", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8667", var_name = "scran_low_lib_size_edge", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2720", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2743", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br3942", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6423", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6432", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6471", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br6522", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8325", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8492", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br8667", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
 dev.off()
 
 # Perform optional additional spot filtering
@@ -215,7 +246,6 @@ filterSpotSweeper <- TRUE
 if(filterSpotSweeper){
 spe <- spe[ ,spe$local_outliers == "FALSE"]
 }
-
 
 # Gene QC
 exprLogic <- counts(spe) > 0
@@ -510,8 +540,6 @@ plot(spe$sum_umi,reducedDim(spe, "PCA_p2")[ ,1], pch = 20,col = alpha(cols, 0.4)
 ylab = "PC1")
 dev.off()
 
-spe$low_umi <- spe$sum_umi < 250
-spe$low_gene <- spe$sum_gene < 250
 
 pdf(file.path(plot_dir, "PCA_p2.pdf"), width = 6, height = 6)
 plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "donor")
@@ -532,4 +560,5 @@ plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "low_
 dev.off()
 
 session_info()
+
 

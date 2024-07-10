@@ -31,7 +31,6 @@ QC_added_hdf5_dir = here(
     'processed-data', '05_harmony_BayesSpace', '02-compute_QC_metrics', 'spe_with_QC_metrics_hdf5'
 )
 plot_dir = here('plots', '05_harmony_BayesSpace', '02-compute_QC_metrics')
-num_red_dims = 50
 
 num_cores = Sys.getenv('SLURM_CPUS_ON_NODE')
 set.seed(0)
@@ -61,6 +60,23 @@ counts <- counts[match(spe$key, counts$key), ]
 spe$Nmask_dark_blue <- counts$Nmask_dark_blue
 spe$Pmask_dark_blue <- counts$Pmask_dark_blue
 spe$CNmask_dark_blue <- counts$CNmask_dark_blue
+
+df <- colData(spe)
+df <- data.frame(df)
+ggplot(df, aes(x = sum_umi, fill = in_tissue)) + geom_density(alpha=0.25) + scale_x_continuous(trans='log10') + theme_classic()
+
+# Add manual annotations by Svitlana
+manual_anno_path = here('raw-data', 'manual_annotations')
+unique_samples <- unique(spe$sample_id)
+manual_annotations <- lapply(unique_samples, function(sample_id){
+    cat(sample_id, "\n")
+    df <- read.csv(file.path(manual_anno_path, paste0(sample_id, ".csv")))
+    colnames(df) <- c("sample", "spot", "annotation")
+    df
+})
+manual_annotations <- do.call(rbind, manual_annotations)
+
+
 
 spe <- spe[, (colSums(assays(spe)$counts) > 0) & spe$in_tissue]
 cat("Number of spots after preliminary QC:", dim(spe)[2], "\n")
@@ -153,6 +169,45 @@ spe = saveHDF5SummarizedExperiment(
 message(Sys.time(), " - Saving ordinary filtered spe")
 spe = realize(spe)
 saveRDS(spe, QC_added_ordinary_path)
+
+pdf(width = 8, height = 8, paste0(plot_dir, "/sum_umi_spot_plot.pdf"))
+spot_plot(spe, "Br2720", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br2743", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br3942", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6423", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6432", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6471", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6522", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br8325", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br8492", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br8667", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+dev.off()
+
+pdf(width = 8, height = 8, paste0(plot_dir, "/sum_gene_spot_plot.pdf"))
+spot_plot(spe, "Br2720", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br2743", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br3942", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6423", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6432", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6471", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br6522", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br8325", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br8492", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+spot_plot(spe, "Br8667", var_name = "sum_gene_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")
+dev.off()
+
+pdf(width = 8, height = 8, paste0(plot_dir, "/mito_ratio_spot_plot.pdf"))
+spot_plot(spe, "Br2720", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br2743", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br3942", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br6423", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br6432", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br6471", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br6522", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br8325", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br8492", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+spot_plot(spe, "Br8667", var_name = "expr_chrM_ratio", is_discrete = FALSE, spatial = TRUE, assayname = "counts", minCount = 0)
+dev.off()
 
 session_info()
 
