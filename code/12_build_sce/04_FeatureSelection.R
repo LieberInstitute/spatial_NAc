@@ -14,6 +14,10 @@ sce <- readRDS(here("processed-data","12_snRNA","sce_clean.Rds"))
 
 dim(sce)
 
+class(sce$Sample)
+
+sce
+
 # feature selection
 set.seed(717)
 sce <- devianceFeatureSelection(sce,
