@@ -25,7 +25,7 @@ c("DRD1","DRD2","PPP1R1B") %in% hdgs.symbols
 
 print("Running PCA")
 #Run PCA
-set.seed(1234)
+set.seed(1010)
 sce <- runPCA(sce,
               exprs_values = "binomial_pearson_residuals",
               subset_row = hdgs, 
@@ -80,19 +80,63 @@ tsne_sort <- plotReducedDim(sce,
                             point_alpha = 0.3)
 ggsave(tsne_sort,filename = here("plots","12_snRNA","Dim_Red","tSNE_SortType_noCorrection.png"))
 
+#UMAP  with 100 dimensions
+print("Running UMAP")
+set.seed(1010)
+sce <- runUMAP(sce,
+               dimred = "GLMPCA_approx",
+               n_dimred = 100,
+               name = "umap")
+
+#UMAP by Sample 
+umap_Sample <- plotReducedDim(sce,
+                              dimred = "umap",
+                              colour_by = "Sample",
+                              point_alpha = 0.3)
+ggsave(umap_Sample,
+       filename = here("plots","12_snRNA","Dim_Red","umap_Sample_noCorrection.png"))
+
+#UMAP by Brain_ID 
+umap_BrainID <- plotReducedDim(sce,
+                               dimred = "umap",
+                               colour_by = "Brain_ID",
+                               point_alpha = 0.3)
+ggsave(umap_BrainID,
+       filename = here("plots","12_snRNA","Dim_Red","umap_BrainID_noCorrection.png"))
+
+#UMAP by snRNA_date
+umap_snRNA_date <- plotReducedDim(sce,
+                                  dimred = "umap",
+                                  colour_by = "snRNA_data",
+                                  point_alpha = 0.3)
+ggsave(umap_snRNA_date,filename = here("plots","12_snRNA","Dim_Red","umap_snRNA_date_noCorrection.png"))
+
+#UMAP by sort type
+umap_sort <- plotReducedDim(sce,
+                            dimred = "umap",
+                            colour_by = "Sort",
+                            point_alpha = 0.3)
+ggsave(umap_sort,filename = here("plots","12_snRNA","Dim_Red","umap_SortType_noCorrection.png"))
+
+print("umap complete")
+
 #########HARMONY
 #Harmony requires the PCA reduced dim to be named "PCA"
 reducedDim(sce,"PCA") <- reducedDim(sce, "GLMPCA_approx")
 
 message("running Harmony")
+set.seed(1010)
 sce <- RunHarmony(sce,group.by.vars = "Sample",verbose = TRUE)
 
 #Remove the redundant PCA reducedDim
 reducedDim(sce, "PCA") <- NULL
 
-#tSNE post-mnn with top 100 dimensions (or all that were calculated during PCA step)
+print("Dimensions of HARMONY matrix")
+dim(reducedDim(sce, "HARMONY"))
+
+#tSNE post-HARMONY with top 100 dimensions (or all that were calculated during PCA step)
 print("Running tSNE post-Harmony")
-set.seed(1001)
+set.seed(1010)
 sce <- runTSNE(sce,
                dimred = "HARMONY",
                n_dimred = 100,
@@ -133,9 +177,10 @@ print("tSNE_HARMONY complete")
 
 #UMAP post Harmony with 100 dimensions
 print("Running UMAP post-HARMONY")
+set.seed(1010)
 sce <- runUMAP(sce,
                dimred = "HARMONY",
-               n_dimred = 100,,
+               n_dimred = 100,
                name = "umap_HARMONY")
 
 #Corrected tSNE by Sample 

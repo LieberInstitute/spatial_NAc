@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Thu May  9 10:42:26 PM EDT 2024
+Thu Aug  1 01:49:44 PM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -102,6 +102,12 @@ Saving 7 x 7 in image
 Saving 7 x 7 in image
 Saving 7 x 7 in image
 Saving 7 x 7 in image
+[1] "Running UMAP"
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+Saving 7 x 7 in image
+[1] "umap complete"
 running Harmony
 Transposing data matrix
 Initializing state using k-means centroids initialization
@@ -134,6 +140,8 @@ Harmony 4/10
 [----|----|----|----|----|----|----|----|----|----|
 **************************************************|
 Harmony converged after 4 iterations
+[1] "Dimensions of HARMONY matrix"
+[1] 103785    100
 [1] "Running tSNE post-Harmony"
 Saving 7 x 7 in image
 Saving 7 x 7 in image
@@ -149,20 +157,20 @@ Saving 7 x 7 in image
 [1] "Saving sce object"
 [1] "Object saved"
 [1] "Reproducibility information:"
-[1] "2024-05-10 00:51:14 EDT"
+[1] "2024-08-01 15:03:30 EDT"
     user   system  elapsed 
-7524.188  130.282 7722.884 
+4238.373   77.541 4424.226 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
- os       Rocky Linux 9.2 (Blue Onyx)
+ os       Rocky Linux 9.4 (Blue Onyx)
  system   x86_64, linux-gnu
  ui       X11
  language (EN)
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-05-10
+ date     2024-08-01
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -202,7 +210,7 @@ Saving 7 x 7 in image
  gtable                 0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
  harmony              * 1.2.0     2023-11-29 [1] CRAN (R 4.3.2)
  here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
- igraph                 1.6.0     2023-12-11 [1] CRAN (R 4.3.2)
+ igraph                 2.0.3     2024-03-13 [1] CRAN (R 4.3.2)
  IRanges              * 2.36.0    2023-10-24 [1] Bioconductor
  irlba                  2.3.5.1   2022-10-03 [1] CRAN (R 4.3.2)
  labeling               0.4.3     2023-08-29 [1] CRAN (R 4.3.1)
@@ -260,4 +268,4 @@ Saving 7 x 7 in image
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Fri May 10 12:51:15 AM EDT 2024
+Thu Aug  1 03:03:31 PM EDT 2024
