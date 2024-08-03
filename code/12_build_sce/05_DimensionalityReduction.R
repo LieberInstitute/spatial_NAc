@@ -16,9 +16,10 @@ sce <- readRDS(here("processed-data","12_snRNA","sce_featureselection.Rds"))
 
 sce
 
-#Take top 4000 highly deviant genes
-hdgs <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:4000]
+#Take top 3000 highly deviant genes
+hdgs <- rownames(sce)[order(rowData(sce)$binomial_deviance, decreasing = T)][1:3000]
 hdgs.symbols <- rowData(sce)$gene_name[match(hdgs, rowData(sce)$gene_id)]
+length(hdgs.symbols)
 
 #Check if Dopamine receptors and PPP1R1B are among the highly deviant genes
 c("DRD1","DRD2","PPP1R1B") %in% hdgs.symbols
