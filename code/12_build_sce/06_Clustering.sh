@@ -5,6 +5,8 @@
 #SBATCH --error=logs/06_clustering.log
 #SBATCH -p shared
 #SBATCH --mem=150G
+#SBATCH --mail-type=END
+#SBATCH --mail-user=robert.phillips@libd.org
 
 echo "********* Job Starts *********"
 date
