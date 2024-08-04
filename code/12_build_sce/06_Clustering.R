@@ -22,7 +22,7 @@ Sys.time()
 
 sce
 
-#Additional sanity chekc
+#Additional sanity check
 identical(rownames(colData(sce)),colnames(sce))
 stopifnot(identical(rownames(colData(sce)),colnames(sce)))
 
@@ -31,16 +31,16 @@ sce
 #######################################
 #Begin clustering workflow.
 
-#build graph with k values of 10 and 50
+#build graph with k value of 20
 print("Graph with k=20")
 Sys.time()
+set.seed(100)
 snn_k_20 <- buildSNNGraph(sce, k = 20, use.dimred = "HARMONY")
 
-####Also run walktrap clustering 
+####Run walktrap clustering 
 #k=20
 print("Running walktrap clustering with k = 20")
 Sys.time()
-
 wt_clusters_k_20 <- igraph::cluster_walktrap(snn_k_20)$membership
 
 print("k=20 done")
@@ -61,16 +61,6 @@ k_20_wt_tSNE <- plotReducedDim(object = sce,
   theme(plot.title = element_text(hjust = 0.5))
 ggsave(plot = k_20_wt_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_walktrap_tSNE.png"))
 
-
-#UMAP with cluster information
-k_20_wt_umap <- plotReducedDim(object = sce,
-                              dimred = "umap_HARMONY",
-                              colour_by = "k_20_walktrap",
-                              text_by = "k_20_walktrap") +
-  ggtitle("k=20 walktrap clustering") +
-  theme(plot.title = element_text(hjust = 0.5))
-ggsave(plot = k_20_wt_umap, filename = here("plots","12_snRNA","Dim_Red","k_20_walktrap_umap.png"))
-
 #Plot tSNE by sample
 for(i in unique(sce$Sample)){
   print(i)
@@ -83,7 +73,6 @@ for(i in unique(sce$Sample)){
                                              "Dim_Red","tSNE_Sample_Specific",
                                              paste0(i,".png")))
 }
-
 
 print("Clustering complete")
 Sys.time()
@@ -106,6 +95,7 @@ genes <- c("SNAP25","SYT1","RBFOX3", #PAN-NEURON markers
            "GRM8","CHST9","OPRM1", #D1-ISLANDS
 	   "DRD3","KCNT2","NTN1","TRPM3","PLD5", #ICJ
            "KIT","CHAT","SST", #INTERNEURON MARKERS
+           "SLC18A3","SLC5A7", #Additional CHAT markers 
            "MOBP","MBP","OPALIN", #Oligodendrocytes
            "PDGFRA", #POLYDENDROCYTES
            "AQP4","GFAP", #Astrocytes
@@ -127,20 +117,27 @@ for(i in genes){
                          paste0(i,"_tSNE.png")))
 }
 
-#umap
+
+#Violin plots
 for(i in genes){
-  print(i)
-  x <- plotReducedDim(object = sce,
-                      dimred = "umap_HARMONY",
-                      colour_by = i,
+  y <- plotExpression(sce,x = "k_20_walktrap",
+                      features = i,
                       swap_rownames = "gene_name") +
-  scale_color_gradientn(colours = c("lightgrey","red")) +
-  ggtitle(i) +
-  theme(plot.title = element_text(hjust = 0.5))
-  ggsave(plot = x,
-         filename = here("plots","12_snRNA","Expression","Known_Marker_Genes","UMAP",
-                         paste0(i,"_UMAP.png")))
+    theme(axis.text.x = element_text(angle=90,hjust = 1),
+          legend.position = "none") +
+    stat_summary(fun = median, 
+                 fun.min = median, 
+                 fun.max = median,
+                 geom = "crossbar", 
+                 width = 0.3) 
+  ggsave(plot = y,
+         filename = here("plots","12_snRNA","Expression",
+                         "Known_Marker_Genes","Violin_Plots",
+                         paste0(i,"_Violin_k_20_walktrap.png")))
 }
+
+
+
 
 #Plot expression of x and y linked genes. Color by Sample
 x_y_linked <- plotExpression(object = sce,
