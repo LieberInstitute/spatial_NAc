@@ -37,43 +37,43 @@ Sys.time()
 set.seed(20)
 snn_k_20 <- buildSNNGraph(sce, k = 20, use.dimred = "HARMONY")
 
-#Leiden clustering with resolution of 0.5
-print("Running leiden k=20, res 0.5")
+#louvain clustering with resolution of 0.5
+print("Running louvain k=20, res 0.5")
 Sys.time()
 set.seed(20)
-leiden_clusters_k_20_pt5 <- igraph::cluster_leiden(snn_k_20,resolution_parameter = 0.5)$membership
-table(leiden_clusters_k_20_pt5)
+louvain_clusters_k_20_pt5 <- igraph::cluster_louvain(snn_k_20,resolution = 0.5)$membership
+table(louvain_clusters_k_20_pt5)
 Sys.time()
 
-#Leiden clustering with resolution of 1
-print("Running leiden k=20, res 1")
+#louvain clustering with resolution of 1
+print("Running louvain k=20, res 1")
 Sys.time()
 set.seed(20)
-leiden_clusters_k_20_1 <- igraph::cluster_leiden(snn_k_20,resolution_parameter = 1)$membership
-table(leiden_clusters_k_20_1)
+louvain_clusters_k_20_1 <- igraph::cluster_louvain(snn_k_20,resolution = 1)$membership
+table(louvain_clusters_k_20_1)
 Sys.time()
 
 #Add cluster information to the object
-sce$k_20_leiden_pt5 <- factor(leiden_clusters_k_20_pt5)
-sce$k_20_leiden_1 <- factor(leiden_clusters_k_20_1)
+sce$k_20_louvain_pt5 <- factor(louvain_clusters_k_20_pt5)
+sce$k_20_louvain_1 <- factor(louvain_clusters_k_20_1)
 
 #tSNE with cluster information
 k_20_pt5_tSNE <- plotReducedDim(object = sce,
                                 dimred = "tSNE_HARMONY",
-                                colour_by = "k_20_leiden_pt5",
-                                text_by = "k_20_leiden_pt5") +
-  ggtitle("k=20 leiden clustering, resolution = 0.5") +
+                                colour_by = "k_20_louvain_pt5",
+                                text_by = "k_20_louvain_pt5") +
+  ggtitle("k=20 louvain clustering, resolution = 0.5") +
   theme(plot.title = element_text(hjust = 0.5))
-ggsave(plot = k_20_pt5_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_leiden_pt5_tSNE.png"))
+ggsave(plot = k_20_pt5_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_louvain_pt5_tSNE.png"))
 
 #tSNE with cluster information
 k_20_1_tSNE <- plotReducedDim(object = sce,
                                 dimred = "tSNE_HARMONY",
-                                colour_by = "k_20_leiden_1",
-                                text_by = "k_20_leiden_1") +
-  ggtitle("k=20 leiden clustering, resolution = 1") +
+                                colour_by = "k_20_louvain_1",
+                                text_by = "k_20_louvain_1") +
+  ggtitle("k=20 louvain clustering, resolution = 1") +
   theme(plot.title = element_text(hjust = 0.5))
-ggsave(plot = k_20_1_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_leiden_1_tSNE.png"))
+ggsave(plot = k_20_1_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_louvain_1_tSNE.png"))
 
 
 ##############K=50####################
@@ -83,43 +83,43 @@ Sys.time()
 set.seed(50)
 snn_k_50 <- buildSNNGraph(sce, k = 50, use.dimred = "HARMONY")
 
-#Leiden clustering with resolution of 0.5
-print("Running leiden k=50, res 0.5")
+#louvain clustering with resolution of 0.5
+print("Running louvain k=50, res 0.5")
 Sys.time()
 set.seed(50)
-leiden_clusters_k_50_pt5 <- igraph::cluster_leiden(snn_k_50,resolution_parameter = 0.5)$membership
-table(leiden_clusters_k_50_pt5)
+louvain_clusters_k_50_pt5 <- igraph::cluster_louvain(snn_k_50,resolution = 0.5)$membership
+table(louvain_clusters_k_50_pt5)
 Sys.time()
 
-#Leiden clustering with resolution of 1
-print("Running leiden k=50, res 1")
+#louvain clustering with resolution of 1
+print("Running louvain k=50, res 1")
 Sys.time()
 set.seed(50)
-leiden_clusters_k_50_1 <- igraph::cluster_leiden(snn_k_50,resolution_parameter = 1)$membership
-table(leiden_clusters_k_50_1)
+louvain_clusters_k_50_1 <- igraph::cluster_louvain(snn_k_50,resolution = 1)$membership
+table(louvain_clusters_k_50_1)
 Sys.time()
 
 #Add cluster information to the object
-sce$k_50_leiden_pt5 <- factor(leiden_clusters_k_50_pt5)
-sce$k_50_leiden_1 <- factor(leiden_clusters_k_50_1)
+sce$k_50_louvain_pt5 <- factor(louvain_clusters_k_50_pt5)
+sce$k_50_louvain_1 <- factor(louvain_clusters_k_50_1)
 
 #tSNE with cluster information
 k_50_pt5_tSNE <- plotReducedDim(object = sce,
                                 dimred = "tSNE_HARMONY",
-                                colour_by = "k_50_leiden_pt5",
-                                text_by = "k_50_leiden_pt5") +
-  ggtitle("k=50 leiden clustering, resolution = 0.5") +
+                                colour_by = "k_50_louvain_pt5",
+                                text_by = "k_50_louvain_pt5") +
+  ggtitle("k=50 louvain clustering, resolution = 0.5") +
   theme(plot.title = element_text(hjust = 0.5))
-ggsave(plot = k_50_pt5_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_50_leiden_pt5_tSNE.png"))
+ggsave(plot = k_50_pt5_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_50_louvain_pt5_tSNE.png"))
 
 #tSNE with cluster information
 k_50_1_tSNE <- plotReducedDim(object = sce,
                               dimred = "tSNE_HARMONY",
-                              colour_by = "k_50_leiden_1",
-                              text_by = "k_50_leiden_1") +
-  ggtitle("k=50 leiden clustering, resolution = 1") +
+                              colour_by = "k_50_louvain_1",
+                              text_by = "k_50_louvain_1") +
+  ggtitle("k=50 louvain clustering, resolution = 1") +
   theme(plot.title = element_text(hjust = 0.5))
-ggsave(plot = k_50_1_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_50_leiden_1_tSNE.png"))
+ggsave(plot = k_50_1_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_50_louvain_1_tSNE.png"))
 
 #Plot tSNE by sample
 for(i in unique(sce$Sample)){
@@ -138,9 +138,9 @@ print("Clustering complete")
 Sys.time()
 #######################################
 
-print("Calculating log-normalized counts") #Going to jsut use the k=20, leiden .5 clustering
+print("Calculating log-normalized counts") #Going to jsut use the k=20, louvain .5 clustering
 Sys.time()
-sce <- computeSumFactors(sce,cluster = sce$k_20_leiden_pt5,min.mean = 0.1)
+sce <- computeSumFactors(sce,cluster = sce$k_20_louvain_pt5,min.mean = 0.1)
 sce <- logNormCounts(sce)
 Sys.time()
 
@@ -181,7 +181,7 @@ for(i in genes){
 
 #Violin plots by each clustering 
 for(i in genes){
-  for(l in c("k_20_leiden_pt5","k_20_leiden_1","k_50_leiden_pt5","k_50_leiden_1")){
+  for(l in c("k_20_louvain_pt5","k_20_louvain_1","k_50_louvain_pt5","k_50_louvain_1")){
     y <- plotExpression(sce,
                         x = l, #x-axis by clustering 
                         features = i, #feature is one of genes listed above
