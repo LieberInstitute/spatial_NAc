@@ -231,9 +231,9 @@ print("Clustering complete")
 Sys.time()
 #######################################
 
-print("Calculating log-normalized counts") #Going to jsut use the k=20, louvain .5 clustering
+print("Calculating log-normalized counts") #Going to jsut use the k=10, louvain 1 clustering --> Will use this clustering to generate final cell types
 Sys.time()
-sce <- computeSumFactors(sce,cluster = sce$k_20_louvain_pt5,min.mean = 0.1)
+sce <- computeSumFactors(sce,cluster = sce$k_10_louvain_1,min.mean = 0.1)
 sce <- logNormCounts(sce)
 Sys.time()
 
