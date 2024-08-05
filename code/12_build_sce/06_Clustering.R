@@ -30,6 +30,53 @@ sce
 
 #######################################
 #Begin clustering workflow.
+##############K=5####################
+#build graph with k value of 5
+print("Graph with k=5")
+Sys.time()
+set.seed(5)
+snn_k_5 <- buildSNNGraph(sce, k = 5, use.dimred = "HARMONY")
+
+#louvain clustering with resolution of 0.5
+print("Running louvain k=5, res 0.5")
+Sys.time()
+set.seed(5)
+louvain_clusters_k_5_pt5 <- igraph::cluster_louvain(snn_k_5,resolution = 0.5)$membership
+table(louvain_clusters_k_5_pt5)
+Sys.time()
+
+#louvain clustering with resolution of 1
+print("Running louvain k=5, res 1")
+Sys.time()
+set.seed(5)
+louvain_clusters_k_5_1 <- igraph::cluster_louvain(snn_k_5,resolution = 1)$membership
+table(louvain_clusters_k_5_1)
+Sys.time()
+
+#Add cluster information to the object
+sce$k_5_louvain_pt5 <- factor(louvain_clusters_k_5_pt5)
+sce$k_5_louvain_1 <- factor(louvain_clusters_k_5_1)
+
+#tSNE with cluster information
+k_5_pt5_tSNE <- plotReducedDim(object = sce,
+                                dimred = "tSNE_HARMONY",
+                                colour_by = "k_5_louvain_pt5",
+                                text_by = "k_5_louvain_pt5") +
+  ggtitle("k=5 louvain clustering, resolution = 0.5") +
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave(plot = k_5_pt5_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_5_louvain_pt5_tSNE.png"))
+
+#tSNE with cluster information
+k_5_1_tSNE <- plotReducedDim(object = sce,
+                              dimred = "tSNE_HARMONY",
+                              colour_by = "k_5_louvain_1",
+                              text_by = "k_5_louvain_1") +
+  ggtitle("k=5 louvain clustering, resolution = 1") +
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave(plot = k_5_1_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_5_louvain_1_tSNE.png"))
+
+
+
 ##############K=10####################
 #build graph with k value of 10
 print("Graph with k=10")
@@ -227,7 +274,8 @@ for(i in genes){
 
 #Violin plots by each clustering 
 for(i in genes){
-  for(l in c("k_10_louvain_pt5","k_10_louvain_1",
+  for(l in c("k_5_louvain_pt5","k_5_louvain_1",
+             "k_10_louvain_pt5","k_10_louvain_1",
              "k_20_louvain_pt5","k_20_louvain_1",
              "k_50_louvain_pt5","k_50_louvain_1")){
     y <- plotExpression(sce,
@@ -247,7 +295,6 @@ for(i in genes){
                            paste0(i,l,"_Violin.png")))
   }
 }
-
 
 #Plot expression of x and y linked genes. Color by Sample
 x_y_linked <- plotExpression(object = sce,
