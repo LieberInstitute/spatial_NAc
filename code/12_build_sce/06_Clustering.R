@@ -30,36 +30,96 @@ sce
 
 #######################################
 #Begin clustering workflow.
-
+##############K=20####################
 #build graph with k value of 20
 print("Graph with k=20")
 Sys.time()
-set.seed(100)
+set.seed(20)
 snn_k_20 <- buildSNNGraph(sce, k = 20, use.dimred = "HARMONY")
 
-####Run walktrap clustering 
-#k=20
-print("Running walktrap clustering with k = 20")
+#Leiden clustering with resolution of 0.5
+print("Running leiden k=20, res 0.5")
 Sys.time()
-wt_clusters_k_20 <- igraph::cluster_walktrap(snn_k_20)$membership
-
-print("k=20 done")
+set.seed(20)
+leiden_clusters_k_20_pt5 <- igraph::cluster_leiden(snn_k_20,resolution_parameter = 0.5)$membership
+table(leiden_clusters_k_20_pt5)
 Sys.time()
 
-#How many nuclei in each cluster?
-table(wt_clusters_k_20)
+#Leiden clustering with resolution of 1
+print("Running leiden k=20, res 1")
+Sys.time()
+set.seed(20)
+leiden_clusters_k_20_1 <- igraph::cluster_leiden(snn_k_20,resolution_parameter = 1)$membership
+table(leiden_clusters_k_20_1)
+Sys.time()
 
 #Add cluster information to the object
-sce$k_20_walktrap <- factor(wt_clusters_k_20)
+sce$k_20_leiden_pt5 <- factor(leiden_clusters_k_20_pt5)
+sce$k_20_leiden_1 <- factor(leiden_clusters_k_20_1)
 
 #tSNE with cluster information
-k_20_wt_tSNE <- plotReducedDim(object = sce,
-                              dimred = "tSNE_HARMONY",
-                              colour_by = "k_20_walktrap",
-                              text_by = "k_20_walktrap") +
-  ggtitle("k=20 walktrap clustering") +
+k_20_pt5_tSNE <- plotReducedDim(object = sce,
+                                dimred = "tSNE_HARMONY",
+                                colour_by = "k_20_leiden_pt5",
+                                text_by = "k_20_leiden_pt5") +
+  ggtitle("k=20 leiden clustering, resolution = 0.5") +
   theme(plot.title = element_text(hjust = 0.5))
-ggsave(plot = k_20_wt_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_walktrap_tSNE.png"))
+ggsave(plot = k_20_pt5_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_leiden_pt5_tSNE.png"))
+
+#tSNE with cluster information
+k_20_1_tSNE <- plotReducedDim(object = sce,
+                                dimred = "tSNE_HARMONY",
+                                colour_by = "k_20_leiden_1",
+                                text_by = "k_20_leiden_1") +
+  ggtitle("k=20 leiden clustering, resolution = 1") +
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave(plot = k_20_1_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_20_leiden_1_tSNE.png"))
+
+
+##############K=50####################
+#build graph with k value of 50
+print("Graph with k=50")
+Sys.time()
+set.seed(50)
+snn_k_50 <- buildSNNGraph(sce, k = 50, use.dimred = "HARMONY")
+
+#Leiden clustering with resolution of 0.5
+print("Running leiden k=50, res 0.5")
+Sys.time()
+set.seed(50)
+leiden_clusters_k_50_pt5 <- igraph::cluster_leiden(snn_k_50,resolution_parameter = 0.5)$membership
+table(leiden_clusters_k_50_pt5)
+Sys.time()
+
+#Leiden clustering with resolution of 1
+print("Running leiden k=50, res 1")
+Sys.time()
+set.seed(50)
+leiden_clusters_k_50_1 <- igraph::cluster_leiden(snn_k_50,resolution_parameter = 1)$membership
+table(leiden_clusters_k_50_1)
+Sys.time()
+
+#Add cluster information to the object
+sce$k_50_leiden_pt5 <- factor(leiden_clusters_k_50_pt5)
+sce$k_50_leiden_1 <- factor(leiden_clusters_k_50_1)
+
+#tSNE with cluster information
+k_50_pt5_tSNE <- plotReducedDim(object = sce,
+                                dimred = "tSNE_HARMONY",
+                                colour_by = "k_50_leiden_pt5",
+                                text_by = "k_50_leiden_pt5") +
+  ggtitle("k=50 leiden clustering, resolution = 0.5") +
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave(plot = k_50_pt5_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_50_leiden_pt5_tSNE.png"))
+
+#tSNE with cluster information
+k_50_1_tSNE <- plotReducedDim(object = sce,
+                              dimred = "tSNE_HARMONY",
+                              colour_by = "k_50_leiden_1",
+                              text_by = "k_50_leiden_1") +
+  ggtitle("k=50 leiden clustering, resolution = 1") +
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave(plot = k_50_1_tSNE, filename = here("plots","12_snRNA","Dim_Red","k_50_leiden_1_tSNE.png"))
 
 #Plot tSNE by sample
 for(i in unique(sce$Sample)){
@@ -78,9 +138,9 @@ print("Clustering complete")
 Sys.time()
 #######################################
 
-print("Calculating log-normalized counts")
+print("Calculating log-normalized counts") #Going to jsut use the k=20, leiden .5 clustering
 Sys.time()
-sce <- computeSumFactors(sce,cluster = sce$k_20_walktrap,min.mean = 0.1)
+sce <- computeSumFactors(sce,cluster = sce$k_20_leiden_pt5,min.mean = 0.1)
 sce <- logNormCounts(sce)
 Sys.time()
 
@@ -93,10 +153,11 @@ genes <- c("SNAP25","SYT1","RBFOX3", #PAN-NEURON markers
            "DRD1","PDYN","EBF1","RXFP1","TAC1","CRHR2","RXFP1","CPNE4",#D1 markers
            "DRD2","PENK","ADORA2A",#D2 markers,
            "GRM8","CHST9","OPRM1", #D1-ISLANDS
-	   "DRD3","KCNT2","NTN1","TRPM3","PLD5", #ICJ
+           "DRD3","KCNT2","NTN1","TRPM3","PLD5", #ICJ
            "KIT","CHAT","SST", #INTERNEURON MARKERS
            "SLC18A3","SLC5A7", #Additional CHAT markers 
            "MOBP","MBP","OPALIN", #Oligodendrocytes
+           "SLC17A6","SLC17A7", #excitatory
            "PDGFRA", #POLYDENDROCYTES
            "AQP4","GFAP", #Astrocytes
            "CD74", #Microglia
@@ -109,34 +170,35 @@ for(i in genes){
                       dimred = "tSNE_HARMONY",
                       colour_by = i,
                       swap_rownames = "gene_name") +
-  scale_color_gradientn(colours = c("lightgrey","red")) +
-  ggtitle(i) +
-  theme(plot.title = element_text(hjust = 0.5))
+    scale_color_gradientn(colours = c("lightgrey","red")) +
+    ggtitle(i) +
+    theme(plot.title = element_text(hjust = 0.5))
   ggsave(plot = x,
          filename = here("plots","12_snRNA","Expression","Known_Marker_Genes","tSNE",
                          paste0(i,"_tSNE.png")))
 }
 
 
-#Violin plots
+#Violin plots by each clustering 
 for(i in genes){
-  y <- plotExpression(sce,x = "k_20_walktrap",
-                      features = i,
-                      swap_rownames = "gene_name") +
-    theme(axis.text.x = element_text(angle=90,hjust = 1),
-          legend.position = "none") +
-    stat_summary(fun = median, 
-                 fun.min = median, 
-                 fun.max = median,
-                 geom = "crossbar", 
-                 width = 0.3) 
-  ggsave(plot = y,
-         filename = here("plots","12_snRNA","Expression",
-                         "Known_Marker_Genes","Violin_Plots",
-                         paste0(i,"_Violin_k_20_walktrap.png")))
+  for(l in c("k_20_leiden_pt5","k_20_leiden_1","k_50_leiden_pt5","k_50_leiden_1")){
+    y <- plotExpression(sce,
+                        x = l, #x-axis by clustering 
+                        features = i, #feature is one of genes listed above
+                        swap_rownames = "gene_name") +
+      theme(axis.text.x = element_text(angle=90,hjust = 1),
+            legend.position = "none") +
+      stat_summary(fun = median, 
+                   fun.min = median, 
+                   fun.max = median,
+                   geom = "crossbar", 
+                   width = 0.3) 
+    ggsave(plot = y,
+           filename = here("plots","12_snRNA","Expression",
+                           "Known_Marker_Genes","Violin_Plots",l,
+                           paste0(i,l,"_Violin.png")))
+  }
 }
-
-
 
 
 #Plot expression of x and y linked genes. Color by Sample
@@ -161,5 +223,5 @@ print("Object saved")
 print("Reproducibility information:")
 Sys.time()
 proc.time()
-options(width = 120)
+options(width = 150)
 sessioninfo::session_info()
