@@ -4,7 +4,7 @@
 library(SingleCellExperiment)
 library(pheatmap)
 library(bluster)
-library(scater)
+elibrary(scater)
 library(scran)
 library(here)
 
@@ -18,12 +18,12 @@ Sys.time()
 sce
 
 #calculate purity 
-pure.sce <- neighborPurity(reducedDim(sce, "HARMONY"), sce$k_20_walktrap)
+pure.sce <- neighborPurity(reducedDim(sce, "HARMONY"), sce$k_10_louvain_1)
 
 #configure dataframe
 pure.data <- as.data.frame(pure.sce)
 pure.data$maximum <- factor(pure.data$maximum)
-pure.data$cluster <- sce$k_20_walktrap
+pure.data$cluster <- sce$k_10_louvain_1
 
 purity_plot <- ggplot(pure.data, aes(x=cluster, y=purity, colour=maximum)) +
                 ggbeeswarm::geom_quasirandom(method="smiley")

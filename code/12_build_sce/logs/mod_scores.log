@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Wed May 15 10:20:55 AM EDT 2024
+Mon Aug  5 09:16:48 PM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -80,9 +80,9 @@ Loading required package: scuttle
 Loading required package: ggplot2
 here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 [1] "Loading Object"
-[1] "2024-05-15 10:21:14 EDT"
+[1] "2024-08-05 21:16:57 EDT"
 [1] "Object loaded"
-[1] "2024-05-15 10:27:17 EDT"
+[1] "2024-08-05 21:22:00 EDT"
 class: SingleCellExperiment 
 dim: 36601 103785 
 metadata(1): Samples
@@ -92,30 +92,29 @@ rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
 rowData names(7): source type ... gene_type binomial_deviance
 colnames(103785): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
   20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
-colData names(32): Sample Barcode ... k_20_walktrap sizeFactor
-reducedDimNames(5): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
-  umap_HARMONY
+colData names(40): Sample Barcode ... k_20_louvain_1 sizeFactor
+reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
 mainExpName: NULL
 altExpNames(0):
-[1] "2024-05-15 10:27:23 EDT"
-[1] "2024-05-15 10:31:19 EDT"
+[1] "2024-08-05 21:22:04 EDT"
+[1] "2024-08-05 21:25:31 EDT"
 null device 
           1 
 [1] "Reproducibility information:"
-[1] "2024-05-15 10:32:37 EDT"
+[1] "2024-08-05 21:25:42 EDT"
    user  system elapsed 
-589.774  37.356 697.832 
+451.886  15.442 532.594 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
- os       Rocky Linux 9.2 (Blue Onyx)
+ os       Rocky Linux 9.4 (Blue Onyx)
  system   x86_64, linux-gnu
  ui       X11
  language (EN)
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-05-15
+ date     2024-08-05
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -152,7 +151,7 @@ null device
  gridExtra              2.3       2017-09-09 [1] CRAN (R 4.3.2)
  gtable                 0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
  here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
- igraph                 1.6.0     2023-12-11 [1] CRAN (R 4.3.2)
+ igraph                 2.0.3     2024-03-13 [1] CRAN (R 4.3.2)
  IRanges              * 2.36.0    2023-10-24 [1] Bioconductor
  irlba                  2.3.5.1   2022-10-03 [1] CRAN (R 4.3.2)
  lattice                0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
@@ -203,4 +202,4 @@ null device
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Wed May 15 10:32:41 AM EDT 2024
+Mon Aug  5 09:25:42 PM EDT 2024
