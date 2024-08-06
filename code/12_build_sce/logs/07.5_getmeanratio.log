@@ -1,5 +1,5 @@
 ********* Job Starts *********
-Thu May 16 03:52:47 PM EDT 2024
+Mon Aug  5 09:18:50 PM EDT 2024
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -78,7 +78,7 @@ The following objects are masked from ‘package:matrixStats’:
 
 here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 [1] "Loading SCE"
-[1] "2024-05-16 15:53:09 EDT"
+[1] "2024-08-05 21:18:59 EDT"
 [1]  36601 103785
 class: SingleCellExperiment 
 dim: 36601 103785 
@@ -89,29 +89,28 @@ rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
 rowData names(7): source type ... gene_type binomial_deviance
 colnames(103785): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
   20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
-colData names(32): Sample Barcode ... k_20_walktrap sizeFactor
-reducedDimNames(5): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
-  umap_HARMONY
+colData names(40): Sample Barcode ... k_20_louvain_1 sizeFactor
+reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
 mainExpName: NULL
 altExpNames(0):
 Warning message:
 In asMethod(object) :
   sparse->dense coercion: allocating vector of size 28.3 GiB
 [1] "Reproducibility information:"
-[1] "2024-05-16 16:10:40 EDT"
-    user   system  elapsed 
- 855.389  176.366 1070.399 
+[1] "2024-08-05 21:25:19 EDT"
+   user  system elapsed 
+356.217  30.295 388.609 
 ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
- os       Rocky Linux 9.2 (Blue Onyx)
+ os       Rocky Linux 9.4 (Blue Onyx)
  system   x86_64, linux-gnu
  ui       X11
  language (EN)
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       US/Eastern
- date     2024-05-16
+ date     2024-08-05
  pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
 
 ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -145,7 +144,7 @@ In asMethod(object) :
  glue                   1.7.0     2024-01-09 [1] CRAN (R 4.3.2)
  gtable                 0.3.4     2023-08-21 [1] CRAN (R 4.3.1)
  here                 * 1.0.1     2020-12-13 [1] CRAN (R 4.3.2)
- igraph                 1.6.0     2023-12-11 [1] CRAN (R 4.3.2)
+ igraph                 2.0.3     2024-03-13 [1] CRAN (R 4.3.2)
  IRanges              * 2.36.0    2023-10-24 [1] Bioconductor
  irlba                  2.3.5.1   2022-10-03 [1] CRAN (R 4.3.2)
  lattice                0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
@@ -195,4 +194,4 @@ In asMethod(object) :
 
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ********* Job Ends *********
-Thu May 16 04:10:46 PM EDT 2024
+Mon Aug  5 09:25:20 PM EDT 2024

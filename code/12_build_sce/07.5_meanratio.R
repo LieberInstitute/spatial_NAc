@@ -17,12 +17,12 @@ sce
 
 #Run mean ratio
 gmr_1 <- get_mean_ratio2(sce,
-                         cellType_col = "k_20_walktrap",
+                         cellType_col = "k_10_louvain_1",
                          assay_name = "logcounts",
                          add_symbol = FALSE)
 
 save(gmr_1,
-     file = here("processed-data","12_snRNA","broad_clustering_meanratio_preannotation_k20_walktrap.rda"))
+     file = here("processed-data","12_snRNA","broad_clustering_meanratio_preannotation_k10_louvain_1.rda"))
 
 print("Reproducibility information:")
 Sys.time()
