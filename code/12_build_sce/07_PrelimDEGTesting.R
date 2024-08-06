@@ -25,7 +25,7 @@ mod <- mod[ , -1, drop=F] # intercept otherwise automatically dropped by `findMa
 
 # Run pairwise t-tests
 markers_pairwise <- findMarkers(sce, 
-                                groups=sce$k_20_walktrap,
+                                groups=sce$k_10_louvain_1,
                                 assay.type="logcounts", 
                                 design=mod, 
                                 test="t",
@@ -46,7 +46,25 @@ for(i in names(markers_pairwise)){
 }
 
 
-save(markers_pairwise,file = here("processed-data","12_snRNA","markers_pairwise_list_k_20_walktrap.rda"))
+save(markers_pairwise,file = here("processed-data","12_snRNA","markers_pairwise_list_k_10_louvain_1.rda"))
+
+########
+#1vALL DEG testing
+markers_1vALL_enrich <- findMarkers_1vAll(sce, 
+                                          assay_name = "logcounts", 
+                                          cellType_col = "k_10_louvain_1", 
+                                          mod = "~Sample")
+
+#Add symbol information to the table
+#First change the ensembl gene id column to have same name as what is in rowData(sce)
+colnames(markers_1vALL_enrich)[1] <- "gene_id"
+markers_1vALL_df <- dplyr::left_join(x = as.data.frame(markers_1vALL_enrich),
+                                     y = as.data.frame(rowData(sce)[,c("gene_id","gene_name")]),
+                                     by = "gene_id")
+
+#save the dataframe. 
+save(markers_1vALL_df,file = here("processed-data","markers_1vAll_k_10_louvain_1.rda"))
+
 
 print("Reproducibility information:")
 Sys.time()
