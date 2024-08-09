@@ -4,7 +4,7 @@
 library(SingleCellExperiment)
 library(pheatmap)
 library(bluster)
-elibrary(scater)
+library(scater)
 library(scran)
 library(here)
 
