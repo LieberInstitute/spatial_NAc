@@ -19,6 +19,15 @@ dim(sce)
 stopifnot(identical(rownames(colData(sce)),colnames(sce)))
 
 sce
+#######
+#Remove the neuronal ambiguous population from further analysis. 
+sce <- sce[,sce$CellType.Final != "Neuron_Ambig"]
+
+sce
+
+dim(sce)
+
+stopifnot(identical(rownames(colData(sce)),colnames(sce)))
 ###############
 #Do any genes have 0 counts for every cell. 
 print("Table for genes with 0 counts")
