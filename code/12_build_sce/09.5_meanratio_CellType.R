@@ -4,15 +4,28 @@ library(SingleCellExperiment)
 library(DeconvoBuddies)
 library(here)
 
+##############
 #Load sce
 print("Loading SCE")
 Sys.time()
 sce <- readRDS(here("processed-data","12_snRNA","sce_CellType_noresiduals.Rds"))
+Sys.time()
+
 dim(sce)
 
 stopifnot(identical(rownames(colData(sce)),colnames(sce)))
 
 sce
+#######
+#Remove the neuronal ambiguous population from further analysis. 
+sce <- sce[,sce$CellType.Final != "Neuron_Ambig"]
+
+sce
+
+dim(sce)
+
+stopifnot(identical(rownames(colData(sce)),colnames(sce)))
+
 ######################
 
 #Run mean ratio
