@@ -72,13 +72,13 @@ tsne_perplex_vals = c("05", "20", "50", "80")
 num_cores = detectCores() - 1
 
 ## Create output directories
-dir_plots <- here("plots", "05_harmony_BayesSpace")
-dir_rdata <- here("processed-data", "05_harmony_BayesSpace")
+dir_plots <- here("plots", "05_harmony_BayesSpace", "04-preprocess_and_harmony")
+dir_rdata <- here("processed-data", "05_harmony_BayesSpace", "04-preprocess_and_harmony")
 filtered_hdf5_dir = here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_filtered_hdf5'
+    'processed-data', '05_harmony_BayesSpace', '03-filter_normalize_spe', 'spe_filtered_dimRed_hdf5'
 )
 harmony_hdf5_dir = here(
-    'processed-data', '05_harmony_BayesSpace', 'spe_harmony'
+    'processed-data', '05_harmony_BayesSpace', '04-preprocess_and_harmony', 'spe_harmony_hdf5'
 )
 
 dir.create(dir_plots, showWarnings = FALSE)
@@ -95,11 +95,13 @@ spe = loadHDF5SummarizedExperiment(filtered_hdf5_dir)
 ## Perform harmony batch correction
 message("Running RunHarmony()")
 Sys.time()
-spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "slide_num"), verbose = TRUE, plot_convergence = TRUE, kmeans_init_nstart=100, kmeans_init_iter_max=1000)
+spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "slide_num"), verbose = TRUE, kmeans_init_nstart=100, kmeans_init_iter_max=1000)
+Sys.time()
 
-spe <- RunHarmony_mod(spe, "donor", verbose = TRUE, plot_convergence = TRUE, reduction.use = "PCA", reduction.save = "harmony_donor", kmeans_init_nstart=100, kmeans_init_iter_max=1000)
-spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "slide_num"), verbose = TRUE, reduction.save = "harmony_donor_slide")
-#spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "sample_id_original"), verbose = TRUE, reduction.save = "HARMONY", plot_convergence = TRUE, lambda = NULL, max_iter = 30)
+message("Running RunHarmony() on GLMPCA")
+Sys.time()
+spe <- RunHarmony_mod(spe, group.by.vars = c("donor", "slide_num"), verbose = TRUE, kmeans_init_nstart=100, kmeans_init_iter_max=1000, 
+reduction.use = "GLMPCA_approx", reduction.save = "HARMONY_GLMPCA")
 Sys.time()
 
 #   Perform dimensionality reduction using both PCA and harmony's reduced
@@ -191,7 +193,7 @@ spe$SNN_k10 <- clust_k10 ## Add this one to the SPE too
 cluster_export(
     spe,
     "SNN_k10",
-    cluster_dir = file.path(dir_rdata, "clusters_graphbased"),
+    cluster_dir = file.path(dir_rdata, "04-preprocess_and_harmony/clusters_graphbased"),
 )
 
 message("Running cut_at() from k = 4 to 28")
@@ -206,7 +208,6 @@ for (i in seq_along(names(clust_k5_list))) {
     colData(spe) <- cbind(colData(spe), clust_k5_list[i])
     ## Add proper name
     colnames(colData(spe))[ncol(colData(spe))] <- names(clust_k5_list)[i]
-
     ## Export for later use outside the SPE object
     cluster_export(
         spe,
@@ -224,14 +225,15 @@ for (i in seq_along(sample_ids)) {
         cols <- Polychrome::palette36.colors(length(clus_vals))
         names(cols) <- clus_vals
 
+       
         my_plot <- vis_clus(
             spe = spe,
             clustervar = names(clust_k5_list)[j],
-            sampleid = sample_ids[i],
+            sampleid = as.character(sample_ids[i]),
             colors = cols,
             auto_crop = FALSE,
-            assayname = 'counts',
-            ... = paste0(" ", names(clust_k5_list)[j])
+            ... = names(clust_k5_list)[j], 
+            is_stitched = TRUE
         )
         print(my_plot)
     }
@@ -241,17 +243,17 @@ dev.off()
 #   Do offset so we can run BayesSpace. Not here that 'array_row' is not
 #   constrained to have max value 77; we instead find the largest 'array_row'
 #   value of any sample, and use it to ensure samples are at least 5 rows apart
-auto_offset_row <- as.numeric(factor(unique(spe$sample_id))) * (max(spe$array_row) + 5)
+auto_offset_row <- as.numeric(unique(spe$sample_id)) * (max(spe$array_row) + 5)
 names(auto_offset_row) <- unique(spe$sample_id)
 spe$row <- spe$array_row + auto_offset_row[spe$sample_id]
 spe$col <- spe$array_col
 
 ## Save new SPE object
-saveRDS(spe, file.path(dir_rdata, "spe_harmony.rds"))
+saveRDS(spe, file.path(dir_rdata, "04-preprocess_and_harmony/spe_harmony.rds"))
 
 ## Object size in GB
 ## (do this near the end in case lobstr crashes, it's happened to me once)
-lobstr::obj_size(spe)
+#lobstr::obj_size(spe)
 
 ## Reproducibility information
 print("Reproducibility information:")
