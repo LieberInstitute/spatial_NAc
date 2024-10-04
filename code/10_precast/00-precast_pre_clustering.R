@@ -16,10 +16,10 @@ library(scater)
 k <- 2
 
 spe_dir <- here(
-    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
 )
 hvg_path <- here(
-    "processed-data", "05_harmony_BayesSpace", "top.hvgs.Rdata")
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "top.hvgs.Rdata")
 out_path <- here("processed-data", "10_precast/00_pre_clustering", paste0("PRECAST_k", k, ".csv"))
 plot_dir <- here('plots', '10_precast', '00_pre_clustering')
 
@@ -56,8 +56,6 @@ hvgs_name <- c()
 for(i in c(1:length(top.hvgs.p2))){
     hvgs_name[i] <- rowData(spe)$gene_name[rowData(spe)$gene_id == top.hvgs.p2[i]]
 }
-
-
 
 pre_obj <- CreatePRECASTObject(
     seuList = seu_list,
@@ -123,7 +121,6 @@ precast_results <- pre_obj@meta.data |>
     
 write_csv(precast_results, out_path)
 
-
 precast_cluster <- colData(spe) |>
         as_tibble() |>
         left_join(precast_results, by = "key") |>
@@ -142,14 +139,6 @@ spot_plot(spe, "Br6522", var_name = "precast_cluster", is_discrete = TRUE, spati
 spot_plot(spe, "Br8325", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
 spot_plot(spe, "Br8492", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
 spot_plot(spe, "Br8667", var_name = "precast_cluster", is_discrete = TRUE, spatial = TRUE)
-dev.off()
-
-pdf(file.path(plot_dir, "GLMPCA_WM_clusters.pdf"), width = 6, height = 6)
-plotReducedDim(spe, dimred = "GLMPCA_approx", ncomponents = 2, colour_by = "precast_cluster")
-dev.off()
-
-pdf(file.path(plot_dir, "PCA_WM_clusters.pdf"), width = 6, height = 6)
-plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "precast_cluster")
 dev.off()
 
 df <- data.frame(colData(spe))
@@ -184,7 +173,6 @@ pdf(file.path(plot_dir, "nonOutlier_Low_gene_spot_distribution.pdf"), width = 10
 ggplot(nonOutlier_summ, aes(x = sample_id, y = n, fill = exclude_overlapping)) + geom_bar(stat="identity", position = position_dodge(preserve = "single")) +
 facet_wrap(~precast_cluster, nrow = 3) + theme_classic() + ggtitle("Non-outlier (Low gene) spot distribution")
 dev.off()
-
 
 session_info()
 
