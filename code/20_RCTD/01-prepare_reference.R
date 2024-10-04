@@ -14,7 +14,7 @@ library(getopt)
 
 spec <- matrix(
     c(
-        "marker_genes", "m", 1, "logical", "Use only marker genes from single cell labels?",
+        "marker_genes", "m", 1, "logical", "Use only marker genes from single cell labels?"
     ),
     byrow = TRUE, ncol = 5
 )
