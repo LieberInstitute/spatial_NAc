@@ -20,10 +20,8 @@ spec <- matrix(
 opt <- getopt(spec)
 
 spe_dir <- here(
-    "processed-data", "05_harmony_BayesSpace", "spe_filtered_hdf5"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
 )
-precast_path <- here("processed-data", "10_precast", "00_pre_clustering", "PRECAST_k2.csv")
-
 message(Sys.time(), " | Loading SpatialExperiment")
 spe <- loadHDF5SummarizedExperiment(spe_dir)
 sample_id <- levels(spe$sample_id)[as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))]
@@ -33,6 +31,7 @@ if (opt$use_precast) {
         "processed-data", "05_harmony_BayesSpace", "07-run_nnSVG", "nnSVG_precast_out",
         paste0(sample_id, ".csv")
     )
+    precast_path <- here("processed-data", "10_precast", "00_pre_clustering", "PRECAST_k2.csv")
 } else {
     out_path <- here(
         "processed-data", "05_harmony_BayesSpace", "07-run_nnSVG", "nnSVG_out",
