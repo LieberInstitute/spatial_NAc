@@ -193,15 +193,15 @@ spe$SNN_k10 <- clust_k10 ## Add this one to the SPE too
 cluster_export(
     spe,
     "SNN_k10",
-    cluster_dir = file.path(dir_rdata, "04-preprocess_and_harmony/clusters_graphbased"),
+    cluster_dir = file.path(dir_rdata, "clusters_graphbased"),
 )
 
-message("Running cut_at() from k = 4 to 28")
-clust_k5_list <- lapply(4:28, function(n) {
+message("Running cut_at() from k = 2 to 28")
+clust_k5_list <- lapply(2:28, function(n) {
     message(paste(Sys.time(), "n =", n))
     sort_clusters(igraph::cut_at(g_walk_k10, n = n))
 })
-names(clust_k5_list) <- paste0("SNN_k10_k", 4:28)
+names(clust_k5_list) <- paste0("SNN_k10_k", 2:28)
 
 ## Add clusters to spe colData
 for (i in seq_along(names(clust_k5_list))) {
@@ -249,11 +249,11 @@ spe$row <- spe$array_row + auto_offset_row[spe$sample_id]
 spe$col <- spe$array_col
 
 ## Save new SPE object
-saveRDS(spe, file.path(dir_rdata, "04-preprocess_and_harmony/spe_harmony.rds"))
+saveRDS(spe, file.path(dir_rdata, "spe_harmony.rds"))
 
 ## Object size in GB
 ## (do this near the end in case lobstr crashes, it's happened to me once)
-#lobstr::obj_size(spe)
+lobstr::obj_size(spe)
 
 ## Reproducibility information
 print("Reproducibility information:")

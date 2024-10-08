@@ -2,7 +2,7 @@
 #SBATCH -p shared
 #SBATCH -c 4
 #SBATCH --mem=250G
-#SBATCH --time=48:0:0
+#SBATCH --time=60:0:0
 #SBATCH --job-name=harmony
 #SBATCH --mail-user=pravich2@jh.edu
 #SBATCH --mail-type=ALL
