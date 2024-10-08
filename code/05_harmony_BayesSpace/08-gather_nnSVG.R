@@ -9,7 +9,7 @@ library(nnSVG)
 library(cowplot)
 
 spe_dir <- here(
-    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5"
+    "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_dimRed_hdf5"
 )
 out_dir <- here("processed-data", "05_harmony_BayesSpace", "07-run_nnSVG")
 plot_dir <- here("plots", "05_harmony_BayesSpace", "07-run_nnSVG")
@@ -250,7 +250,7 @@ for (this_method in unique(top_genes$method_name)) {
             title = paste(
                 best_sample_id, these_genes$gene_name[i], sep = "_"
             ),
-            var_name = these_genes$gene_id[i],
+            var_name = these_genes$gene_name[i],
             is_discrete = FALSE,
             minCount = 0, spatial = TRUE
         )
@@ -279,7 +279,7 @@ for (this_method in unique(top_genes$method_name)) {
                 title = paste(
                     this_sample_id, these_genes$gene_name[i], sep = "_"
                 ),
-                var_name = these_genes$gene_id[i],
+                var_name = these_genes$gene_name[i],
                 is_discrete = FALSE,
                 minCount = 0, spatial = TRUE
             )
