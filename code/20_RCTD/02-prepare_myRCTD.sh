@@ -4,13 +4,13 @@
 #SBATCH -c 1
 #SBATCH --mem=60G
 #SBATCH --job-name=02-prepare_myRCTD
-#SBATCH -o ../../processed-data/20_RCTD/logs/02-prepare_myRCTD_%a.log
-#SBATCH -e ../../processed-data/20_RCTD/logs/02-prepare_myRCTD_%a.log
+#SBATCH -o ../../processed-data/20_RCTD/logs/02-prepare_myRCTD_markers_%a.log
+#SBATCH -e ../../processed-data/20_RCTD/logs/02-prepare_myRCTD_markers_%a.log
 #SBATCH --array=1-10%10
 
 #   'TRUE' or 'FALSE': if TRUE, find SVGs within k=2 PRECAST clusters. If FALSE,
 #   run nnSVG without covariates
-marker_genes=FALSE
+marker_genes=TRUE
 
 set -e
 

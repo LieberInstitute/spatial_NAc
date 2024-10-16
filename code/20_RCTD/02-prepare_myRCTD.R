@@ -44,15 +44,25 @@ puck <- SpatialRNA(coords, counts, nUMI)
 # Plot diagnostics and save
 barcodes <- colnames(puck@counts)
 dir.create(plots_out, showWarnings = FALSE)
-dir.create(here(plots_out, sample_id))
+dir.create(here(plots_out, sample_id), showWarnings = FALSE)
 
-pdf(here(plots_out, sample_id, "UMIcount.pdf"), width = 6, height = 6)
+if(opt$marker_genes){
+pdf(here(plots_out, sample_id, "UMIcount_markers.pdf"), width = 6, height = 6)
 plot_puck_continuous(puck, barcodes, puck@nUMI, ylimit = c(0,round(quantile(puck@nUMI,0.9))), title ='plot of nUMI')
 dev.off()
 
-pdf(here(plots_out, sample_id, "Distribution_log_UMI.pdf"), width = 6, height = 6)
+pdf(here(plots_out, sample_id, "Distribution_log_UMI_markers.pdf"), width = 6, height = 6)
 hist(log(puck@nUMI,2), xlab = "log2(nUMI)", main = "Distribution of log2(nUMI)")
 dev.off()
+}else{
+pdf(here(plots_out, sample_id, "UMIcount_all_genes.pdf"), width = 6, height = 6)
+plot_puck_continuous(puck, barcodes, puck@nUMI, ylimit = c(0,round(quantile(puck@nUMI,0.9))), title ='plot of nUMI')
+dev.off()
+
+pdf(here(plots_out, sample_id, "Distribution_log_UMI_all_genes.pdf"), width = 6, height = 6)
+hist(log(puck@nUMI,2), xlab = "log2(nUMI)", main = "Distribution of log2(nUMI)")
+dev.off()
+}
 
 if(opt$marker_genes){
     reference = readRDS(here(processed_out,'SCRef_markers.rds'))
