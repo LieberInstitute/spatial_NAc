@@ -1,18 +1,11 @@
 #!/bin/bash
-
-#$ -cwd
-#$ -l mem_free=32G,h_vmem=32G,h_fsize=100G
-#$ -N BayesSpace_k_search
-#$ -o ../../processed-data/05_harmony_BayesSpace/logs/03-BayesSpace_k_search.log
-#$ -e ../../processed-data/05_harmony_BayesSpace/logs/03-BayesSpace_k_search.log
-#$ -t 2-28
-#$ -tc 15
-
-#SBATCH -q shared
-#SBATCH --mem=32G
+#SBATCH -p shared
+#SBATCH -c 4
+#SBATCH --mem=80G
+#SBATCH --time=12:0:0
 #SBATCH --job-name=BayesSpace_k_search
-#SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/03-BayesSpace_k_search.log
-#SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/03-BayesSpace_k_search.log
+#SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/05-BayesSpace_k_search_%a.log
+#SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/05-BayesSpace_k_search_%a.log
 #SBATCH --array=2-3%15
 
 if [[ ! -z $SLURMD_NODENAME ]]; then
@@ -34,10 +27,10 @@ echo "Job name: ${job_name}"
 echo "Node name: ${node_name}"
 
 ## List current modules for reproducibility
-module load conda_R/4.3
+module load r_nac
 module list
 
-Rscript 03-BayesSpace_k_search.R
+Rscript 05-BayesSpace_k_search.R
 
 echo "**** Job ends ****"
 date
