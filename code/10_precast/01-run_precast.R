@@ -184,20 +184,20 @@ if(random_start_test){
 
     cols_cluster <- get_palette(palette = "default", k)
 
-    pre_obj <- RunTSNE(pre_obj, reduction = "PRECAST", tSNE.method = "FIt-SNE")
+    seuInt <- RunTSNE(seuInt, reduction = "PRECAST", tSNE.method = "FIt-SNE")
 
-    p1 <- dimPlot(pre_obj, item = "cluster", point_size = 0.5, font_family = "serif", cols = cols_cluster,
+    p1 <- dimPlot(seuInt, item = "cluster", point_size = 0.5, font_family = "serif", cols = cols_cluster,
     border_col = "gray10", nrow.legend = 14, legend_pos = "right")
 
     cols_batch <- chooseColors(palettes_name = "Classic 20", n_colors = 10, plot_colors = TRUE)
-    p2 <- dimPlot(pre_obj, item = "batch", point_size = 0.5, font_family = "serif", cols = cols_batch,
+    p2 <- dimPlot(seuInt, item = "batch", point_size = 0.5, font_family = "serif", cols = cols_batch,
     border_col = "gray10", nrow.legend = 14, legend_pos = "right")
 
     pdf(file.path(plot_dir, "/precast_tSNE.pdf"), width = 12, height = 8)
     plot_grid(p1, p2, ncol = 2)
     dev.off()
 
-    dat_deg <- FindAllMarkers(pre_obj, logfc.threshold = 0.1, only.pos = TRUE)
+    dat_deg <- FindAllMarkers(seuInt, logfc.threshold = 0.1, only.pos = TRUE)
     write_csv(dat_deg, file.path(out_path, sprintf("PRECAST_k%s_marker_genes.csv", k)))
     n <- 10
     dat_deg %>%
@@ -205,7 +205,7 @@ if(random_start_test){
         top_n(n = n, wt = avg_log2FC) -> top_markers
 
     pdf(file.path(plot_dir, "/precast_cluster_markers.pdf"), width = 15, height = 7)
-    DotPlot(pre_obj, features = unique(top_markers$gene), col.min = 0, col.max = 1) + theme(axis.text.x = element_text(angle = 45,
+    DotPlot(seuInt, features = unique(top_markers$gene), col.min = 0, col.max = 1) + theme(axis.text.x = element_text(angle = 45,
         hjust = 1, size = 8))
     dev.off()
 
@@ -237,7 +237,7 @@ if(random_start_test){
     plotReducedDim(spe, dimred = "PCA_p2", ncomponents = 2, colour_by = "precast_cluster")
     dev.off()
 
-    saveRDS(pre_obj, file.path(out_path, sprintf("/PRECAST_k%s_integrated.rds", k)))
+    saveRDS(seuInt, file.path(out_path, sprintf("/PRECAST_k%s_integrated.rds", k)))
 }else{
     s <- 1
     pre_obj <- AddParSetting(
