@@ -19,12 +19,24 @@ library(spatialLIBD)
 library(spatialNAcUtils)
 library(Polychrome)
 data(palette36)
+library(getopt)
 
-opt <- list()
-opt$capture_area_path <- '01_precast/pseudobulk_capture_area/final_clusters'
-opt$donor_path <- '01_precast/pseudobulk_donor/final_clusters'
-opt$cluster_col <- 'precast_clusters'
-opt$spot_path <- NA
+# Read in settings
+spec <- matrix(
+    c("capture_area_path", "c", 1, "character", "Specify the location of capture area results", 
+      "donor_path", "d", 1, "character", "Specify the location of donor results", 
+       "cluster_col", "p", 1, "character", "Specify cluster column", 
+       "spot_path", "s", 1, "character", "Specify location of spot results"),
+    byrow = TRUE, ncol = 5
+)
+opt <- getopt(spec)
+#opt <- list()
+#opt$capture_area_path <- '01_precast/pseudobulk_capture_area/random_start_1'
+#opt$donor_path <- '01_precast/pseudobulk_donor/random_start_1'
+#opt$cluster_col <- 'precast_k3'
+#opt$spot_path <- '01_precast/nnSVG_precast/random_start_1/PRECAST_k3_marker_genes.csv'
+
+# Plot the enhanced volcano plots
 if(!is.na(opt$spot_path)){
   spot_level_marker_fn <- here('processed-data', '07_spatial_domains', opt$spot_path)
 }
@@ -38,14 +50,26 @@ if(!is.na(opt$capture_area_path)){
 }
 
 plotDir <- here('plots', '10_post_clustering_analysis', '01_pseudobulk_markers', unlist(strsplit(opt$capture_area_path, split = "/"))[1],
- 'visualize_markers', unlist(strsplit(opt$capture_area_path, split = "/"))[3])
+ 'visualize_markers', unlist(strsplit(opt$capture_area_path, split = "/"))[3], opt$cluster_col)
 
+dir.create(plotDir, recursive = TRUE)
 
 # Read in the enrichment results and make plots
 # Spot level
 if(!is.na(opt$spot_path)){
   spot_level_markers <- read.csv(spot_level_marker_fn)
   pVolcano_spot <- list()
+  for(clust in unique(spot_level_markers$cluster)){
+    spot_enr <- spot_level_markers[spot_level_markers$cluster == clust, ]
+    pVolcano_spot[[clust]] <- EnhancedVolcano(spot_enr, lab = spot_enr$gene, x = 'avg_log2FC', y = 'p_val_adj', title = paste0("Cluster_", clust),
+    pointSize = 1.0,labSize = 3.0, colAlpha = 0.5, pCutoff = 1e-3, FCcutoff = 1, legendLabels=c('Not sig.','Log FC','p-value',
+      'p-value & Log FC'), drawConnectors = TRUE, min.segment.length = 0.5) 
+  }
+  pdf(file.path(plotDir, "enhanced_volcano_spot.pdf"), width = 10, height = 10)
+  for(k in 1:length(pVolcano_spot)){
+    print(pVolcano_spot[[k]])
+    }
+  dev.off() 
 }
 
 # Donor level
@@ -86,16 +110,16 @@ if(!is.na(opt$capture_area_path)){
   dev.off() 
 }
 
-# Subset to enrichment results for donor and capture area
-donor_enr <- pseudobulk_donor_markers[pseudobulk_donor_markers$model_type == "enrichment", ]
-
-pHits <- list()
-pOverlap <- list()
-
-min_nHits <- min(dim(spot_enr)[1], dim(donor_enr)[1], dim(capture_area_enr)[1])
-if(min_nHits > 0){
-
-}
+# Compare across the different methods used in calling DE genes if all three methods are present
+if(!is.na(opt$capture_area_path) & !is.na(opt$donor_path) & !is.na(opt$spot_path)){
+  pHits <- list()
+  pOverlap <- list()
+  for(clust in unique(spot_level_markers$cluster)){
+    spot_enr <- spot_level_markers[spot_level_markers$cluster == clust, ]
+    donor_enr <- pseudobulk_donor_markers[pseudobulk_donor_markers$model_type == "enrichment", ]
+    donor_enr <- donor_enr[donor_enr$test == paste0("X", clust), ]
+    capture_area_enr <- pseudobulk_capture_area_markers[pseudobulk_capture_area_markers$model_type == "enrichment", ]
+    capture_area_enr <- capture_area_enr[capture_area_enr$test == paste0("X", clust), ]
 
     spot_enr <- spot_enr[spot_enr$p_val_adj < 1e-3, ]
     capture_area_enr <- capture_area_enr[capture_area_enr$fdr < 1e-3, ]
@@ -105,11 +129,15 @@ if(min_nHits > 0){
     donor_enr <- donor_enr[order(-donor_enr$logFC), ]
     capture_area_enr <- capture_area_enr[order(-capture_area_enr$logFC), ]
 
+    min_nHits <- min(dim(spot_enr)[1], dim(donor_enr)[1], dim(capture_area_enr)[1])
+    if(min_nHits == 0){
+      next
+    }
     nHits <- data.frame("Method" = c("Spot-level", "Capture-area level", "Donor-level"), 
                         "nHits_FDR_0.001" = c(dim(spot_enr)[1], dim(capture_area_enr)[1], dim(donor_enr)[1]))
     nHits$Method <- factor(nHits$Method, levels = c("Spot-level", "Capture-area level", "Donor-level"))
   
-    pHits[[k]] <- ggplot(nHits, aes(x = Method, y = nHits_FDR_0.001, fill = Method)) + geom_bar(stat="identity") + ggtitle(paste0("Cluster_", k))
+    pHits[[clust]] <- ggplot(nHits, aes(x = Method, y = nHits_FDR_0.001, fill = Method)) + geom_bar(stat="identity") + ggtitle(paste0("Cluster_", clust))
 
     T <- min(dim(spot_enr)[1], dim(donor_enr)[1], dim(capture_area_enr)[1])
     ind <- 1
@@ -144,35 +172,17 @@ if(min_nHits > 0){
     colnames(summary_res) <- c("Cutoffs", "Comparison", "Fraction_overlap")
     summary_res$Comparison <- factor(summary_res$Comparison, levels = c("Donor_and_capture_area", "Spot_and_donor", "Spot_and_capture_area", "All_methods"))
 
-    pOverlap[[k]] <- ggplot(summary_res, aes(x = Cutoffs, y = Fraction_overlap, color = Comparison, fill = Comparison)) + geom_bar(stat = "identity", position = "dodge") + ggtitle(paste0("Cluster_", k))
-}
+    pOverlap[[clust]] <- ggplot(summary_res, aes(x = Cutoffs, y = Fraction_overlap, color = Comparison, fill = Comparison)) + geom_bar(stat = "identity", position = "dodge") + ggtitle(paste0("Cluster_", clust))
+  }
+  pdf(file.path(plotDir, "overlap_across_methods.pdf"), width = 8, height = 4)
+  for(k in 1:length(pOverlap)){
+    print(pOverlap[[k]] + theme_classic())
+  }
+  dev.off()
 
-pdf(file.path(plotDir, "overlap_across_methods.pdf"), width = 8, height = 4)
-for(k in 1:length(pOverlap)){
-  print(pOverlap[[k]] + theme_classic())
+  pdf(file.path(plotDir, "nHits_across_methods.pdf"), width = 6, height = 4)
+  for(k in 1:length(pHits)){
+    print(pHits[[k]]+ theme_classic())
+  }
+  dev.off()
 }
-dev.off()
-
-pdf(file.path(plotDir, "nHits_across_methods.pdf"), width = 6, height = 4)
-for(k in 1:length(pHits)){
-  print(pHits[[k]]+ theme_classic())
-}
-dev.off()
-
-pdf(file.path(plotDir, "enhanced_volcano_spots.pdf"))
-for(k in 1:length(pVolcano_spot)){
-  print(pVolcano_spot[[k]])
-}
-dev.off()
-
-pdf(file.path(plotDir, "enhanced_volcano_captureArea.pdf"))
-for(k in 1:length(pVolcano_captureArea)){
-  print(pVolcano_captureArea[[k]])
-}
-dev.off()
-
-pdf(file.path(plotDir, "enhanced_volcano_donor.pdf"))
-for(k in 1:length(pVolcano_donor)){
-  print(pVolcano_donor[[k]])
-}
-dev.off()
