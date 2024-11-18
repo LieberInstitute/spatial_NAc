@@ -4,8 +4,8 @@
 #SBATCH --mem=30G
 #SBATCH -t 2-00:00
 #SBATCH --job-name=01-pseudobulk
-#SBATCH -o ../../../processed-data/10_post_clustering_analysis/01_pseudobulk_markers/01_precast/logs/01-pseudobulk_BayesSpace_k%a.log
-#SBATCH -e ../../../processed-data/10_post_clustering_analysis/01_pseudobulk_markers/01_precast/logs/01-pseudobulk_BayesSpace_k%a.log
+#SBATCH -o ../../../processed-data/10_post_clustering_analysis/01_pseudobulk_markers/02_BayesSpace/logs/01-pseudobulk_BayesSpace_k%a.log
+#SBATCH -e ../../../processed-data/10_post_clustering_analysis/01_pseudobulk_markers/02_BayesSpace/logs/01-pseudobulk_BayesSpace_k%a.log
 #SBATCH --array=2-28%15
 
 set -e

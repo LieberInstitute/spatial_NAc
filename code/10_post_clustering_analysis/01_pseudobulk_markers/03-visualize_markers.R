@@ -31,11 +31,29 @@ spec <- matrix(
 )
 opt <- getopt(spec)
 #opt <- list()
-#opt$capture_area_path <- '01_precast/pseudobulk_capture_area/random_start_1'
-#opt$donor_path <- '01_precast/pseudobulk_donor/random_start_1'
-#opt$cluster_col <- 'precast_k3'
+#opt$capture_area_path <- '02_BayesSpace/pseudobulk_capture_area'
+#opt$donor_path <- '01_precast/pseudobulk_donor/final_clusters'
+#opt$cluster_col <- 'BayesSpace_harmony_k3'
 #opt$spot_path <- '01_precast/nnSVG_precast/random_start_1/PRECAST_k3_marker_genes.csv'
 
+if(opt$capture_area_path == "NA"){
+  opt$capture_area_path <- NA
+}
+
+if(opt$donor_path == "NA"){
+  opt$donor_path <- NA
+}
+
+if(opt$spot_path == "NA"){
+  opt$spot_path <- NA
+}
+
+
+if(grepl("BayesSpace", opt$cluster_col)){
+    clust_col_n <- as.numeric(gsub("BayesSpace_harmony_k", "", opt$cluster_col))
+    clust_col_n_nice <- sprintf("%02d", clust_col_n)
+    opt$cluster_col <- paste0("BayesSpace_harmony_k", clust_col_n_nice)
+}
 # Plot the enhanced volcano plots
 if(!is.na(opt$spot_path)){
   spot_level_marker_fn <- here('processed-data', '07_spatial_domains', opt$spot_path)
@@ -49,8 +67,15 @@ if(!is.na(opt$capture_area_path)){
   opt$capture_area_path, paste0("model_results_",opt$cluster_col ,"_FDR5perc.csv"))
 }
 
-plotDir <- here('plots', '10_post_clustering_analysis', '01_pseudobulk_markers', unlist(strsplit(opt$capture_area_path, split = "/"))[1],
+if(grepl("precast", opt$capture_area_path)){
+  plotDir <- here('plots', '10_post_clustering_analysis', '01_pseudobulk_markers', unlist(strsplit(opt$capture_area_path, split = "/"))[1],
  'visualize_markers', unlist(strsplit(opt$capture_area_path, split = "/"))[3], opt$cluster_col)
+}
+
+if(grepl("BayesSpace", opt$capture_area_path)){
+  plotDir <- here('plots', '10_post_clustering_analysis', '01_pseudobulk_markers', unlist(strsplit(opt$capture_area_path, split = "/"))[1],
+  'visualize_markers' , opt$cluster_col)
+}
 
 dir.create(plotDir, recursive = TRUE)
 

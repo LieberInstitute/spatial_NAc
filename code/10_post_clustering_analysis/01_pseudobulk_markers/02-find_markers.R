@@ -26,11 +26,18 @@ print(opt$cluster_col)
 print(opt$pseudo_path)
 print(opt$agg_level)
 #opt <- list()
-#opt$cluster_col <- 'precast_clusters'
-#opt$pseudo_path <- '01_precast/pseudobulk_donor/final_clusters'
-#opt$agg_level <- "sample_id"
+#opt$cluster_col <- 'BayesSpace_harmony_k12'
+#opt$pseudo_path <- '02_BayesSpace/pseudobulk_capture_area'
+#opt$agg_level <- "sample_id_original"
 ensembl_col = 'gene_id'
 symbol_col = 'gene_name'
+
+if(grepl("BayesSpace", opt$cluster_col)){
+    clust_col_n <- as.numeric(gsub("BayesSpace_harmony_k", "", opt$cluster_col))
+    clust_col_n_nice <- sprintf("%02d", clust_col_n)
+    opt$cluster_col <- paste0("BayesSpace_harmony_k", clust_col_n_nice)
+}
+
 
 spe_pseudo_path = here(
     'processed-data', '10_post_clustering_analysis', '01_pseudobulk_markers', 
@@ -55,14 +62,27 @@ if(opt$agg_level == "sample_id_original"){
 spe_pseudo$slide_num <- as.character(spe_pseudo$slide_num)
 spe_pseudo$slide_num <- make.names(spe_pseudo$slide_num)
 spe_pseudo$slide_num <- factor(spe_pseudo$slide_num)
+
+
+if(grepl("BayesSpace", opt$pseudo_path)){
+    nClusters <- as.numeric(gsub("BayesSpace_harmony_k", "", opt$cluster_col))
+    opt$cluster_col <- "clusters"
+}
+
 spe_pseudo[[opt$cluster_col]] <- as.character(spe_pseudo[[opt$cluster_col]])
-if(grepl("final_clusters", opt$pseudo_path)){
+if(!grepl("BayesSpace", opt$pseudo_path)){
+    if(grepl("final_clusters", opt$pseudo_path)){
     spe_pseudo[[opt$cluster_col]] <- make.names(spe_pseudo[[opt$cluster_col]])
     spe_pseudo[[opt$cluster_col]] <- factor(spe_pseudo[[opt$cluster_col]])
 }else{
     spe_pseudo[[opt$cluster_col]] <- make.names(spe_pseudo[[opt$cluster_col]])
     spe_pseudo[[opt$cluster_col]] <- factor(spe_pseudo[[opt$cluster_col]], levels = paste0("X", c(1:as.numeric(gsub("precast_k", "", opt$cluster_col)))))
 }
+}else{
+    spe_pseudo[[opt$cluster_col]] <- make.names(spe_pseudo[[opt$cluster_col]])
+    spe_pseudo[[opt$cluster_col]] <- factor(spe_pseudo[[opt$cluster_col]], levels = paste0("X", c(1:nClusters)))
+}
+
 
 pdf(file = file.path(plot_dir, "histogram_boxplot_domain.pdf"), width = 10, height = 6)
 hist(spe_pseudo$ncells, breaks = 200, xlab ="Number of spots in each pseudobulk sample", ylab = "Frequency", main = "Distribution of # spots in each pseudobulk sample")
@@ -113,6 +133,7 @@ spe_pseudo <- scuttle::addPerCellQC(
 #    spe_pseudo$det_out<-as.logical(isOutlier(spe_pseudo$detected,type='lower',nmads=3, batch = colData(spe_pseudo)[[opt$cluster_col]]))
 #}
 spe_pseudo$det_out <- spe_pseudo$detected < 2000
+#spe_pseudo$det_out<-as.logical(isOutlier(spe_pseudo$detected,type='lower',nmads=3, batch = colData(spe_pseudo)[[opt$cluster_col]]))
 spe_pseudo<-spe_pseudo[,!spe_pseudo$det_out]
 dim(spe_pseudo)
 rm(x)
@@ -170,14 +191,14 @@ dev.off()
 # Plot the relationship between the PCs and known meta-data variables
 if(opt$agg_level == "sample_id_original"){
     pdf(file = file.path(plot_dir, "explanatory_variables_PCA.pdf"), width = 8, height = 6)
-plotExplanatoryPCs(spe_pseudo, variables = c("Age", "sample_id", "sample_id_original", opt$cluster_col, "sum", 
-"detected", "slide_num", "subsets_Mito_percent"), npcs_to_plot = 10)
+plotExplanatoryPCs(spe_pseudo, variables = c("Age", opt$cluster_col, "sum", 
+"detected", "slide_num", "subsets_Mito_percent", "sample_id"), npcs_to_plot = 10)
 dev.off()
 }
 
 if(opt$agg_level == "sample_id"){
     pdf(file = file.path(plot_dir, "explanatory_variables_PCA.pdf"), width = 8, height = 6)
-plotExplanatoryPCs(spe_pseudo, variables = c("Age","Sex", opt$cluster_col, "sample_id", "sum", "detected", "slide_num", "subsets_Mito_percent"), npcs_to_plot = 10)
+plotExplanatoryPCs(spe_pseudo, variables = c("Age","Sex", opt$cluster_col, "sum", "detected", "slide_num", "subsets_Mito_percent"), npcs_to_plot = 10)
 dev.off()
 }
 
