@@ -14,6 +14,8 @@ library(getopt)
 library(viridis)
 library(ggpubr)
 library(tidyverse)
+codeDir <- here("code")
+source(file.path(codeDir, "plot_utils.R"))
 
 # Read the myRCTD object
 spec <- matrix(
@@ -45,12 +47,14 @@ weights_df <- data.frame(do.call(rbind, weights))
 norm_weights <- normalize_weights(weights_df)
 coords = myRCTD@spatialRNA@coords
 
+spe <- spe[ ,colnames(spe) %in% rownames(coords)]
+spe <- spe[ ,match(rownames(coords), colnames(spe))]
+colData(spe) <- cbind(colData(spe), weights_df)
+
 celltypes = levels(myRCTD@reference@cell_types)
 plot_list <- lapply(celltypes, function(i) {
   print(i)  
-  ggplot(coords, aes(x = coords$x, y=coords$y, color = weights_df[,i])) + labs(title = i, x="", y="") + 
-    geom_point(size = 0.5)+scale_color_gradientn(colours = viridis(10, option = "magma"), limits = c(0,1)) +
-    scale_y_reverse()+ theme_pubr() + theme(legend.key.width = unit(1, "cm"))+labs(color = "") 
+  vis_gene(spe, sampleid = "Br6522", geneid = i, is_stitched = TRUE, cont_colors = viridisLite::inferno(21))
 })
 
 if(opt$marker_genes){
@@ -59,8 +63,31 @@ if(opt$marker_genes){
     plot_dir <- here("plots", "08_spot_deconvo", "01_RCTD", sample_id, "all_genes")
 }
 
+plot_list[[1]] <- plot_list[[1]] + ggtitle("Oligodendrocytes") + theme(plot.title = element_text(face = "bold"))
+plot_list[[2]] <- plot_list[[2]] + ggtitle("DRD1 MSN A") + theme(plot.title = element_text(face = "bold"))
+plot_list[[3]] <- plot_list[[3]] + ggtitle("Microglia") + theme(plot.title = element_text(face = "bold"))
+plot_list[[4]] <- plot_list[[4]] + ggtitle("OPC") + theme(plot.title = element_text(face = "bold"))
+plot_list[[5]] <- plot_list[[5]] + ggtitle("DRD2 MSN A") + theme(plot.title = element_text(face = "bold"))
+plot_list[[6]] <- plot_list[[6]] + ggtitle("Ependymal") + theme(plot.title = element_text(face = "bold"))
+plot_list[[7]] <- plot_list[[7]] + ggtitle("Astrocyte A") + theme(plot.title = element_text(face = "bold"))
+plot_list[[8]] <- plot_list[[8]] + ggtitle("DRD1 MSN B") + theme(plot.title = element_text(face = "bold"))
+plot_list[[9]] <- plot_list[[9]] + ggtitle("Endothelial") + theme(plot.title = element_text(face = "bold"))
+plot_list[[10]] <- plot_list[[10]] + ggtitle("Inhibitory A") + theme(plot.title = element_text(face = "bold"))
+plot_list[[11]] <- plot_list[[11]] + ggtitle("DRD2 MSN B") + theme(plot.title = element_text(face = "bold"))
+plot_list[[12]] <- plot_list[[12]] + ggtitle("Astrocyte B") + theme(plot.title = element_text(face = "bold"))
+plot_list[[13]] <- plot_list[[13]] + ggtitle("DRD1 MSN C") + theme(plot.title = element_text(face = "bold"))
+plot_list[[14]] <- plot_list[[14]] + ggtitle("DRD1 MSN D") + theme(plot.title = element_text(face = "bold"))
+plot_list[[15]] <- plot_list[[15]] + ggtitle("Neuron Ambiguous") + theme(plot.title = element_text(face = "bold"))
+plot_list[[16]] <- plot_list[[16]] + ggtitle("Inhibitory B") + theme(plot.title = element_text(face = "bold"))
+plot_list[[17]] <- plot_list[[17]] + ggtitle("Inhibitory C") + theme(plot.title = element_text(face = "bold"))
+plot_list[[18]] <- plot_list[[18]] + ggtitle("Inhibitory D") + theme(plot.title = element_text(face = "bold"))
+plot_list[[19]] <- plot_list[[19]] + ggtitle("Inhibitory E") + theme(plot.title = element_text(face = "bold"))
+plot_list[[20]] <- plot_list[[20]] + ggtitle("Excitatory") + theme(plot.title = element_text(face = "bold"))
+plot_list[[21]] <- plot_list[[21]] + ggtitle("Inhibitory F") + theme(plot.title = element_text(face = "bold"))
+
+
 dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
-pdf(file.path(plot_dir,"multi_allWeight.pdf"), width = 6, height = 6)
+pdf(file.path(plot_dir,"multi_allWeight.pdf"), width = 7, height = 7)
 for(i in c(1:length(plot_list))){
     print(plot_list[[i]])
 }
