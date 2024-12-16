@@ -7,8 +7,9 @@ library(sessioninfo)
 library(ggplot2)
 
 opt <- list()
-opt$clustering_type <- "01_precast/pseudobulk_capture_area/random_start_3"
-opt$cluster_col <- paste0("precast_k", c(3:12))
+opt$clustering_type <- "01_precast/pseudobulk_capture_area/final_clusters"
+#opt$cluster_col <- paste0("BayesSpace_harmony_k", sprintf("%02d", c(3:28)))
+opt$cluster_col <- "precast_clusters"
 dat_dir <- here("processed-data", "10_post_clustering_analysis", "02_spatial_registration_sn")
 plot_dir <- here("plots", "10_post_clustering_analysis", "02_spatial_registration_sn", opt$clustering_type )
 spatial_enr_dir <- here("processed-data", "10_post_clustering_analysis","01_pseudobulk_markers",opt$clustering_type)
@@ -45,12 +46,19 @@ if(grepl("precast", opt$clustering_type)){
     }
 }
 
+if(grepl("BayesSpace", opt$clustering_type)){
+        cor_top100 <- lapply(cor_top100, function(icor){
+            icor <- icor[ ,paste0("X", sort(as.numeric(gsub("X", "", colnames(icor)))))]
+            icor
+        })
+}
+
 
 # Choose colors for visualization
 theSeq <- seq(-1, 1, by = 0.01)
 my.col <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(7, "PRGn"))(length(theSeq))
 
-pdf(file.path(plot_dir, "cor_top100_sn_spatial_registration_final_clusters.pdf"), width = 12, height = 10)
+pdf(file.path(plot_dir, "cor_top100_sn_spatial_registration_final_clusters.pdf"), width = 13, height = 10)
 map(cor_top100, ~layer_matrix_plot(t(.x), mypal = my.col, srt = 90, mar = c(10 + max(nchar(rownames(.x)))*0.5, 5 + max(nchar(colnames(.x)))*0.5, 5, 5)), max = 1)
 dev.off()
 

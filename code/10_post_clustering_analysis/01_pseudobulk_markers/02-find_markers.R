@@ -12,7 +12,12 @@ library(PCAtools)
 library(gridExtra)
 library(ggforce)
 library(pheatmap)
+library(ggthemes)
 library(pals)
+library(here)
+
+codeDir <- here("code")
+source(file.path(codeDir, "plot_utils.R"))
 
 spec <- matrix(
     c("cluster_col", "c", 1, "character", "Specify the name of the cluster column", 
@@ -25,10 +30,10 @@ opt <- getopt(spec)
 print(opt$cluster_col)
 print(opt$pseudo_path)
 print(opt$agg_level)
-#opt <- list()
-#opt$cluster_col <- 'BayesSpace_harmony_k12'
-#opt$pseudo_path <- '02_BayesSpace/pseudobulk_capture_area'
-#opt$agg_level <- "sample_id_original"
+opt <- list()
+opt$cluster_col <- 'precast_clusters'
+opt$pseudo_path <- '01_precast/pseudobulk_capture_area/final_clusters_2'
+opt$agg_level <- "sample_id_original"
 ensembl_col = 'gene_id'
 symbol_col = 'gene_name'
 
@@ -90,6 +95,7 @@ par(mar = c(10, 5, 2, 2))
 boxplot(ncells ~ colData(spe_pseudo)[[opt$cluster_col]], data = colData(spe_pseudo), xlab = "", ylab = "Number of spots", las =2)
 dev.off()
 
+
 # Remove pseudobulked samples with too few spots
 spe_pseudo <- spe_pseudo[, spe_pseudo$ncells >= 50]
 dim(spe_pseudo)
@@ -133,7 +139,12 @@ spe_pseudo <- scuttle::addPerCellQC(
 #    spe_pseudo$det_out<-as.logical(isOutlier(spe_pseudo$detected,type='lower',nmads=3, batch = colData(spe_pseudo)[[opt$cluster_col]]))
 #}
 spe_pseudo$det_out <- spe_pseudo$detected < 2000
-#spe_pseudo$det_out<-as.logical(isOutlier(spe_pseudo$detected,type='lower',nmads=3, batch = colData(spe_pseudo)[[opt$cluster_col]]))
+#spe_pseudo$det_out<-as.logical(isOutlier(spe_pseudo$detected,type='lower',nmads=3))
+
+pdf(file = file.path(plot_dir, "detected_genes_domain.pdf"), width = 10, height = 6)
+par(mar = c(10, 5, 2, 2))
+boxplot(detected ~ colData(spe_pseudo)[[opt$cluster_col]], data = colData(spe_pseudo), xlab = "", ylab = "Number of detected genes", las =2)
+dev.off()
 spe_pseudo<-spe_pseudo[,!spe_pseudo$det_out]
 dim(spe_pseudo)
 rm(x)
@@ -206,15 +217,16 @@ dev.off()
 # Extract the PCA data from spe_pseudo into a dataframe
 PCAData <- as.data.frame(reducedDim(spe_pseudo, "PCA"))
 PCAData$domain <- colData(spe_pseudo)[[opt$cluster_col]]
+PCAData$domain <- gsub("\\.", " ", PCAData$domain)
 
 pca_plot <- ggplot(PCAData, aes(PC01, PC02)) +
     geom_point(aes(color = domain),size=2) + # Assuming you have a "domain" column in your PCAData
-    labs(x = "PC1", y = "PC2") +
-    scale_color_manual(values=unname(glasbey())[1:length(unique(spe_pseudo[[opt$cluster_col]]))], breaks = levels(PCAData$domain)) 
-    theme_bw()+theme(panel.grid.major = element_blank(),  # Remove major grid lines
-                     panel.grid.minor = element_blank())  # Remove minor grid lines
+    labs(x = "PC1", y = "PC2") + 
+    scale_color_colorblind() +
+    theme_Publication() + guides(color=guide_legend(title = "Spatial domain")) + 
+    xlim(c(-50, 100)) + ylim(c(-100, 100))
 
-pdf(file= file.path(plot_dir,'pca_plot_final_check.pdf'),h=6,w=8)
+pdf(file= file.path(plot_dir,'pca_plot_final_check.pdf'),h=5,w=7)
 pca_plot + geom_mark_ellipse(aes(color = domain),
                              expand = unit(0.5,"mm"),
                              show.legend = FALSE,

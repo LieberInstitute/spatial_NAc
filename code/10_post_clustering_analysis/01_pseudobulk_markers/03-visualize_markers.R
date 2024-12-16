@@ -31,9 +31,9 @@ spec <- matrix(
 )
 opt <- getopt(spec)
 #opt <- list()
-#opt$capture_area_path <- '02_BayesSpace/pseudobulk_capture_area'
+#opt$capture_area_path <- '01_precast/pseudobulk_capture_area/final_clusters_2'
 #opt$donor_path <- '01_precast/pseudobulk_donor/final_clusters'
-#opt$cluster_col <- 'BayesSpace_harmony_k3'
+#opt$cluster_col <- 'precast_clusters'
 #opt$spot_path <- '01_precast/nnSVG_precast/random_start_1/PRECAST_k3_marker_genes.csv'
 
 if(opt$capture_area_path == "NA"){

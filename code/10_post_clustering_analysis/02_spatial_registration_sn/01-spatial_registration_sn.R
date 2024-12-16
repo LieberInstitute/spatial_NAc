@@ -15,6 +15,12 @@ plot_dir <- here("plots", "10_post_clustering_analysis", "02_spatial_registratio
 
 #### Load sn data & visualize the number of cells which belong to each type ####
 sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
+spe_pseudo <- readRDS(file = file.path("/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/10_post_clustering_analysis/01_pseudobulk_markers/01_precast/pseudobulk_capture_area/final_clusters/spe_pseudo_precast_clusters.rds"))
+
+geneData <- rowData(spe_pseudo)
+geneData <- geneData[match(rowData(sce)$gene_id, geneData$gene_id), ]
+rowData(sce)$gene_search <- geneData$gene_search
+
 counts <- counts(sce)
 cellType_abundance <- data.frame(table(sce$CellType.Final))
 colnames(cellType_abundance) <- c("Cell_type", "Ncells")
@@ -59,6 +65,7 @@ sn_registration <- registration_wrapper(
 )
 
 saveRDS(sn_registration, file = file.path(res_dir, "sn_cellType_registration.rds"))
+
 
 ## Reproducibility information
 print("Reproducibility information:")

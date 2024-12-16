@@ -23,10 +23,10 @@ spec <- matrix(
 )
 opt <- getopt(spec)
 #opt <- list()
-#opt$cluster_dir <- "05_harmony_BayesSpace/05-BayesSpace_k_search/BayesSpace_harmony_k2"
-#opt$cluster_file <- "clusters.csv"
-#opt$agg_level <- "sample_id_original"
-#opt$out_path <- "02_BayesSpace/pseudobulk_capture_area"
+#opt$cluster_dir <- "07_spatial_domains/01_precast/nnSVG_precast/final_clusters_2"
+#opt$cluster_file <- "precast_clusters.csv"
+#opt$agg_level <- "sample_id"
+#opt$out_path <- "01_precast/pseudobulk_donor/final_clusters_2"
 
 if(grepl("BayesSpace", opt$cluster_dir)){
     clust_dir <- unlist(strsplit(opt$cluster_dir, split = "/"))[3]
