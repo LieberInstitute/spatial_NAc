@@ -12,6 +12,7 @@ library(ggsci)
 library(dittoSeq)
 library(getopt)
 library(pheatmap)
+library(ggthemes)
 
 opt <- list()
 opt$nnSVG_type <- TRUE
@@ -57,8 +58,22 @@ colData(spe) <- colData(spe) |>
     DataFrame()
 colnames(spe) <- temp
 
+spe <- spe[ ,!is.na(spe$precast_final_clusters)]
+
+# Flip some of the samples
+spe_Br2743 <- mirrorObject(spe, sample_id = "Br2743", image_id = "lowres", axis = "v")
+spe_Br8492 <- mirrorObject(spe, sample_id = "Br8492", image_id = "lowres", axis = "v")
+spe_Br8325 <- mirrorObject(spe, sample_id = "Br8325", image_id = "lowres", axis = "v")
+spe_Br3942 <- mirrorObject(spe, sample_id = "Br3942", image_id = "lowres", axis = "v")
+
+spe <- spe[ ,!spe$sample_id %in% c("Br2743", "Br8492", "Br8325", "Br3942")]
+spe <- cbind(spe, spe_Br2743)
+spe <- cbind(spe, spe_Br8492)
+spe <- cbind(spe, spe_Br8325)
+spe <- cbind(spe, spe_Br3942)
+sample_order <- c("Br2743", "Br6432", "Br6423", "Br2720", "Br6471", "Br6522","Br8492", "Br8325", "Br8667", "Br3942")
 plot_list <- list()
-for (donor in levels(spe$sample_id)) {
+for (donor in sample_order) {
     plot_list[[donor]] <- spot_plot(
             spe,
             sample_id = donor, var_name = "precast_final_clusters",
@@ -67,7 +82,8 @@ for (donor in levels(spe$sample_id)) {
             guides(fill = guide_legend(override.aes = list(size = 5)))
 }
 
-pdf(file.path(plot_dir, "clusters_before_merging.pdf"), width = 5, height = 5)
+
+pdf(file.path(plot_dir, "clusters_before_merging_final_clusters.pdf"), width = 6.5, height = 6.5)
 print(plot_list)
 dev.off()
 
@@ -84,18 +100,23 @@ spe$precast_clusters_annotated[spe$precast_clusters_annotated == 8] <- "Inhibito
 spe$precast_clusters_annotated[spe$precast_clusters_annotated == 9] <- "WM"
 spe$precast_clusters_annotated[spe$precast_clusters_annotated == 10] <- "Endothelial/Ependymal"
 
-spe$precast_clusters_annotated <- factor(spe$precast_clusters_annotated, levels = c("MSN 1", "MSN 2", "MSN 3", "D1 islands", "Excitatory", "Inhibitory", "Endothelial/Ependymal", "WM"))
+spe$precast_clusters_annotated <- factor(spe$precast_clusters_annotated, 
+levels = c("D1 islands", "Endothelial/Ependymal", "Excitatory", "Inhibitory", "MSN 1", "MSN 2", "MSN 3", "WM"))
 
+
+#safe_colorblind_palette <- c("#652DC1","#0D73B4","#4B5320" ,"#A3EE7D","#EBA31C",  "#3DB1CB", "#D55F0D", "#8F9392")
+safe_colorblind_palette <- palette()
 plot_list <- list()
-for (donor in levels(spe$sample_id)) {
+for (donor in sample_order) {
     plot_list[[donor]] <- spot_plot(
             spe,
             sample_id = donor, var_name = "precast_clusters_annotated",
-            is_discrete = TRUE, spatial = TRUE) + ggtitle(donor)+
+            is_discrete = TRUE, spatial = TRUE, colors = safe_colorblind_palette) + ggtitle(donor)+
             #   Increase size of colored dots in legend
-            guides(fill = guide_legend(override.aes = list(size = 5)))
+            guides(fill = guide_legend(override.aes = list(size = 5))) + 
+            theme(plot.title = element_text(face = "bold"), legend.position = "right") 
 }
-pdf(file.path(plot_dir, "clusters_after_merging.pdf"), width = 10, height = 10)
+pdf(file.path(plot_dir, "clusters_after_merging.pdf"), width = 8, height = 6)
 print(plot_list)
 dev.off()
 
@@ -108,3 +129,20 @@ if(opt$nnSVG_type){
 dir.create(saveDir, recursive = TRUE, showWarnings = FALSE)
 colnames(clusters_csv) <- c("key", "cluster")
 write.csv(clusters_csv, file.path(saveDir, "precast_clusters.csv"), row.names = FALSE, quote = FALSE)
+
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+legend <- get_legend(plot_list[[1]])
+p3 <- plot_list[["Br3942"]] + ggtitle("Br3942 (Posterior NAc)") 
+p2 <- plot_list[["Br6522"]] + ggtitle("Br6522 (Intermediate NAc)")
+p1 <- plot_list[["Br6432"]] + ggtitle("Br6432 (Anterior NAc)") 
+
+pdf(file.path(plot_dir, "clusters_for_final_figure.pdf"), width = 9, height = 6)
+print(p1)
+print(p2)
+print(p3)
+dev.off()
