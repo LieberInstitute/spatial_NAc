@@ -14,8 +14,8 @@ spec <- matrix(
 )
 opt <- list()
 opt$gene_selection_strategy <- "all_genes"
-opt$data <- "human_NAc"
-opt <- getopt(spec)
+opt$data <- "rat_case_control"
+#opt <- getopt(spec)
 print(opt$gene_selection_strategy)
 
 # Read data and create Seurat object
@@ -34,9 +34,12 @@ if(opt$data == "human_NAc"){
   }
 }
 
-sex <- rep("M", dim(sce)[2])
-sex[sce$Brain_ID %in% c("Br2720", "Br8325", "Br8492", "Br8667")] <- "F"
-colData(sce)$Sex <- sex
+if(opt$data == "human_NAc"){
+  sex <- rep("M", dim(sce)[2])
+  sex[sce$Brain_ID %in% c("Br2720", "Br8325", "Br8492", "Br8667")] <- "F"
+  colData(sce)$Sex <- sex
+}
+
 
 x <- readRDS(file = file.path(res_dir,paste0("nmf_results_", opt$gene_selection_strategy, ".rds")))
 
@@ -148,16 +151,16 @@ if(opt$data == "human_NAc"){
 }
 
 if(opt$data == "rat_case_control"){
-     sce$Stim <- factor(sce$Stim)
-     data <- as.data.frame(sce$Stim)
-     colnames(data)<-'Stim'
-     onehot_sample <-  dcast(data = data, rownames(data) ~ Stim, length)
-     rownames(onehot_sample)<-onehot_sample[,1]
-     onehot_sample[ ,1] <- NULL
-     onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
+    sce$Stim <- factor(sce$Stim)
+    data <- as.data.frame(sce$Stim)
+    colnames(data)<-'Stim'
+    onehot_sample <-  dcast(data = data, rownames(data) ~ Stim, length)
+    rownames(onehot_sample)<-onehot_sample[,1]
+    onehot_sample[ ,1] <- NULL
+    onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
     
-    pdf(file.path(plot_dir, "nmf_Stim_correlation_heatmap.pdf"))
-    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
+    pdf(file.path(plot_dir, paste0("nmf_Stim_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
     dev.off()
 
     sce$Sex <- factor(sce$Sex)
@@ -168,8 +171,8 @@ if(opt$data == "rat_case_control"){
     onehot_sample[ ,1] <- NULL
     onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
     
-    pdf(file.path(plot_dir, "nmf_Sex_correlation_heatmap.pdf"))
-    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
+    pdf(file.path(plot_dir, paste0("nmf_Sex_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
     dev.off()
 
     sce$GEM <- factor(sce$GEM)
@@ -180,8 +183,8 @@ if(opt$data == "rat_case_control"){
     onehot_sample[ ,1] <- NULL
     onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
     
-    pdf(file.path(plot_dir, "nmf_GEM_correlation_heatmap.pdf"))
-    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
+    pdf(file.path(plot_dir, paste0("nmf_GEM_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
     dev.off()
 
     sce$Dataset <- factor(sce$Dataset)
@@ -192,8 +195,8 @@ if(opt$data == "rat_case_control"){
     onehot_sample[ ,1] <- NULL
     onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
     
-    pdf(file.path(plot_dir, "nmf_Dataset_correlation_heatmap.pdf"))
-    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
+    pdf(file.path(plot_dir, paste0("nmf_Dataset_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
+    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
     dev.off()
 
     ###for continuous tech vars do this:
@@ -207,7 +210,20 @@ if(opt$data == "rat_case_control"){
     vars <- as.matrix(vars)
     vars <- vars[match(rownames(t(x@h)) ,rownames(vars)), ]
 
-    pdf(file.path(plot_dir,"nmf_qc_correlation_heatmap.pdf"))
-    pheatmap(cor(t(x@h),vars), fontsize_row = 5)
+    pdf(file.path(plot_dir,paste0("nmf_qc_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
+    pheatmap(cor(t(x@h),vars), fontsize_row = 9)
     dev.off()
+
+    sce$Stim_dataset <- paste0(as.character(sce$Stim), "_", as.character(sce$Dataset))
+    data <- as.data.frame(sce$Stim_dataset)
+    colnames(data)<-'Stim_dataset'
+    onehot_sample <-  dcast(data = data, rownames(data) ~ Stim_dataset, length)
+    rownames(onehot_sample)<-onehot_sample[,1]
+    onehot_sample[ ,1] <- NULL
+    onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
+    
+    pdf(file.path(plot_dir, paste0("nmf_Stim_Dataset_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
+    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
+    dev.off()
+
 }

@@ -13,12 +13,15 @@ spec <- matrix(
     byrow = TRUE, ncol = 5
 )
 opt <- getopt(spec)
+opt <- list()
+opt$gene_selection_strategy <- "all_genes"
+opt$data <- "rat_case_control"
 print(opt$gene_selection_strategy)
 
 # Read data and create Seurat object
 dat_dir <- here::here("processed-data", "12_snRNA")
-res_dir <- here::here("processed-data", "19_snRNAseq_NMF", "RcppML", opt$gene_selection_strategy, opt$data)
-plot_dir <- here::here("plots", "19_snRNAseq_NMF", "RcppML", opt$gene_selection_strategy, opt$data)
+res_dir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "RCppML", opt$data)
+plot_dir <- here::here("plots", "16_transfer_learning", "01_process_reference", "RCppML", opt$data)
 dir.create(res_dir, showWarnings = FALSE)
 dir.create(plot_dir, showWarnings = FALSE)
 
@@ -32,7 +35,7 @@ if(opt$data == "human_NAc"){
   }
 }
 
-x <- readRDS(file = file.path(res_dir,"nmf_results.rds"))
+x <- readRDS(file = file.path(res_dir,paste0("nmf_results_",opt$gene_selection_strategy, ".rds")))
 
 ####onehot encode cell type
 if(opt$data == "human_NAc"){
@@ -48,8 +51,8 @@ onehot_cellType_final[ ,1] <- NULL
 onehot_cellType_final <- onehot_cellType_final[match(rownames(t(x@h)) , rownames(onehot_cellType_final)), ]
 
 ###correlate with nmf patterns
-pdf(file.path(plot_dir, "nmf_cellType_correlation_heatmap.pdf"))
-pheatmap(cor(t(x@h),onehot_cellType_final), fontsize_row = 5)
+pdf(file.path(plot_dir, paste0("nmf_cellType_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
+pheatmap(cor(t(x@h),onehot_cellType_final), fontsize_row = 9)
 dev.off()
 
 # aggregate NMF patterns
@@ -80,12 +83,12 @@ if(opt$data == "rat_case_control"){
 }
 
 
-pdf(file.path(plot_dir, "nmf_cellType_correlation_aggregated_heatmap.pdf"))
+pdf(file.path(plot_dir, paste0("nmf_cellType_correlation_aggregated_heatmap_", opt$gene_selection_strategy,".pdf")))
 p1 <- pheatmap(agg_data,
                color=colorRampPalette(c("blue","white","red"))(100),
                cluster_cols=T,
                cluster_rows=T,
                scale="column",
-               fontsize_col = 5
+               fontsize_col = 9
 )
 dev.off()

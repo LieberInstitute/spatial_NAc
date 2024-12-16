@@ -71,3 +71,8 @@ rownames(corr_mat) <- rownames(expr)
 colnames(corr_mat) <- rownames(x@h)
 
 saveRDS(corr_mat, file.path(res_dir, "gene_corr.rds"))
+corr_mat <- reshape2::melt(corr_mat)
+corr_mat <- corr_mat[abs(corr_mat$value) > 0.2, ]
+colnames(corr_mat) <- c("gene", "factor", "correlation")
+
+write.csv(corr_mat, file.path(res_dir, paste0("gene_corr_thresholded_", opt$gene_selection_strategy, ".csv")), row.names= FALSE, quote = FALSE)

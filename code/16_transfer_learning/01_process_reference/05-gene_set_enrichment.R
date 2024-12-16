@@ -10,27 +10,39 @@ library(getopt)
 library(org.Hs.eg.db)
 library(clusterProfiler)
 
-source(here("code", "19_snRNAseq_NMF", "RcppML", "utilities.R"))
+
+source(here("code", "16_transfer_learning","01_process_reference", "utilities.R"))
 
 spec <- matrix(
-    c(
+    c(  "data", "d", 1, "character", "Specify the dataset to be used?",
         "gene_selection_strategy", "g", 1, "character", "Choose all genes, or highly deviant genes based on snRNA-seq, or nnSVGs"
     ),
     byrow = TRUE, ncol = 5
 )
 opt <- getopt(spec)
+
+opt <- list()
+opt$gene_selection_strategy <- "all_genes"
+opt$data <- "human_NAc"
 print(opt$gene_selection_strategy)
+print(opt$data)
 
 # Read data and create Seurat object
 dat_dir <- here::here("processed-data", "12_snRNA")
-res_dir <- here::here("processed-data", "19_snRNAseq_NMF", "RcppML", opt$gene_selection_strategy)
-plot_dir <- here::here("plots", "19_snRNAseq_NMF", "RcppML", opt$gene_selection_strategy)
-dir.create(res_dir, showWarnings = FALSE)
-dir.create(plot_dir, showWarnings = FALSE)
+res_dir <- here::here("processed-data", "16_transfer_learning","01_process_reference", "RCppML", opt$data)
+plot_dir <- here::here("plots", "16_transfer_learning","01_process_reference", "RCppML", opt$data)
 
-sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
+if(opt$data == "human_NAc"){
+  sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
+}else{
+  if(opt$data == "rat_case_control"){
+    sce <- readRDS(file = file.path(dat_dir, "NAc_Combo_Integrated.RDS"))
+  }else{
+        stop("Invalid input data set")
+  }
+}
 
-x <- readRDS(file = file.path(res_dir,"nmf_results.rds"))
+x <- readRDS(file = file.path(res_dir,paste0("nmf_results_",opt$gene_selection_strategy, ".rds")))
 
 ## Set up marker gene detection
 loads<-x@w
