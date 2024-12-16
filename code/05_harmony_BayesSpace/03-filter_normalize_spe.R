@@ -46,16 +46,26 @@ cat("Initial number of spots:", dim(spe)[2], "\n")
 
 unique_samples <- unique(spe$sample_id)
 pdf(width = 8, height = 8, paste0(plot_dir, "/local_outliers.pdf"))
-spot_plot(spe, "Br2720", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br2743", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br3942", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6423", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6432", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6471", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6522", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8325", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8492", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8667", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2720", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE) +
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br2720)")
+spot_plot(spe, "Br2743", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br2743)")
+spot_plot(spe, "Br3942", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br3942)")
+spot_plot(spe, "Br6423", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br6423)")
+spot_plot(spe, "Br6432", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br6432)")
+spot_plot(spe, "Br6471", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br6471)")
+spot_plot(spe, "Br6522", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br6522)")
+spot_plot(spe, "Br8325", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br8325)")
+spot_plot(spe, "Br8492", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br8492)")
+spot_plot(spe, "Br8667", var_name = "local_outliers", is_discrete = TRUE, spatial = TRUE)+
+            guides(fill = guide_legend(override.aes = list(size = 5))) + ggtitle("Local outliers (Br8667)")
 dev.off()
 
 # Visualize QC metrics prior to any further filtering
@@ -188,43 +198,43 @@ spe$low_gene <- spe$sum_gene < 250
 spe$low_gene_edge_spot <- spe$low_umi & spe$edge_distance < 6
 
 pdf(width = 8, height = 8, paste0(plot_dir, "/spots_low_ngenes.pdf"))
-spot_plot(spe, "Br2720", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br2743", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br3942", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6423", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6432", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6471", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6522", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8325", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8492", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8667", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2720", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br2720") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br2743", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br2743") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br3942", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br3942") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6423", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6423") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6432", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6432") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6471", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6471") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6522", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6552") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8325", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8325") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8492", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8492") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8667", var_name = "low_gene", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8667") + guides(fill = guide_legend(override.aes = list(size = 5)))
 dev.off()
 
 pdf(width = 8, height = 8, paste0(plot_dir, "/spots_low_umi.pdf"))
-spot_plot(spe, "Br2720", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br2743", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br3942", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6423", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6432", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6471", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6522", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8325", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8492", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8667", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2720", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br2720") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br2743", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br2743") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br3942", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br3942") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6423", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6423") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6432", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6432") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6471", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6471") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6522", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6522") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8325", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8325") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8492", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8492") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8667", var_name = "low_umi", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8667") + guides(fill = guide_legend(override.aes = list(size = 5)))
 dev.off()
 
 # Visualize edge spots that are low library size and would be exckuded
 pdf(width = 8, height = 8, paste0(plot_dir, "/edge_spots_low_lib_size.pdf"))
-spot_plot(spe, "Br2720", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br2743", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br3942", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6423", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6432", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6471", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br6522", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8325", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8492", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
-spot_plot(spe, "Br8667", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE)
+spot_plot(spe, "Br2720", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br2720") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br2743", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br2743") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br3942", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br3942") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6423", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6423") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6432", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6432") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6471", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6471") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br6522", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br6522") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8325", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8325") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8492", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8492") + guides(fill = guide_legend(override.aes = list(size = 5)))
+spot_plot(spe, "Br8667", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8667") + guides(fill = guide_legend(override.aes = list(size = 5)))
 dev.off()
 
 # Perform optional additional spot filtering
@@ -262,6 +272,7 @@ spe <- spe[rownames(spe) %in% select.genes, ]
 # Compute the relative expression of each gene per cell
 # Use sparse matrix operations, if your dataset is large, doing matrix devisions the regular way will take a very long time.
 C <- as(counts(spe, withDimnames = TRUE), "dgCMatrix")
+rownames(C) <- rowData(spe)$gene_name
 C@x <- C@x / rep.int(colSums(C), diff(C@p)) * 100
 most_expressed <- order(Matrix::rowSums(C), decreasing = T)[20:1]
 
@@ -270,10 +281,10 @@ par(mar = c(3, 8, 3, 3))
 boxplot(as.matrix(t(C[most_expressed, ])), cex = .1, las = 1, xlab = "% total count per cell", col = scales::hue_pal()(20)[20:1], horizontal = TRUE)
 dev.off()
 # Exclude mitochondrial genes from downstream analysis
-spe <- spe[!grepl("^MT-", rowData(spe)$gene_name), ]
+#spe <- spe[!grepl("^MT-", rowData(spe)$gene_name), ]
 # Filter Ribossomal gene (optional if that is a problem on your data)
-spe <- spe[!grepl("^RP[SL]", rowData(spe)$gene_name), ]
-spe <- spe[!rowData(spe)$gene_name == "MALAT1", ]
+#spe <- spe[!grepl("^RP[SL]", rowData(spe)$gene_name), ]
+#spe <- spe[!rowData(spe)$gene_name == "MALAT1", ]
 # Filter Hemoglobin gene  (optional if that is a problem on your data)
 #spe <- spe[!grepl("^HB[^(P|E|S)]", rownames(spe)), ]
 

@@ -2,11 +2,11 @@
 #SBATCH -p shared
 #SBATCH -c 4
 #SBATCH --mem=80G
-#SBATCH --time=12:0:0
+#SBATCH --time=24:0:0
 #SBATCH --job-name=BayesSpace_k_search
 #SBATCH -o ../../processed-data/05_harmony_BayesSpace/logs/05-BayesSpace_k_search_%a.log
 #SBATCH -e ../../processed-data/05_harmony_BayesSpace/logs/05-BayesSpace_k_search_%a.log
-#SBATCH --array=2-3%15
+#SBATCH --array=4-28%15
 
 if [[ ! -z $SLURMD_NODENAME ]]; then
     job_id=$SLURM_JOB_ID
