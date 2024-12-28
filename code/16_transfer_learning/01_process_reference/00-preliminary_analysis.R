@@ -46,14 +46,18 @@ spe <- spe[rownames(spe) %in% select.genes, ]
 spe <- logNormCounts(spe)
 
 opt <- list()
-opt$data <- "rat_case_control"
+opt$data <- "rat_case_control_acute"
 if(opt$data == "human_NAc"){
   sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
 }else{
-  if(opt$data == "rat_case_control"){
-    sce <- readRDS(file = file.path(dat_dir, "NAc_Combo_Integrated.RDS"))
+  if(opt$data == "rat_case_control_acute"){
+    sce <- readRDS(file = file.path(dat_dir, "NAc_Combo_Acute.RDS"))
   }else{
+    if(opt$data == "rat_case_control_repeated"){
+      sce <- readRDS(file = file.path(dat_dir, "NAc_Combo_Repeated.RDS"))
+    }else{
         stop("Invalid input data set")
+    }  
   }
 }
 if(opt$data == "human_NAc"){
@@ -85,7 +89,7 @@ if(opt$data == "human_NAc"){
 }
 
 
-if(opt$data == "rat_case_control"){
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
   counts <- sce[["RNA"]]$counts
   metadata <- sce@meta.data
   sobj <- CreateSeuratObject(counts = counts, project = "NAc_snRNAseq")
@@ -195,8 +199,8 @@ if(opt$data == "rat_case_control"){
   orthologs_df <- orthologs_df[!duplicated(orthologs_df$human_genes), ]
   orthologs_df <- orthologs_df[orthologs_df$rat_genes %in% rownames(sobj), ]
   orthologs_df <- orthologs_df[orthologs_df$human_genes %in% rownames(spe), ]
+  saveRDS(orthologs_df, file.path(res_dir, opt$data, "orthologs_df_acute.rds"))
 
-  saveRDS(orthologs_df, file.path(res_dir, opt$data, "orthologs_df.rds"))
 
   sobj <- sobj[rownames(sobj) %in% orthologs_df$rat_genes, ]
   # Select genes for which we have orthologs
@@ -221,14 +225,13 @@ FeaturePlot(sobj, reduction = "pca", features = c("nFeature_RNA"))
 FeaturePlot(sobj, reduction = "pca", features = c("percent_mito"))
 dev.off()
 }
-if(opt$data == "rat_case_control"){
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
 pdf(file.path(plot_dir, "snRNA_seq_PCs.pdf"), height = 4, width = 6)
 # Check Elbow plot to determine relevant number of PCs
 ElbowPlot(sobj, ndims = 50)
-DimPlot(sobj, reduction = "pca", group.by = "Stim")
 DimPlot(sobj, reduction = "pca", group.by = "Sex")
 DimPlot(sobj, reduction = "pca", group.by = "GEM")
-DimPlot(sobj, reduction = "pca", group.by = "Dataset")
+DimPlot(sobj, reduction = "pca", group.by = "Stim")
 DimPlot(sobj, reduction = "pca", group.by = "CellType")
 DimPlot(sobj, reduction = "pca", group.by = "Combo_CellType")
 FeaturePlot(sobj, reduction = "pca", features = c("nCount_RNA"))
@@ -262,8 +265,8 @@ rownames(pca_res) <- paste0("PC_", c(1:20))
 pca_res <- reshape2::melt(pca_res)
 }
 
-if(opt$data == "rat_case_control"){
-   pca_res <- matrix(NA, nrow = dim(pca_embeddings)[2], ncol = 9)
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
+   pca_res <- matrix(NA, nrow = dim(pca_embeddings)[2], ncol = 8)
 for(i in c(1:dim(pca_embeddings)[2])){
   cat(i, "\n")
   pca_res[i, 1] <- summary(lm(pca_embeddings[ ,i] ~ sobj$nCount_RNA))$adj.r.squared
@@ -271,12 +274,11 @@ for(i in c(1:dim(pca_embeddings)[2])){
   pca_res[i, 3] <- summary(lm(pca_embeddings[ ,i] ~ sobj$percent_mito))$adj.r.squared
   pca_res[i, 4] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$Stim)))$adj.r.squared
   pca_res[i, 5] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$Sex)))$adj.r.squared
-  pca_res[i, 6] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$Dataset)))$adj.r.squared
-  pca_res[i, 7] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$GEM)))$adj.r.squared
-  pca_res[i, 8] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$CellType)))$adj.r.squared
-  pca_res[i, 9] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$Combo_CellType)))$adj.r.squared
+  pca_res[i, 6] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$GEM)))$adj.r.squared
+  pca_res[i, 7] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$CellType)))$adj.r.squared
+  pca_res[i, 8] <- summary(lm(pca_embeddings[ ,i] ~ as.factor(sobj$Combo_CellType)))$adj.r.squared
 }
-colnames(pca_res) <- c("nCount_RNA", "nFeature_RNA", "percent_mito", "Stim", "Sex", "Dataset", "GEM", "CellType", "Combo_CellType")
+colnames(pca_res) <- c("nCount_RNA", "nFeature_RNA", "percent_mito", "Stim", "Sex", "GEM", "CellType", "Combo_CellType")
 rownames(pca_res) <- paste0("PC_", c(1:20))
 pca_res <- reshape2::melt(pca_res)
 }

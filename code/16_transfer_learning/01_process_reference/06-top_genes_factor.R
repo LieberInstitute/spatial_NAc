@@ -72,6 +72,7 @@ colnames(corr_mat) <- rownames(x@h)
 
 saveRDS(corr_mat, file.path(res_dir, "gene_corr.rds"))
 corr_mat <- reshape2::melt(corr_mat)
+corr_mat <- corr_mat[!is.na(corr_mat$value), ]
 corr_mat <- corr_mat[abs(corr_mat$value) > 0.2, ]
 colnames(corr_mat) <- c("gene", "factor", "correlation")
 
