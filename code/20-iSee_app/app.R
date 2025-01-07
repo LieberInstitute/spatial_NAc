@@ -2,6 +2,8 @@ library("SingleCellExperiment")
 library("iSEE")
 library("shiny")
 library("paletteer")
+library("scuttle")
+library("SpatialExperiment")
 
 #load("sce.Rdata", verbose = TRUE)
 sce <- readRDS(file = "sce_NAc_app.Rds")
