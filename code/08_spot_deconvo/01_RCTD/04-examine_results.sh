@@ -5,8 +5,8 @@
 #SBATCH --mem=20G
 #SBATCH --time=1:0:0
 #SBATCH --job-name=04-examine_results
-#SBATCH -o ../../../processed-data/08_spot_deconvo/01_RCTD/logs/04-examine_results_%a.log
-#SBATCH -e ../../../processed-data/08_spot_deconvo/01_RCTD/logs/04-examine_results_%a.log
+#SBATCH -o ../../../processed-data/08_spot_deconvo/01_RCTD/logs/04-examine_results_markers_%a.log
+#SBATCH -e ../../../processed-data/08_spot_deconvo/01_RCTD/logs/04-examine_results_markers_%a.log
 #SBATCH --array=1-10%10
 
 #   'TRUE' or 'FALSE': if TRUE, use only the marker genes for cell types to run RCTD

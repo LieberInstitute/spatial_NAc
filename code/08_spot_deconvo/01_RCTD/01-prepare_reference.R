@@ -25,6 +25,7 @@ dat_dir <- here::here("processed-data", "12_snRNA")
 sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
 colData(sce)$CellType.Final[colData(sce)$CellType.Final == "T-Cell"] <- "T_cell"
 
+sce <- sce[ ,!sce$CellType.Final == "Neuron_Ambig"]
 # Find marker genes if we need to subset to only include genes that distinguish between cell-types
 # Rename the genes using symbols instead of ensembl IDs
 rownames(sce) <- rowData(sce)$gene_name

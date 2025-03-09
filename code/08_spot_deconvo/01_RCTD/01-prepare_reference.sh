@@ -5,11 +5,11 @@
 #SBATCH --time=4:0:0
 #SBATCH --mem=60G
 #SBATCH --job-name=01-prepare_RCTD_reference
-#SBATCH -o ../../../processed-data/08_spot_deconvo/01_RCTD/logs/01-prepare_reference_all_genes.log
-#SBATCH -e ../../../processed-data/08_spot_deconvo/01_RCTD/logs/01-prepare_reference_all_genes.log
+#SBATCH -o ../../../processed-data/08_spot_deconvo/01_RCTD/logs/01-prepare_reference_markers.log
+#SBATCH -e ../../../processed-data/08_spot_deconvo/01_RCTD/logs/01-prepare_reference_markers.log
 
 set -e
-marker_genes=FALSE
+marker_genes=TRUE
 
 echo "**** Job starts ****"
 date
