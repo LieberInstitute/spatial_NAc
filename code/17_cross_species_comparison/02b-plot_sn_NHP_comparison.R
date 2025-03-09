@@ -148,6 +148,7 @@ colorpal <- colorRampPalette(brewer.pal(n = 7, name = "PRGn"))(length(colrange))
 
 rownames(corr_mat) <- gsub("\\.", " ", rownames(corr_mat))
 colnames(corr_mat) <- gsub("_", " ", colnames(corr_mat))
+rownames(corr_mat) <- gsub("_", " ", rownames(corr_mat))
 
 if(subset_neurons){
   row_order <- c("D1 Matrix", "D2 Matrix", "D1 Striosome", "D2 Striosome", "D1 Shell/OT", "D2 Shell/OT", "D1 ICj", "D1 NUDAP", "D1/D2 Hybrid")
