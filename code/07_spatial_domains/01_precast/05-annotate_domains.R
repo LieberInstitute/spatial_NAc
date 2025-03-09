@@ -105,7 +105,10 @@ levels = c("D1 islands", "Endothelial/Ependymal", "Excitatory", "Inhibitory", "M
 
 
 #safe_colorblind_palette <- c("#652DC1","#0D73B4","#4B5320" ,"#A3EE7D","#EBA31C",  "#3DB1CB", "#D55F0D", "#8F9392")
-safe_colorblind_palette <- palette()
+#safe_colorblind_palette <- palette()
+safe_colorblind_palette <- c("#E7298A", "#A6761D","#D95F02" , "#E6AB02",  "#66A61E","#1B9E77", "#7570B3","#666666")
+louise_palette <- c("#b2df8a", "#e41a1c", "#377eb8", "#4daf4a", "#ff7f00", "gold", "#a65628",
+    "#999999", "black", "grey", "white", "purple")
 plot_list <- list()
 for (donor in sample_order) {
     plot_list[[donor]] <- spot_plot(
@@ -137,12 +140,42 @@ get_legend<-function(myggplot){
   return(legend)
 }
 legend <- get_legend(plot_list[[1]])
-p3 <- plot_list[["Br3942"]] + ggtitle("Br3942 (Posterior NAc)") 
+p3 <- plot_list[["Br3942"]] + ggtitle("Br3942 (Posterior NAc)") + theme(legend.position = "none")
 p2 <- plot_list[["Br6522"]] + ggtitle("Br6522 (Intermediate NAc)")
-p1 <- plot_list[["Br6432"]] + ggtitle("Br6432 (Anterior NAc)") 
+p1 <- plot_list[["Br6432"]] + ggtitle("Br6432 (Anterior NAc)") + theme(legend.position = "none")
 
-pdf(file.path(plot_dir, "clusters_for_final_figure.pdf"), width = 9, height = 6)
-print(p1)
-print(p2)
+pdf(file.path(plot_dir, "clusters_for_final_figure_Br3942.pdf"), width = 6.8 , height = 6.8)
 print(p3)
 dev.off()
+
+pdf(file.path(plot_dir, "clusters_for_final_figure_Br6522.pdf"), width = 10, height = 10)
+print(p2)
+dev.off()
+
+pdf(file.path(plot_dir, "clusters_for_final_figure_Br6432.pdf"), width = 7, height = 7)
+print(p1)
+dev.off()
+
+# Make plots highlighting individual clusters
+clusters_df <- model.matrix(~0+spe$precast_clusters_annotated)
+colnames(clusters_df) <- c("D1 islands", "Endothelial/Ependymal", "Excitatory", "Inhibitory", "MSN 1", "MSN 2", "MSN 3", "WM")
+colData(spe) <- cbind(colData(spe), data.frame(clusters_df))
+
+colnames(clusters_df) <- gsub(" ", ".", colnames(clusters_df))
+colnames(clusters_df) <- gsub("/", ".", colnames(clusters_df))
+
+for(i in colnames(clusters_df)){
+    spe[[i]] <- factor(spe[[i]], levels = c(1, 0)) 
+    for (donor in sample_order) {
+    plot_list[[donor]] <- spot_plot(
+            spe,
+            sample_id = donor, var_name = i,
+            is_discrete = TRUE, spatial = TRUE, colors = c("#006400", "#CCCCCC40")) + ggtitle(donor)+
+            #   Increase size of colored dots in legend
+            guides(fill = guide_legend(override.aes = list(size = 5))) + 
+            theme(plot.title = element_text(face = "bold"), legend.position = "right") 
+    }
+    pdf(file.path(plot_dir, paste0("clusters_for_final_figure_", i,".pdf")), width = 7, height = 7)
+    print(plot_list)
+    dev.off()
+}
