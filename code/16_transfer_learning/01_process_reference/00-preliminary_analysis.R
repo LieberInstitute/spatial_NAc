@@ -14,13 +14,25 @@ library(SpatialExperiment)
 library(spatialLIBD)
 library(RcppML)
 library(singlet)
+library(getopt)
 set.seed(1234)
+
+spec <- matrix(
+    c("data", "d", 1, "character", "Specify the input dataset"),
+    byrow = TRUE, ncol = 5
+)
+
+opt <- getopt(spec)
+
+#opt <- list()
+#opt$data <- "rat_case_control_repeated"
 
 # Read data and create Seurat object
 dat_dir <- here::here("processed-data", "12_snRNA")
 res_dir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "preliminary_analysis")
 plot_dir <- here::here("plots", "16_transfer_learning", "01_process_reference", "preliminary_analysis")
-
+res_dir <- paste0(res_dir, "/", opt$data)
+dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
 # Read in the spatial data
 raw_in_path <- here(
     "processed-data", "05_harmony_BayesSpace", "02-compute_QC_metrics", "spe_with_QC_metrics_hdf5"
@@ -45,8 +57,7 @@ select.genes <-  rownames(nSpots_by_donor)[rowSums(nSpots_by_donor == 0) == 0]
 spe <- spe[rownames(spe) %in% select.genes, ]
 spe <- logNormCounts(spe)
 
-opt <- list()
-opt$data <- "rat_case_control_acute"
+
 if(opt$data == "human_NAc"){
   sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
 }else{
@@ -62,6 +73,7 @@ if(opt$data == "human_NAc"){
 }
 if(opt$data == "human_NAc"){
   # Initialize the Seurat object
+  sce <- sce[ ,!sce$CellType.Final == "Neuron_Ambig"]
   counts <- counts(sce)
   metadata <- colData(sce)
   sobj <- CreateSeuratObject(counts = counts, project = "NAc_snRNAseq")
@@ -77,8 +89,18 @@ if(opt$data == "human_NAc"){
   sobj$Chromium_library_date <- metadata$Chromium_library_date
   sobj$Chromium_kit <- metadata$Chromium_kit
   sobj$Library_Kit <- metadata$Library_Kit
+
   # Only select genes that were expressed in the spatial data
-  sobj <- sobj[rowSums(sobj[["RNA"]]$counts) > 0, ]
+  exprLogic2 <- sobj[["RNA"]]$counts > 0
+  sobj$Brain_ID <- as.factor(sobj$Brain_ID)
+  nCells_by_donor <- lapply(levels(sobj$Brain_ID), function(iSample){
+    rowSums(exprLogic2[ ,sobj$Brain_ID == iSample])
+  })
+  nCells_by_donor <- do.call(cbind, nCells_by_donor)
+  colnames(nCells_by_donor) <- levels(sobj$Brain_ID)
+  select.genes2 <-  rownames(nCells_by_donor)[rowSums(nCells_by_donor== 0) == 0]
+
+  sobj <- sobj[rownames(sobj) %in% select.genes2,  ]
   sobj <- sobj[rownames(sobj) %in% rowData(spe)$gene_id, ]
   # Process single cell data
   sobj <- sobj %>% 
@@ -92,7 +114,7 @@ if(opt$data == "human_NAc"){
 if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
   counts <- sce[["RNA"]]$counts
   metadata <- sce@meta.data
-  sobj <- CreateSeuratObject(counts = counts, project = "NAc_snRNAseq")
+  sobj <- CreateSeuratObject(counts = counts, project = "NAc_snRNAseq", min.cells = 1, min.features = 200)
   sobj@meta.data <- metadata
   sobj <- NormalizeData(sobj, normalization.method = "LogNormalize", scale.factor = 10000)
 
@@ -199,8 +221,12 @@ if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated
   orthologs_df <- orthologs_df[!duplicated(orthologs_df$human_genes), ]
   orthologs_df <- orthologs_df[orthologs_df$rat_genes %in% rownames(sobj), ]
   orthologs_df <- orthologs_df[orthologs_df$human_genes %in% rownames(spe), ]
-  saveRDS(orthologs_df, file.path(res_dir, opt$data, "orthologs_df_acute.rds"))
+  saveRDS(orthologs_df, file.path(res_dir, "orthologs_df.rds"))
 
+  # Read the differentially expressed genes in cocaine vs. saline
+  diffExpr_file <- here("processed-data", "16_transfer_learning", "rat_case_control_DEGs", "NAc_rat_cocaine_all.csv")
+  DEGs_cocaine <- read.csv(diffExpr_file)
+  print(length(intersect(unique(DEGs_cocaine$Gene), orthologs_df$rat_genes)))
 
   sobj <- sobj[rownames(sobj) %in% orthologs_df$rat_genes, ]
   # Select genes for which we have orthologs
@@ -213,7 +239,7 @@ if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated
 plot_dir <- paste0(plot_dir, "/", opt$data)
 dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
 if(opt$data == "human_NAc"){
-pdf(file.path(plot_dir, "snRNA_seq_PCs.pdf"), height = 6, width = 10)
+pdf(file.path(plot_dir, "snRNA_seq_PCs.pdf"), height = 4, width = 6)
 # Check Elbow plot to determine relevant number of PCs
 ElbowPlot(sobj, ndims = 50)
 DimPlot(sobj, reduction = "pca", group.by = "Sample")
@@ -293,8 +319,6 @@ sobj <- sobj %>%
   FindClusters(resolution = 1.0, verbose = FALSE) %>%
   RunUMAP(dims = 1:20, verbose = FALSE)
 
-res_dir <- paste0(res_dir, "/", opt$data)
-dir.create(res_dir, recursive = TRUE, showWarnings = FALSE)
 saveRDS(sobj, file.path(res_dir, "snRNA_seq_NAc.rds"))
 
 if(opt$data == "human_NAc"){
@@ -303,7 +327,7 @@ if(opt$data == "human_NAc"){
   dev.off()
 }
 
-if(opt$data == "rat_case_control"){
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
   pdf(file.path(plot_dir, "UMAP.pdf"), height = 6, width = 8)
   DimPlot(sobj, group.by = "Combo_CellType")
   dev.off()

@@ -14,17 +14,14 @@ library(clusterProfiler)
 source(here("code", "16_transfer_learning","01_process_reference", "utilities.R"))
 
 spec <- matrix(
-    c(  "data", "d", 1, "character", "Specify the dataset to be used?",
-        "gene_selection_strategy", "g", 1, "character", "Choose all genes, or highly deviant genes based on snRNA-seq, or nnSVGs"
+    c(  "data", "d", 1, "character", "Specify the dataset to be used?"
     ),
     byrow = TRUE, ncol = 5
 )
 opt <- getopt(spec)
 
-#opt <- list()
-#opt$gene_selection_strategy <- "all_genes"
-#opt$data <- "human_NAc"
-print(opt$gene_selection_strategy)
+opt <- list()
+opt$data <- "human_NAc"
 print(opt$data)
 
 # Read data and create Seurat object
@@ -42,7 +39,7 @@ if(opt$data == "human_NAc"){
   }
 }
 
-x <- readRDS(file = file.path(res_dir,paste0("nmf_results_",opt$gene_selection_strategy, ".rds")))
+x <- readRDS(file = file.path(res_dir,paste0("nmf_results.rds")))
 
 ## Set up marker gene detection
 loads<-x@w

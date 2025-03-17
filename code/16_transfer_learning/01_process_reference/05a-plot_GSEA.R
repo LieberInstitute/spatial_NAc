@@ -18,24 +18,12 @@ spec <- matrix(
 )
 opt <- getopt(spec)
 
-#opt <- list()
-#opt$gene_selection_strategy <- "all_genes"
-#opt$data <- "human_NAc"
-print(opt$gene_selection_strategy)
+opt <- list()
+opt$data <- "human_NAc"
+
 print(opt$data)
-dat_dir <- here::here("processed-data", "12_snRNA")
 res_dir <- here::here("processed-data", "16_transfer_learning","01_process_reference", "RCppML", opt$data)
 plot_dir <- here::here("plots", "16_transfer_learning","01_process_reference", "RCppML", opt$data)
-
-if(opt$data == "human_NAc"){
-  sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
-}else{
-  if(opt$data == "rat_case_control"){
-    sce <- readRDS(file = file.path(dat_dir, "NAc_Combo_Integrated.RDS"))
-  }else{
-        stop("Invalid input data set")
-  }
-}
 
 go <- readRDS(file=file.path(res_dir,'go_analysis.rds'))
 names(go) <- paste0("NMF_", c(1:length(go)))

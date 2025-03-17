@@ -1,4 +1,3 @@
-
 ####code for correlating categorical technical variables with NMF patterns
 library(here)
 library(SpatialExperiment)
@@ -6,71 +5,60 @@ library(pheatmap)
 library(reshape2)
 
 spec <- matrix(
-    c(
-        "gene_selection_strategy", "g", 1, "character", "Choose all genes, or highly deviant genes based on snRNA-seq, or nnSVGs", 
-        "data", "d", 1, "character", "Specify input snRNA-seq dataset"
+    c( "data", "d", 1, "character", "Specify input snRNA-seq dataset"
     ),
     byrow = TRUE, ncol = 5
 )
 opt <- getopt(spec)
 opt <- list()
-opt$gene_selection_strategy <- "all_genes"
-opt$data <- "rat_case_control"
-print(opt$gene_selection_strategy)
+opt$data <- "human_NAc"
+print(opt$data)
 
 # Read data and create Seurat object
-dat_dir <- here::here("processed-data", "12_snRNA")
+dat_dir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "preliminary_analysis", opt$data)
 res_dir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "RCppML", opt$data)
 plot_dir <- here::here("plots", "16_transfer_learning", "01_process_reference", "RCppML", opt$data)
 dir.create(res_dir, showWarnings = FALSE)
 dir.create(plot_dir, showWarnings = FALSE)
 
-if(opt$data == "human_NAc"){
-  sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
-}else{
-  if(opt$data == "rat_case_control"){
-    sce <- readRDS(file = file.path(dat_dir, "NAc_Combo_Integrated.RDS"))
-  }else{
-        stop("Invalid input data set")
-  }
-}
+sce <- readRDS(file = file.path(dat_dir, "snRNA_seq_NAc.rds"))
 
-x <- readRDS(file = file.path(res_dir,paste0("nmf_results_",opt$gene_selection_strategy, ".rds")))
+x <- readRDS(file = file.path(res_dir,paste0("nmf_results.rds")))
 
 ####onehot encode cell type
 if(opt$data == "human_NAc"){
-    data<-as.data.frame(sce$CellType.Final)
+    data<-as.data.frame(sce$CellType)
 }else{
     data <- as.data.frame(sce$Combo_CellType)
 }
 
-colnames(data)<-'CellType_final'
-onehot_cellType_final <-  dcast(data = data, rownames(data) ~ CellType_final, length)
-rownames(onehot_cellType_final)<- onehot_cellType_final[,1]
-onehot_cellType_final[ ,1] <- NULL
-onehot_cellType_final <- onehot_cellType_final[match(rownames(t(x@h)) , rownames(onehot_cellType_final)), ]
+colnames(data)<-'CellType'
+onehot_cellType <-  dcast(data = data, rownames(data) ~ CellType, length)
+rownames(onehot_cellType)<- onehot_cellType[,1]
+onehot_cellType[ ,1] <- NULL
+onehot_cellType <- onehot_cellType[match(rownames(t(x@h)) , rownames(onehot_cellType)), ]
 
 ###correlate with nmf patterns
-pdf(file.path(plot_dir, paste0("nmf_cellType_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
-pheatmap(cor(t(x@h),onehot_cellType_final), fontsize_row = 9)
+pdf(file.path(plot_dir, paste0("nmf_cellType_correlation_heatmap.pdf")), width = 8, height = 10)
+pheatmap(cor(t(x@h),onehot_cellType), fontsize_row = 9)
 dev.off()
 
 # aggregate NMF patterns
 
 # create dataframe
 if(opt$data == "human_NAc"){
-    data <- data.frame(colData(sce), t(x@h))
+    data <- data.frame(sce@meta.data, t(x@h))
     # aggregate NMF patterns across cell types
     # grep "NMF" to get all NMF patterns
     agg_data <- aggregate(data[,grep("nmf", colnames(data))],
-                      by=list(data$CellType.Final),
+                      by=list(data$CellType),
                       FUN=mean)
     # move Group.1 to row names, then drop
     rownames(agg_data) <- agg_data$Group.1
     agg_data <- agg_data[,-1]
 }
 
-if(opt$data == "rat_case_control"){
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
     data <- data.frame(sce@meta.data, t(x@h))
     # aggregate NMF patterns across cell types
     # grep "NMF" to get all NMF patterns
@@ -83,7 +71,7 @@ if(opt$data == "rat_case_control"){
 }
 
 
-pdf(file.path(plot_dir, paste0("nmf_cellType_correlation_aggregated_heatmap_", opt$gene_selection_strategy,".pdf")))
+pdf(file.path(plot_dir, paste0("nmf_cellType_correlation_aggregated_heatmap.pdf")), width = 10, height = 6)
 p1 <- pheatmap(agg_data,
                color=colorRampPalette(c("blue","white","red"))(100),
                cluster_cols=T,

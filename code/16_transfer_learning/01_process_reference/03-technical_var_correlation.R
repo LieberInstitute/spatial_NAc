@@ -6,42 +6,29 @@ library(reshape2)
 library(getopt)
 
 spec <- matrix(
-    c(
-        "gene_selection_strategy", "g", 1, "character", "Choose all genes, or highly deviant genes based on snRNA-seq, or nnSVGs", 
-        "data", "d", 1, "character", "Specify input snRNA-seq dataset"
+    c("data", "d", 1, "character", "Specify input snRNA-seq dataset"
     ),
     byrow = TRUE, ncol = 5
 )
 opt <- list()
-opt$gene_selection_strategy <- "all_genes"
-opt$data <- "rat_case_control"
+opt$data <- "human_NAc"
 #opt <- getopt(spec)
-print(opt$gene_selection_strategy)
+print(opt$data)
 
 # Read data and create Seurat object
-dat_dir <- here::here("processed-data", "12_snRNA")
+dat_dir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "preliminary_analysis", opt$data)
 res_dir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "RCppML", opt$data)
 plot_dir <- here::here("plots", "16_transfer_learning", "01_process_reference", "RCppML", opt$data)
 
-
-if(opt$data == "human_NAc"){
-  sce <- readRDS(file = file.path(dat_dir, "sce_CellType_noresiduals.Rds"))
-}else{
-  if(opt$data == "rat_case_control"){
-    sce <- readRDS(file = file.path(dat_dir, "NAc_Combo_Integrated.RDS"))
-  }else{
-        stop("Invalid input data set")
-  }
-}
+sce <- readRDS(file = file.path(dat_dir, "snRNA_seq_NAc.rds"))
 
 if(opt$data == "human_NAc"){
   sex <- rep("M", dim(sce)[2])
   sex[sce$Brain_ID %in% c("Br2720", "Br8325", "Br8492", "Br8667")] <- "F"
-  colData(sce)$Sex <- sex
+  sce$Sex <- sex
 }
 
-
-x <- readRDS(file = file.path(res_dir,paste0("nmf_results_", opt$gene_selection_strategy, ".rds")))
+x <- readRDS(file = file.path(res_dir,paste0("nmf_results.rds")))
 
 if(!all.equal(colnames(x@h), colnames(sce))){
   stop("Check the column names of the loadings matrix")
@@ -58,7 +45,7 @@ if(opt$data == "human_NAc"){
     onehot_sample <- onehot_sample[match(rownames(t(x@h)) , rownames(onehot_sample)), ]
 
     ###correlate with nmf patterns
-    pdf(file.path(plot_dir, paste0("nmf_sort_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pdf(file.path(plot_dir, paste0("nmf_sort_correlation_heatmap.pdf")))
     pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
     dev.off()
 
@@ -73,7 +60,7 @@ if(opt$data == "human_NAc"){
 
 
     ###correlate with nmf patterns
-    pdf(file.path(plot_dir, paste0("nmf_sample_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pdf(file.path(plot_dir, paste0("nmf_sample_correlation_heatmap.pdf")))
     pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
     dev.off()
 
@@ -87,7 +74,7 @@ if(opt$data == "human_NAc"){
     onehot_sample <- onehot_sample[match(rownames(t(x@h)) , rownames(onehot_sample)), ]
 
     ###correlate with nmf patterns
-    pdf(file.path(plot_dir, paste0("nmf_Brain_ID_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pdf(file.path(plot_dir, paste0("nmf_Brain_ID_correlation_heatmap.pdf")))
     pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
     dev.off()
 
@@ -102,7 +89,7 @@ if(opt$data == "human_NAc"){
 
 
     ###correlate with nmf patterns
-    pdf(file.path(plot_dir, paste0("nmf_Chromium_cDNA_date_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pdf(file.path(plot_dir, paste0("nmf_Chromium_cDNA_date_correlation_heatmap.pdf")))
     pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
     dev.off()
 
@@ -116,7 +103,7 @@ if(opt$data == "human_NAc"){
     onehot_sample <- onehot_sample[match(rownames(t(x@h)) , rownames(onehot_sample)), ]
 
     ###correlate with nmf patterns
-    pdf(file.path(plot_dir, paste0("nmf_Chromium_kit_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pdf(file.path(plot_dir, paste0("nmf_Chromium_kit_correlation_heatmap.pdf")))
     pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
     dev.off()
 
@@ -130,27 +117,27 @@ if(opt$data == "human_NAc"){
     onehot_sample <- onehot_sample[match(rownames(t(x@h)) , rownames(onehot_sample)), ]
 
     ###correlate with nmf patterns
-    pdf(file.path(plot_dir, paste0("nmf_Sex_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pdf(file.path(plot_dir, paste0("nmf_Sex_correlation_heatmap.pdf")))
     pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 5)
     dev.off()
 
     ###for continuous tech vars do this:
 
-    vars<-colData(sce)[,c('detected','sum','subsets_Mito_percent')]
+    vars<-sce@meta.data[,c('nCount_RNA','nFeature_RNA','percent_mito')]
 
     # fix error cor(t(x@h), vars) : 'y' must be numeric
-    vars$detected<-as.numeric(vars$detected)
-    vars$sum<-as.numeric(vars$sum)
-    vars$mito_percent<-as.numeric(vars$subsets_Mito_percent)
-    vars$subsets_Mito_percent<-NULL
+    vars$nCount_RNA<-as.numeric(vars$nCount_RNA)
+    vars$nFeature_RNA<-as.numeric(vars$nFeature_RNA)
+    vars$percent_mito<-as.numeric(vars$percent_mito)
+
     vars <- as.matrix(vars)
     vars <- vars[match(rownames(t(x@h)), rownames(vars)), ]
-    pdf(file.path(plot_dir,paste0("nmf_qc_correlation_heatmap_", opt$gene_selection_strategy, ".pdf")))
+    pdf(file.path(plot_dir,paste0("nmf_qc_correlation_heatmap.pdf")))
     pheatmap(cor(t(x@h),vars), fontsize_row = 5)
     dev.off()
 }
 
-if(opt$data == "rat_case_control"){
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
     sce$Stim <- factor(sce$Stim)
     data <- as.data.frame(sce$Stim)
     colnames(data)<-'Stim'
@@ -187,18 +174,6 @@ if(opt$data == "rat_case_control"){
     pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
     dev.off()
 
-    sce$Dataset <- factor(sce$Dataset)
-    data <- as.data.frame(sce$Dataset)
-    colnames(data)<-'Dataset'
-    onehot_sample <-  dcast(data = data, rownames(data) ~ Dataset, length)
-    rownames(onehot_sample)<-onehot_sample[,1]
-    onehot_sample[ ,1] <- NULL
-    onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
-    
-    pdf(file.path(plot_dir, paste0("nmf_Dataset_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
-    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
-    dev.off()
-
     ###for continuous tech vars do this:
 
     vars<-sce@meta.data[ ,c("nFeature_RNA", "nCount_RNA", "percent_mito")]
@@ -213,17 +188,4 @@ if(opt$data == "rat_case_control"){
     pdf(file.path(plot_dir,paste0("nmf_qc_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
     pheatmap(cor(t(x@h),vars), fontsize_row = 9)
     dev.off()
-
-    sce$Stim_dataset <- paste0(as.character(sce$Stim), "_", as.character(sce$Dataset))
-    data <- as.data.frame(sce$Stim_dataset)
-    colnames(data)<-'Stim_dataset'
-    onehot_sample <-  dcast(data = data, rownames(data) ~ Stim_dataset, length)
-    rownames(onehot_sample)<-onehot_sample[,1]
-    onehot_sample[ ,1] <- NULL
-    onehot_sample <- onehot_sample[match(rownames(t(x@h)), rownames(onehot_sample)), ]
-    
-    pdf(file.path(plot_dir, paste0("nmf_Stim_Dataset_correlation_heatmap_", opt$gene_selection_strategy,".pdf")))
-    pheatmap(cor(t(x@h),onehot_sample), fontsize_row = 9)
-    dev.off()
-
 }
