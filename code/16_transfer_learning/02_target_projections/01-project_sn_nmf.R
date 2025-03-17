@@ -20,21 +20,17 @@ library(escheR)
 library(getopt)
 
 spec <- matrix(
-    c(
-        "gene_selection_strategy", "g", 1, "character", "Choose all genes, or highly deviant genes based on snRNA-seq, or nnSVGs", 
-        "data", "d", 1, "character", "Specify the input dataset"
+    c("data", "d", 1, "character", "Specify the input dataset"
     ),
     byrow = TRUE, ncol = 5
 )
 opt <- getopt(spec)
 #opt <- list()
-#opt$gene_selection_strategy <- "all_genes"
 #opt$data <- "human_NAc"
-print(opt$gene_selection_strategy)
 print(opt$data)
 
 ##load nmf patterns
-x <- readRDS(file=here::here('processed-data','16_transfer_learning','01_process_reference', 'RCppML', opt$data, paste0('nmf_results_', opt$gene_selection_strategy,'.rds')))
+x <- readRDS(file=here::here('processed-data','16_transfer_learning','01_process_reference', 'RCppML', opt$data, paste0('nmf_results.rds')))
 
 ##load spe
 raw_in_path <- here("processed-data", "05_harmony_BayesSpace", "02-compute_QC_metrics", "spe_with_QC_metrics_hdf5")
@@ -72,7 +68,7 @@ colnames(patterns) <- paste("NMF", 1:dim(patterns)[2], sep = "_")
 # extract loadings
 loadings <- x@w
 
-if(opt$data == "rat_case_control"){
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
     refDir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "preliminary_analysis")
     orthologs_df <- readRDS(file.path(refDir, opt$data, "orthologs_df.rds"))
     orthologs_df <- orthologs_df[match(rownames(loadings), orthologs_df$rat_genes), ]
@@ -80,7 +76,7 @@ if(opt$data == "rat_case_control"){
 }
 # ====== project loadings to spatial data =======
 #rownames(spe) <-rowData(spe)$gene_name
-if(opt$data == "rat_case_control"){
+if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
     rownames(spe) <- make.names(rowData(spe)$gene_name, unique = TRUE)
 }
 common_genes <- intersect(rownames(loadings), rownames(spe))
@@ -105,7 +101,7 @@ proj_final <- proj_final[ ,match(rownames(proj), colnames(proj_final))]
 
 colData(spe) <- cbind(colData(spe),proj_final)
 
-saveRDS(spe, file = file.path(res_dir, paste0("spe_NMF_", opt$gene_selection_strategy, ".rds")))
+saveRDS(spe, file = file.path(res_dir, paste0("spe_NMF.rds")))
 
 ################################################################
 
