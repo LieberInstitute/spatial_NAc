@@ -43,9 +43,8 @@ print(dim(sce))
 if(opt$data == "human_NAc"){
     test_ranks <- c(5,10,20, 30, 40, 50, 75, 100,125)
 }else{
-    test_ranks <- c(5, 10, 20, 30, 40, 50, 60, 70, 80)
+    test_ranks <- c(5, 10, 20, 30, 40, 50, 60, 70, 80, 90)
 }
-
 
 cvnmf <- cross_validate_nmf(
     sce[["RNA"]]$data,

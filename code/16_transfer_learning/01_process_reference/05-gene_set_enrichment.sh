@@ -4,11 +4,10 @@
 #SBATCH --time=12:0:0
 #SBATCH --mem=60G
 #SBATCH --job-name=05-run_GSEA
-#SBATCH -o ../../../processed-data/16_transfer_learning/01_process_reference/logs/05-gene_set_enrichment_human_all_genes.log
-#SBATCH -e ../../../processed-data/16_transfer_learning/01_process_reference/logs/05-gene_set_enrichment_human_all_genes.log
+#SBATCH -o ../../../processed-data/16_transfer_learning/01_process_reference/logs/05-gene_set_enrichment_human.log
+#SBATCH -e ../../../processed-data/16_transfer_learning/01_process_reference/logs/05-gene_set_enrichment_human.log
 
 set -e
-gene_selection="all_genes"
 data="human_NAc"
 echo "**** Job starts ****"
 date
@@ -20,7 +19,7 @@ echo "Node name: ${SLURMD_NODENAME}"
 echo "Task id: ${SLURM_ARRAY_TASK_ID}"
 
 module load r_nac
-Rscript 05-gene_set_enrichment.R -d $data -g $gene_selection
+Rscript 05-gene_set_enrichment.R -d $data
 
 echo "**** Job ends ****"
 date

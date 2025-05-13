@@ -6,12 +6,11 @@
 #SBATCH --mail-user=pravich2@jh.edu
 #SBATCH --mail-type=ALL
 #SBATCH --job-name=01-project_sn_nmf
-#SBATCH -o ../../../processed-data/16_transfer_learning/02_target_projections/logs/01-project_sn_nmf_human_NAc_all_genes.log
-#SBATCH -e ../../../processed-data/16_transfer_learning/02_target_projections/logs/01-project_sn_nmf_human_NAc_all_genes.log
+#SBATCH -o ../../../processed-data/16_transfer_learning/02_target_projections/logs/01-project_sn_nmf_rat_case_control_morphine_repeated.log
+#SBATCH -e ../../../processed-data/16_transfer_learning/02_target_projections/logs/01-project_sn_nmf_rat_case_control_morphine_repeated.log
 
 set -e
-gene_selection="all_genes"
-dataName="human_NAc"
+dataName="rat_case_control_morphine_repeated"
 echo "**** Job starts ****"
 date
 echo "**** JHPCE info ****"
@@ -21,7 +20,7 @@ echo "Job name: ${SLURM_JOB_NAME}"
 echo "Node name: ${SLURMD_NODENAME}"
 
 module load r_nac
-Rscript 01-project_sn_nmf.R -g $gene_selection -d $dataName
+Rscript 01-project_sn_nmf.R -d $dataName
 
 echo "**** Job ends ****"
 date

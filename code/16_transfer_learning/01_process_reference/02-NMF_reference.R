@@ -74,4 +74,30 @@ if(opt$data == "rat_case_control_repeated"){
                  nonneg = TRUE)
 }
 
+if(opt$data == "rat_case_control_morphine_acute"){
+   x <- RcppML::nmf(dat,
+                 k=46,
+                 tol = 1e-06,
+                 maxit = 1000,
+                 verbose = T,
+                 L1 = 0.1,
+                 seed = 1135,
+                 mask_zeros = FALSE,
+                 diag = TRUE,
+                 nonneg = TRUE)
+}
+
+if(opt$data == "rat_case_control_morphine_repeated"){
+   x <- RcppML::nmf(dat,
+                 k=36,
+                 tol = 1e-06,
+                 maxit = 1000,
+                 verbose = T,
+                 L1 = 0.1,
+                 seed = 1135,
+                 mask_zeros = FALSE,
+                 diag = TRUE,
+                 nonneg = TRUE)
+}
+
 saveRDS(x, file = file.path(res_dir,paste0("nmf_results.rds")))

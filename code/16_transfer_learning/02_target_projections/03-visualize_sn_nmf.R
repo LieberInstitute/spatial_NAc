@@ -88,6 +88,14 @@ if(opt$data == "human_NAc"){
     }else{
         if(opt$data == "rat_case_control_repeated"){
             nFactors <- 40
+        }else{
+            if(opt$data == "rat_case_control_morphine_acute"){
+                nFactors <- 46
+            }else{
+                if(opt$data == "rat_case_control_morphine_repeated"){
+                    nFactors <- 36
+                }
+            }
         }
     }
 }
@@ -128,10 +136,22 @@ if(opt$data == "rat_case_control_repeated"){
     ggplot(res_df[res_df$NMF %in% paste0("nmf", c(21:40)), ], aes(x = NMF, y = num_spots, fill = NMF)) + coord_flip() + geom_bar(stat = "identity") + geom_hline(yintercept = 1000) + theme_classic() + theme(legend.position = "none")
     dev.off()
 }
+if(opt$data == "rat_case_control_morphine_acute"){
+    pdf(file.path(plot_dir, paste0("num_nonzero_spots.pdf")), height = 6, width = 4)
+    ggplot(res_df[res_df$NMF %in% paste0("nmf", c(1:20)), ], aes(x = NMF, y = num_spots, fill = NMF)) + coord_flip() + geom_bar(stat = "identity") + geom_hline(yintercept = 1000) + theme_classic() + theme(legend.position = "none")
+    ggplot(res_df[res_df$NMF %in% paste0("nmf", c(21:46)), ], aes(x = NMF, y = num_spots, fill = NMF)) + coord_flip() + geom_bar(stat = "identity") + geom_hline(yintercept = 1000) + theme_classic() + theme(legend.position = "none")
+    dev.off()
+}
+if(opt$data == "rat_case_control_morphine_repeated"){
+    pdf(file.path(plot_dir, paste0("num_nonzero_spots.pdf")), height = 6, width = 4)
+    ggplot(res_df[res_df$NMF %in% paste0("nmf", c(1:20)), ], aes(x = NMF, y = num_spots, fill = NMF)) + coord_flip() + geom_bar(stat = "identity") + geom_hline(yintercept = 1000) + theme_classic() + theme(legend.position = "none")
+    ggplot(res_df[res_df$NMF %in% paste0("nmf", c(21:36)), ], aes(x = NMF, y = num_spots, fill = NMF)) + coord_flip() + geom_bar(stat = "identity") + geom_hline(yintercept = 1000) + theme_classic() + theme(legend.position = "none")
+    dev.off()
+}
 
 res_df_final <- res_df[res_df$num_spots > 200, ]
 
-pdf(file.path(plot_dir, paste0("distribution_nSpots_nonzero_coeff_", opt$gene_selection_strategy, ".pdf")), height = 3, width = 6)
+pdf(file.path(plot_dir, paste0("distribution_nSpots_nonzero_coeff.pdf")), height = 3, width = 6)
 ggplot(res_df_final, aes(x = num_spots)) + geom_histogram() + theme_classic() + xlab("Number of spots w/ non-zero coefficient") + ylab("Number of factors")
 dev.off()
 
@@ -160,22 +180,17 @@ spe$PRECAST_clusters <- factor(spe$PRECAST_clusters,
 levels = c("D1 islands", "Endothelial/Ependymal", "Excitatory", "Inhibitory", "MSN 1", "MSN 2", "MSN 3", "WM"))
 
 
-plot_list <- lapply(res_df$NMF, function(n){
-    plot_donor_list <- lapply(sample_order, function(isample){
+for(n in levels(res_df$NMF)){
+     plot_donor_list <- lapply(sample_order, function(isample){
         cat(isample, "\n")
          vis_gene(spe, sampleid = isample, geneid = n, is_stitched = TRUE) + ggtitle(isample)
     })
-    plot_donor_list
-})
-names(plot_list) <- res_df$NMF
-
-for(i in c(1:length(plot_list))){
-    pdf(file.path(plot_dir, paste0(names(plot_list)[i], ".pdf")))
-    print(plot_list[[i]])
+    pdf(file.path(plot_dir, paste0(n, ".pdf")))
+    print(plot_donor_list)
     dev.off()
 }
 
-plot_list2 <- lapply(res_df$NMF, function(n){
+for(n in levels(res_df$NMF)){
     plot_donor_list <- lapply(sample_order, function(isample){
         cat(isample, "\n")
         spe_single <- spe[ ,spe$sample_id == isample]
@@ -189,15 +204,11 @@ plot_list2 <- lapply(res_df$NMF, function(n){
             legend.text=element_text(size=18)) + ggtitle(isample)
         p
     })
-    plot_donor_list
-})
-names(plot_list2) <- res_df$NMF
-
-for(i in c(1:length(plot_list2))){
-    pdf(file.path(plot_dir, paste0(names(plot_list2)[i], "_escheR.pdf")), height = 11, width = 18)
-    print(plot_list2[[i]])
+    pdf(file.path(plot_dir, paste0(n, "_escheR.pdf")), height = 11, width = 18)
+    print(plot_donor_list)
     dev.off()
 }
+
 
 barplot_list <- list()
 for(i in res_df_final$NMF){
