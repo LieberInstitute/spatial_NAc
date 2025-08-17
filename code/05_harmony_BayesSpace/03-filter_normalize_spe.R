@@ -69,61 +69,68 @@ spot_plot(spe, "Br8667", var_name = "local_outliers", is_discrete = TRUE, spatia
 dev.off()
 
 # Visualize QC metrics prior to any further filtering
-pdf(width = 12, height = 5, paste0(plot_dir, "/QC_metrics_prior_filtering.pdf"))
+pdf(width = 4, height = 8, paste0(plot_dir, "/sum_UMI_capture_area.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = sample_id_original, y = sum_umi, fill = sample_id_original)) + 
   geom_violin() +
   xlab("Capture Area") + 
   ylab("Library size") + 
-  theme_classic()  + 
-  theme(axis.text.x = element_blank(), axis.ticks = element_blank(), plot.margin = margin(2, 2, 2, 2, "cm")) +
-  guides(fill=guide_legend(title="Capture Area"))
+  theme_classic()  + geom_hline(yintercept = 250, linetype="dashed", color = "red", size=0.6) +
+  theme(legend.position = "none") + coord_flip()
+dev.off()
 
+pdf(width = 4, height = 6, paste0(plot_dir, "/sum_UMI_donor.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = donor, y = sum_umi, fill = donor)) + 
   geom_violin() +
   xlab("Donor") + 
   ylab("Library size") + 
-  theme_classic()  + 
-  theme(axis.text.x = element_blank(), axis.ticks = element_blank(), plot.margin = margin(2, 2, 2, 2, "cm")) +
-  guides(fill=guide_legend(title="Donor"))
+  theme_classic()  + geom_hline(yintercept = 250, linetype="dashed", color = "red", size=0.6) +
+  guides(fill=guide_legend(title="Donor")) + theme(legend.position = "none") + coord_flip()
+dev.off()
 
+pdf(width = 4, height = 6, paste0(plot_dir, "/sum_UMI_slideNum.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = slide_num, y = sum_umi, fill = slide_num)) + 
   geom_violin() +
   xlab("Slide Number") + 
   ylab("Library size") + 
-  theme_classic()  + 
-  theme(axis.text.x = element_blank(), axis.ticks = element_blank(), plot.margin = margin(2, 2, 2, 2, "cm")) +
-  guides(fill=guide_legend(title="Slide Number"))
+  theme_classic()  + geom_hline(yintercept = 250, linetype="dashed", color = "red", size=0.6) +
+  guides(fill=guide_legend(title="Slide Number")) + theme(legend.position = "none")  + coord_flip()
+dev.off()
 
+pdf(width = 4, height = 8, paste0(plot_dir, "/nGene_capture_area.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = sample_id_original, y = sum_gene, fill = sample_id_original)) + 
   geom_violin() +
   xlab("Capture Area") + 
   ylab("# Detected genes") + 
-  theme_classic()  + 
-  theme(axis.text.x = element_blank(), axis.ticks = element_blank(), plot.margin = margin(2, 2, 2, 2, "cm")) +
-  guides(fill=guide_legend(title="Capture Area"))
+  theme_classic()  + geom_hline(yintercept = 250, linetype="dashed", color = "red", size=0.6) +
+  guides(fill=guide_legend(title="Capture Area"))+ theme(legend.position = "none") + coord_flip()
+dev.off()
 
+pdf(width = 4, height = 6, paste0(plot_dir, "/nGene_donor.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = donor, y = sum_gene, fill = donor)) + 
   geom_violin() +
   xlab("Donor") + 
   ylab("# Detected genes") + 
-  theme_classic()  + 
-  theme(axis.text.x = element_blank(), axis.ticks = element_blank(), plot.margin = margin(2, 2, 2, 2, "cm")) +
-  guides(fill=guide_legend(title="Donor"))
+  theme_classic()  + geom_hline(yintercept = 250, linetype="dashed", color = "red", size=0.6) + 
+  theme(legend.position = "none") + coord_flip()
+dev.off()
 
+pdf(width = 4, height = 6, paste0(plot_dir, "/nGene_slideNum.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = slide_num, y = sum_gene, fill = slide_num)) + 
   geom_violin() +
   xlab("Slide Number") + 
   ylab("# Detected genes") + 
-  theme_classic()  + 
-  theme(axis.text.x = element_blank(), axis.ticks = element_blank(), plot.margin = margin(2, 2, 2, 2, "cm")) +
-  guides(fill=guide_legend(title="Slide Number"))
+  theme_classic()  + geom_hline(yintercept = 250, linetype="dashed", color = "red", size=0.6) + 
+  theme(legend.position = "none") +
+  coord_flip()
+dev.off()
 
+pdf(width = 6, height = 4, paste0(plot_dir, "/nUMI_dist.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = sum_umi)) +
   geom_histogram(aes(y = after_stat(density)), 
@@ -133,13 +140,15 @@ ggplot(data = as.data.frame(colData(spe)),
                adjust = 1.0,
                fill = "#A0CBE8",
                colour = "#4E79A7") +
-  geom_vline(xintercept = 200, col="red", linetype = "dashed")+
+  geom_vline(xintercept = 250, col="red", linetype = "dashed")+
   scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + 
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + 
   xlab("Library size") + 
   ylab("Density") + 
   theme_classic()  + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
+dev.off()
 
+pdf(width = 6, height = 4, paste0(plot_dir, "/nGene_dist.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = sum_gene)) +
   geom_histogram(aes(y = after_stat(density)), 
@@ -154,6 +163,7 @@ ggplot(data = as.data.frame(colData(spe)),
   xlab("Genes expressed in each spot") + 
   ylab("Density") + 
   theme_classic()  + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
+dev.off()
 
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = expr_chrM_ratio)) +
@@ -173,13 +183,13 @@ ggplot(data = as.data.frame(colData(spe)),
 p <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=sum_umi)) +
   geom_point(size=0.5) + 
   geom_smooth(method = "loess", se=FALSE) +
-  geom_hline(yintercept = 200, colour='red') + xlab("Nuclei count") + ylab("Sum UMI") +
+  geom_hline(yintercept = 250, colour='red') + xlab("Nuclei count") + ylab("Sum UMI") +
   theme_bw() 
 
 p2 <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=sum_gene)) +
   geom_point(size=0.5) + 
   geom_smooth(method = "loess", se=FALSE) +
-  geom_hline(yintercept = 200, colour='red') + xlab("Nuclei count") + ylab("Number of detected genes") +
+  geom_hline(yintercept = 250, colour='red') + xlab("Nuclei count") + ylab("Number of detected genes") +
   theme_bw() 
 
 p3 <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=expr_chrM_ratio)) +
