@@ -83,7 +83,7 @@ for (donor in sample_order) {
 }
 
 
-pdf(file.path(plot_dir, "clusters_before_merging_final_clusters.pdf"), width = 6.5, height = 6.5)
+pdf(file.path(plot_dir, "clusters_before_merging.pdf"), width = 6.5, height = 6.5)
 print(plot_list)
 dev.off()
 

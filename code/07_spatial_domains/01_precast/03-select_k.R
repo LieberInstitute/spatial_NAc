@@ -83,7 +83,7 @@ para_settings <- lapply(precast_results, function(pre_list){
   })
 })
 
-pen_const <- 50
+pen_const <- 100
 final_ll_df <- list()
 for(i in c(1:nRandom_starts)){
   ll <- lapply(precast_results[[i]], function(pre_obj){
@@ -125,27 +125,30 @@ ll_df <- do.call(rbind, final_ll_df)
 ll_df$random_start <- factor(ll_df$random_start, levels = c(1:nRandom_starts))
 ll_df$K <- factor(ll_df$K , levels = c(3:15))
 plotDir <- here("plots", "07_spatial_domains", "01_precast", "nnSVG_precast", "BIC_select")
-pdf(file.path(plotDir, "loglikelihood_vs_K.pdf"), height = 4.5, width = 9)
-ggplot(ll_df, aes(x = K, y = LL_model)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = random_start)) + theme_classic() + ylab("Log-likelihood") + 
-guides(color=guide_legend(title="Random start"))
+
+pdf(file.path(plotDir, "loglikelihood_vs_K.pdf"), height = 2.5, width = 5)
+ggplot(ll_df, aes(x = K, y = LL_model, fill = K)) + geom_boxplot() + theme_classic() + ylab("Log-likelihood") + theme(legend.position = "none")+
+xlab("Cluster resolution (K)")
 dev.off()
 
-pdf(file.path(plotDir, "MAIC_vs_K.pdf"), height = 4.5, width = 9)
-ggplot(ll_df, aes(x = K, y = MAIC)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = random_start)) + theme_classic()+ ylab("MAIC")+
-xlab("Cluster resolution (K)") + guides(color=guide_legend(title="Random start"))
+pdf(file.path(plotDir, "MAIC_vs_K.pdf"), height = 2.5, width = 5)
+ggplot(ll_df, aes(x = K, y = MAIC, fill = K)) + geom_boxplot() + theme_classic()+ ylab("MAIC")+
+xlab("Cluster resolution (K)") + theme(legend.position = "none")
 dev.off()
 
-pdf(file.path(plotDir, "MBIC_vs_K.pdf"), height = 4.5, width = 9)
-ggplot(ll_df, aes(x = K, y = MBIC)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = random_start)) + theme_classic()+ ylab("MBIC")+
-xlab("Cluster resolution (K)") + guides(color=guide_legend(title="Random start"))
+pdf(file.path(plotDir, "MBIC_vs_K.pdf"), height = 2.5, width = 5)
+ggplot(ll_df, aes(x = K, y = MBIC, fill = K)) + geom_boxplot() + theme_classic()+ ylab("MBIC")+
+xlab("Cluster resolution (K)") + theme(legend.position = "none")
 dev.off()
 
-pdf(file.path(plotDir, "BIC_vs_K.pdf"), height = 4.5, width = 9)
-ggplot(ll_df, aes(x = K, y = BIC)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = random_start)) + theme_classic()+ ylab("BIC")+
-xlab("Cluster resolution (K)") + guides(color=guide_legend(title="Random start"))
+pdf(file.path(plotDir, "BIC_vs_K.pdf"), height = 2.5, width = 5)
+ggplot(ll_df, aes(x = K, y = BIC, fill = K)) + geom_boxplot()+ theme_classic()+ ylab("BIC")+
+xlab("Cluster resolution (K)")+ theme(legend.position = "none") 
 dev.off()
 
-pdf(file.path(plotDir, "AIC_vs_K.pdf"), height = 4.5, width = 9)
-ggplot(ll_df, aes(x = K, y = AIC)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = random_start)) + theme_classic()+ ylab("AIC")+
-xlab("Cluster resolution (K)") + guides(color=guide_legend(title="Random start"))
+pdf(file.path(plotDir, "AIC_vs_K.pdf"), height = 2.5, width = 5)
+ggplot(ll_df, aes(x = K, y = AIC, fill = K)) + geom_boxplot()+ theme_classic()+ ylab("AIC")+
+xlab("Cluster resolution (K)") + theme(legend.position = "none") 
 dev.off()
+
+saveRDS(ll_df, paste0(resDir, "/resList_BIC.rds"))
