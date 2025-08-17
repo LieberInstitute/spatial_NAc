@@ -28,6 +28,18 @@ opt <- getopt(spec)
 spe_dir <- here(
     "processed-data", "05_harmony_BayesSpace", "03-filter_normalize_spe", "spe_filtered_hdf5")
 spe <- loadHDF5SummarizedExperiment(spe_dir)
+spe_Br2743 <- mirrorObject(spe, sample_id = "Br2743", image_id = "lowres", axis = "v")
+spe_Br8492 <- mirrorObject(spe, sample_id = "Br8492", image_id = "lowres", axis = "v")
+spe_Br8325 <- mirrorObject(spe, sample_id = "Br8325", image_id = "lowres", axis = "v")
+spe_Br3942 <- mirrorObject(spe, sample_id = "Br3942", image_id = "lowres", axis = "v")
+
+spe <- spe[ ,!spe$sample_id %in% c("Br2743", "Br8492", "Br8325", "Br3942")]
+spe <- cbind(spe, spe_Br2743)
+spe <- cbind(spe, spe_Br8492)
+spe <- cbind(spe, spe_Br8325)
+spe <- cbind(spe, spe_Br3942)
+
+
 sample_id <- levels(spe$sample_id)[as.integer(Sys.getenv("SLURM_ARRAY_TASK_ID"))]
 
 # Read in the myRCTD object

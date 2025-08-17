@@ -105,7 +105,7 @@ print(
 #   Filter out mitochondrial genes (which in single-nucleus data must be
 #   technical artifacts, and therefore don't make meaningful markers or training
 #   genes for spot deconvolution)
-keep <- !grepl("^MT-", rownames(sce))
+keep <- !grepl("^MT-", rowData(sce)$gene_name)
 perc_keep <- 100 * (1 - length(which(keep)) / length(keep))
 message(
     paste0(

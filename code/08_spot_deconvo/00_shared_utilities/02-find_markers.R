@@ -11,17 +11,17 @@ library("readxl")
 
 #   Adds the 'spot_plot' function (and more), a wrapper for 'vis_gene' or
 #   'vis_clus' with consistent manuscript-appropriate settings
-source(here("code", "07_spot_deconvo", "shared_functions.R"))
+source(here("code", "08_spot_deconvo", "shared_functions.R"))
 
-sce_in <- here("processed-data", "07_spot_deconvo", "sce.rds")
+sce_in <- here("processed-data", "08_spot_deconvo", "sce.rds")
 spe_in <- here("processed-data", "05_harmony_BayesSpace", "spe_filtered.rds")
 
-out_dir <- here("processed-data", "07_spot_deconvo")
-plot_dir <- here("plots", "07_spot_deconvo")
+out_dir <- here("processed-data", "08_spot_deconvo")
+plot_dir <- here("plots", "08_spot_deconvo")
 
-cell_type_var <- "TODO"
+cell_type_var <- "CellType.Final"
 discrete_cell_palette <- "Dark 2"
-best_looking_sample_id <- "TODO"
+best_looking_sample_id <- "Br6522"
 
 #   Number of marker genes to use per cell type, and to show in violin plots,
 #   respectively

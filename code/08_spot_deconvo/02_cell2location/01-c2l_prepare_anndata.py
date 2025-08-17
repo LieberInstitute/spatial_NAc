@@ -1,17 +1,32 @@
+import sys
+import os
+
 import scanpy as sc
+import anndata
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
 from pyhere import here
 from pathlib import Path
 from PIL import Image
 import json
 import session_info
 
+import cell2location
+from cell2location.utils.filtering import filter_genes
+
+from matplotlib import rcParams
+rcParams['pdf.fonttype'] = 42 # enables correct plotting of text
+import seaborn as sns
+
 ################################################################################
 #   Variable definitions
 ################################################################################
 
-processed_dir = Path(here('processed-data', '07_spot_deconvo'))
-plot_dir = Path(here('plots', '07_spot_deconvo'))
+processed_dir = Path(here('processed-data', '08_spot_deconvo'))
+plot_dir = Path(here('plots', '08_spot_deconvo'))
 
 plot_dir.mkdir(parents = True, exist_ok = True)
 processed_dir.mkdir(parents = True, exist_ok = True)
