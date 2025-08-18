@@ -21,6 +21,15 @@ geneData <- rowData(spe_pseudo)
 geneData <- geneData[match(rowData(sce)$gene_id, geneData$gene_id), ]
 rowData(sce)$gene_search <- geneData$gene_search
 
+sce <- sce[ ,!sce$CellType.Final == "Neuron_Ambig"]
+
+subset_neurons <- TRUE
+if(subset_neurons){
+    sce <- sce[ ,sce$CellType.Final %in% c("DRD1_MSN_A", "DRD1_MSN_B", "DRD1_MSN_C", 
+    "DRD1_MSN_D", "DRD2_MSN_A", "DRD2_MSN_B", "Inh_A", "Inh_B", "Inh_C", "Inh_D", "Inh_E", "Inh_F", 
+    "Excitatory")]
+}
+
 counts <- counts(sce)
 cellType_abundance <- data.frame(table(sce$CellType.Final))
 colnames(cellType_abundance) <- c("Cell_type", "Ncells")
@@ -64,8 +73,11 @@ sn_registration <- registration_wrapper(
     gene_name = "gene_name"
 )
 
-saveRDS(sn_registration, file = file.path(res_dir, "sn_cellType_registration.rds"))
-
+if(subset_neurons){
+    saveRDS(sn_registration, file = file.path(res_dir, "sn_cellType_registration_neurons.rds"))
+}else{
+    saveRDS(sn_registration, file = file.path(res_dir, "sn_cellType_registration.rds"))
+}
 
 ## Reproducibility information
 print("Reproducibility information:")

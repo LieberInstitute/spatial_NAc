@@ -128,6 +128,31 @@ pdf(file.path(plotDir, "ADORA2A.pdf"), width = 6, height = 6)
 vis_gene(spe, sampleid = "Br6522", geneid = "ADORA2A", is_stitched = TRUE) + ggtitle("ADORA2A") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
 dev.off()
 
+pdf(file.path(plotDir, "TAC1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "TAC1", is_stitched = TRUE) + ggtitle("TAC1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "PDYN.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "PDYN", is_stitched = TRUE) + ggtitle("PDYN") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+
+pdf(file.path(plotDir, "CPNE4.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "CPNE4", is_stitched = TRUE) + ggtitle("CPNE4") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "PEG10.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "PEG10", is_stitched = TRUE) + ggtitle("PEG10") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "PDE10A.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "PDE10A", is_stitched = TRUE) + ggtitle("PDE10A") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "PENK.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "PENK", is_stitched = TRUE) + ggtitle("PENK") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
 pdf(file.path(plotDir, "ARHGAP36.pdf"), width = 6, height = 6)
 vis_gene(spe, sampleid = "Br6522", geneid = "ARHGAP36", is_stitched = TRUE) + ggtitle("ARHGAP36") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
 dev.off()
@@ -136,8 +161,17 @@ pdf(file.path(plotDir, "PDE10A.pdf"), width = 6, height = 6)
 vis_gene(spe, sampleid = "Br6522", geneid = "PDE10A", is_stitched = TRUE) + ggtitle("PDE10A") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
 dev.off()
 
+pdf(file.path(plotDir, "CALB1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "CALB1", is_stitched = TRUE) + ggtitle("PDE10A") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+
 pdf(file.path(plotDir, "CNR1.pdf"), width = 6, height = 6)
 vis_gene(spe, sampleid = "Br6522", geneid = "CNR1", is_stitched = TRUE) + ggtitle("CNR1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "NRN1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "NRN1", is_stitched = TRUE) + ggtitle("NRN1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
 dev.off()
 
 pdf(file.path(plotDir, "NPY.pdf"), width = 6, height = 6)
@@ -154,6 +188,14 @@ dev.off()
 
 pdf(file.path(plotDir, "MBP.pdf"), width = 6, height = 6)
 vis_gene(spe, sampleid = "Br6522", geneid = "MBP", is_stitched = TRUE) + ggtitle("MBP") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "MOBP.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "MOBP", is_stitched = TRUE) + ggtitle("MOBP") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "OLIG1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "OLIG1", is_stitched = TRUE) + ggtitle("OLIG1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
 dev.off()
 
 pdf(file.path(plotDir, "PPP1R1B.pdf"), width = 6, height = 6)
@@ -182,4 +224,75 @@ dev.off()
 
 pdf(file.path(plotDir, "FOXP2.pdf"), width = 6, height = 6)
 vis_gene(spe, sampleid = "Br6522", geneid = "FOXP2", is_stitched = TRUE) + ggtitle("FOXP2") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "FOXJ1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "FOXJ1", is_stitched = TRUE) + ggtitle("FOXJ1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "CAPS.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "CAPS", is_stitched = TRUE) + ggtitle("CAPS") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "TBR1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "TBR1", is_stitched = TRUE) + ggtitle("TBR1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "SLC17A7.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "SLC17A7", is_stitched = TRUE) + ggtitle("SLC17A7") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "PDGFD.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "PDGFD", is_stitched = TRUE) + ggtitle("PDGFD") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "IL1RAPL2.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "IL1RAPL2", is_stitched = TRUE) + ggtitle("IL1RAPL2") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "VIP.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "VIP", is_stitched = TRUE) + ggtitle("VIP") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "CCK.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "CCK", is_stitched = TRUE) + ggtitle("CCK") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "GLP1R.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "GLP1R", is_stitched = TRUE) + ggtitle("GLP1R") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "TAC3.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "TAC3", is_stitched = TRUE) + ggtitle("TAC3") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "SLC5A7.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "SLC5A7", is_stitched = TRUE) + ggtitle("SLC5A7") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "CHAT.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "CHAT", is_stitched = TRUE) + ggtitle("CHAT") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "SST.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "SST", is_stitched = TRUE) + ggtitle("SST") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "KCNC2.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "KCNC2", is_stitched = TRUE) + ggtitle("KCNC2") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+pdf(file.path(plotDir, "ANK1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "ANK1", is_stitched = TRUE) + ggtitle("ANK1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "LHX8.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "LHX8", is_stitched = TRUE) + ggtitle("LHX8") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "COL6A6.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "COL6A6", is_stitched = TRUE) + ggtitle("COL6A6") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+dev.off()
+
+pdf(file.path(plotDir, "ECEL1.pdf"), width = 6, height = 6)
+vis_gene(spe, sampleid = "Br6522", geneid = "ECEL1", is_stitched = TRUE) + ggtitle("ECEL1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
 dev.off()

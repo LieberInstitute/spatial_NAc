@@ -17,7 +17,7 @@ spatial_enr_dir <- here("processed-data", "10_post_clustering_analysis","01_pseu
 dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Load snRNA-seq registration results
-sn_registration <- readRDS(file.path(dat_dir, "sn_cellType_registration.rds"))
+sn_registration <- readRDS(file.path(dat_dir, "sn_cellType_registration_tran.rds"))
 ## Select t-stats from the registration enrichment data
 registration_t_stats <- sn_registration$enrichment[, grep("^t_stat", colnames(sn_registration$enrichment))]
 colnames(registration_t_stats) <- gsub("^t_stat_", "", colnames(registration_t_stats))
@@ -58,18 +58,21 @@ if(grepl("BayesSpace", opt$clustering_type)){
 theSeq <- seq(-1, 1, by = 0.01)
 my.col <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(7, "PRGn"))(length(theSeq))
 
-pdf(file.path(plot_dir, "cor_top100_sn_spatial_registration_final_clusters.pdf"), width = 13, height = 10)
+pdf(file.path(plot_dir, "cor_top100_sn_spatial_registration_final_clusters_tran.pdf"), width = 13, height = 10)
 map(cor_top100, ~layer_matrix_plot(t(.x), mypal = my.col, srt = 90, mar = c(10 + max(nchar(rownames(.x)))*0.5, 5 + max(nchar(colnames(.x)))*0.5, 5, 5)), max = 1)
 dev.off()
 
 
 cor_mat <- cor_top100$precast_clusters
 rownames(cor_mat) <- gsub("_", " ", rownames(cor_mat))
+rownames(cor_mat) <- gsub("\\.", " ", rownames(cor_mat))
 colnames(cor_mat) <- gsub("\\.", " ", colnames(cor_mat))
 colnames(cor_mat)[colnames(cor_mat) == "Endothelial Ependymal"] <- "Endothelial/\nEpendymal"
 order_cols <- c("MSN 1", "MSN 2", "MSN 3", "D1 islands", "Excitatory", "Inhibitory", "WM", "Endothelial/\nEpendymal")
-order_rows <- c("DRD1 MSN A", "DRD2 MSN A", "DRD1 MSN C", "DRD2 MSN B", "DRD1 MSN B", "DRD1 MSN D", "Excitatory", "Inh A", 
-"Inh B", "Inh C", "Inh D", "Inh E", "Inh F", "Astrocyte A", "Astrocyte B", "Microglia", "OPC", "Oligo", "Ependymal", "Endothelial")
+order_rows <- c("MSN D1 A", "MSN D2 A", "MSN D1 D", "MSN D2 B", 
+"MSN D1 C", "MSN D2 C", "MSN D2 D", "MSN D1 F", "MSN D1 B", "MSN D1 E", 
+"Inhib B", "Inhib A", "Inhib C", "Inhib D", "Inhib E", "Oligo A", "Oligo B",
+ "OPC COP", "OPC", "Micro", "Micro resting", "Astro A", "Astro B")
 
 cor_mat <- cor_mat[rownames(cor_mat) %in% order_rows, ]
 cor_mat <- cor_mat[match(order_rows, rownames(cor_mat)), ]
@@ -88,7 +91,7 @@ complex_plot_cor <- ComplexHeatmap::Heatmap(matrix = t(cor_mat),
                               heatmap_legend_param = list(legend_direction = "horizontal",legend_width = unit(6, "cm"),title_position = "topcenter", title_gp = gpar(fontsize = 14), border = "black"), 
                               row_names_side = "left")
 
-pdf(file.path(plot_dir, "cor_top100_sn_spatial_registration_final_clusters_2.pdf"), width = 7, height = 5)
+pdf(file.path(plot_dir, "cor_top100_sn_spatial_registration_final_clusters_2_tran.pdf"), width = 7, height = 5)
 draw(complex_plot_cor, heatmap_legend_side="bottom")
 dev.off()
 

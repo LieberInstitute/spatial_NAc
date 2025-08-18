@@ -73,12 +73,12 @@ marker_labels <- c(rep("D1 islands",5),
 marker_labels <- factor(x = marker_labels,
                         levels =  unique(marker_labels))
 
-colors_markers <- list(marker = c("D1 islands" = "#117733",
-                                  "Endothelial/Ependymal" = "#332288",
-                                  "Excitatory" = "#AA4499",
-                                  "Inhibitory" = "#44AA99",
-                                  "MSN" = "#DDCC77",
-                                  "WM" = "#6699CC"))
+colors_markers <- list(marker = c("D1 islands" = "#E7298A",
+                                  "Endothelial/Ependymal" = "#A6761D",
+                                  "Excitatory" = "#D95F02",
+                                  "Inhibitory" = "#E6AB02",
+                                  "MSN" = "#3288bd",
+                                  "WM" = "#666666"))
 
 col_ha <- ComplexHeatmap::columnAnnotation(marker = marker_labels,
                                            show_annotation_name = FALSE,
@@ -111,14 +111,14 @@ cluster_pops_rev <- factor(cluster_pops_rev, levels = names(cluster_pops))
 
 #row annotation dataframe. 
 # row annotation
-pop_markers <- list(population = c(D1_islands = "#117733",
-                                   Endo = "#332288",
-                                   Excitatory = "#AA4499",
-                                   Inhibitory = "#44AA99",
-                                   MSN_1 = "#999933",
-                                   MSN_2 = "#882255",
-                                   MSN_3 = "#661100",
-                                   WM = "#6699CC"))
+pop_markers <- list(population = c(D1_islands = "#E7298A",
+                                   Endo = "#A6761D",
+                                   Excitatory = "#D95F02",
+                                   Inhibitory = "#E6AB02",
+                                   MSN_1 = "#66A61E",
+                                   MSN_2 = "#1B9E77",
+                                   MSN_3 = "#7570B3",
+                                   WM = "#666666"))
 
 row_ha <- rowAnnotation(population = cluster_pops_rev,
                         show_annotation_name = FALSE,

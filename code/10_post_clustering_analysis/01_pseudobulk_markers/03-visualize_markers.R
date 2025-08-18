@@ -34,7 +34,7 @@ opt <- getopt(spec)
 #opt$capture_area_path <- '01_precast/pseudobulk_capture_area/final_clusters_2'
 #opt$donor_path <- '01_precast/pseudobulk_donor/final_clusters'
 #opt$cluster_col <- 'precast_clusters'
-#opt$spot_path <- '01_precast/nnSVG_precast/random_start_1/PRECAST_k3_marker_genes.csv'
+#opt$spot_path <- '01_precast/nnSVG_precast/random_start_3/PRECAST_k10_marker_genes.csv'
 
 if(opt$capture_area_path == "NA"){
   opt$capture_area_path <- NA
@@ -128,7 +128,7 @@ if(!is.na(opt$capture_area_path)){
     pointSize = 1.0,labSize = 3.0, colAlpha = 0.5, pCutoff = 1e-3, FCcutoff = 1, legendLabels=c('Not sig.','Log FC','p-value',
       'p-value & Log FC'), drawConnectors = TRUE, min.segment.length = 0.5, max.overlaps = 5) 
   }
-  pdf(file.path(plotDir, "enhanced_volcano_captureArea.pdf"), width = 10, height = 10)
+  pdf(file.path(plotDir, "enhanced_volcano_captureArea.pdf"), width = 4, height = 4)
   for(k in 1:length(pVolcano_captureArea)){
     print(pVolcano_captureArea[[k]])
   }
