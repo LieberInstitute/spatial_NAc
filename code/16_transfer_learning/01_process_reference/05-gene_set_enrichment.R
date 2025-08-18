@@ -168,6 +168,23 @@ nmf.results.44 = fgseaMultilevel(pathways.44, stats=nmf44.stats, scoreType="pos"
 nmf.results.44$leadingEdge2 = sapply(nmf.results.44$leadingEdge, paste, collapse="/")
 write.csv(nmf.results.44[,c(1:7,9)], file.path(res_dir ,"nmf44_reactome_results.csv"))
 
+# Repeat for NMF 39
+non0.nmf39 = rownames(loads)[loads[,"nmf39"]>0]
+non0.39.id = mapIds(org.Hs.eg.db, keys=non0.nmf39, keytype="ENSEMBL", column="ENTREZID", multiVals = "first")
+names(non0.39.id) = non0.nmf39
+non0.39.id = non0.39.id[!is.na(non0.39.id)]
+pathways.39 <- reactomePathways(non0.39.id)
+pathways.39 <- x.h[names(pathways.39)]
+
+nmf39.stats = loads[names(non0.39.id),"nmf39"]
+names(nmf39.stats) = non0.39.id
+#in order to get reproducible results, must call set.seed every time before you run the function
+### the function has an internal set seed that makes this necessary
+set.seed(123)
+nmf.results.39 = fgseaMultilevel(pathways.39, stats=nmf39.stats, scoreType="pos", minSize=15, maxSize=500)
+nmf.results.39$leadingEdge2 = sapply(nmf.results.39$leadingEdge, paste, collapse="/")
+write.csv(nmf.results.39[,c(1:7,9)], file.path(res_dir ,"nmf39_reactome_results.csv"))
+
 
 # GSEA tables
 
@@ -221,6 +238,13 @@ nmf44.terms = c("Activation of NMDA receptors and postsynaptic events",
 pdf(file.path(plot_dir, "GSEA_table_nmf44.pdf"), width = 7, height = 3)
 plotGseaTable(x.h[nmf44.terms],
               nmf44.stats, nmf.results.44, 
+              gseaParam = 0.5)
+dev.off()
+
+nmf39.terms = c("Signaling by GPCR", "Signaling by Receptor Tyrosine Kinases", "Transmission across Chemical Synapses", "SLC-mediated transmembrane transport")
+pdf(file.path(plot_dir, "GSEA_table_nmf39.pdf"), width = 7, height = 3)
+plotGseaTable(x.h[nmf39.terms],
+              nmf39.stats, nmf.results.39, 
               gseaParam = 0.5)
 dev.off()
 

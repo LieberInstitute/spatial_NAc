@@ -9,7 +9,7 @@ library(here)
 set.seed(123)
 
 opt <- list()
-opt$data <- "rat_case_control_repeated"
+opt$data <- "human_NAc"
 
 dat_dir <- here::here("processed-data", "16_transfer_learning", "01_process_reference", "preliminary_analysis", opt$data)
 sce <- readRDS(file = file.path(dat_dir, "snRNA_seq_NAc.rds"))
@@ -61,8 +61,6 @@ if(opt$data == "rat_case_control_morphine_acute" | opt$data == "rat_case_control
   onehot_sample <- onehot_sample[match(rownames(loadings) , rownames(onehot_sample)), ]
   corr_df <- cor(loadings, onehot_sample)
 }
-
-
 
 if(opt$data == "human_NAc"){
   corr_df <- corr_df[abs(corr_df[ ,1]) > 0.3, ]
@@ -137,6 +135,7 @@ if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated
 if(opt$data == "rat_case_control_morphine_acute" | opt$data == "rat_case_control_morphine_repeated"){
   cellType_col <- "cellType_Stim"
 }
+
 seed1 = as.matrix(meta_df[,paste0("nmf",1:nFactors)])
 seed1 = seed1>0
 d1 = cbind.data.frame(cell.class=as.data.frame(meta_df)[,cellType_col],
@@ -344,7 +343,7 @@ nmf.ordered.remove <- nmf.ordered.remove[!nmf.ordered.remove %in% sex_specific_f
 
 dot.df$nmf_f = factor(dot.df$nmf, levels=c(rownames(corr_df), nmf.ordered.remove, nmf.ordered.keep))
 
-pdf(file.path(plotDir, "NMF_by_cell_types.pdf"), width = 10, height = 8)
+pdf(file.path(plotDir, "NMF_by_cell_types.pdf"), width = 11, height = 4)
 ggplot(dot.df, aes(x=nmf_f, y=cell.class, size=prop, color=scaled.avg))+
   geom_count()+theme_bw()+
   scale_size(range=c(0,3))+scale_color_viridis_c(option="F", direction=-1)+
@@ -389,7 +388,7 @@ ggplot(dot.df2, aes(x=nmf_f, y=domain, size=prop, color=scaled.avg))+
 dev.off()
 
 if(opt$data == "human_NAc"){
-  dot.df3 <- dot.df2[dot.df2$domain %in% c("MSN 1", "MSN 2", "MSN 3"), ]
+dot.df3 <- dot.df2[dot.df2$domain %in% c("MSN 1", "MSN 2", "MSN 3"), ]
 dot.df3 <- dot.df3[dot.df3$prop > 0.2 & dot.df3$scaled.avg > 0.2, ]
 unique_nmf <- unique(dot.df3$nmf)
 select_nmf <- c("nmf38", "nmf10", "nmf3", "nmf7", "nmf39", "nmf4", "nmf25")

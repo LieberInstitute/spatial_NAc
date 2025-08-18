@@ -10,7 +10,7 @@ library(here)
 set.seed(123)
 
 opt <- list()
-opt$data <- "rat_case_control_cocaine_repeated"
+opt$data <- "rat_case_control_cocaine_acute"
 res_file <- here::here("processed-data", "16_transfer_learning", "02_target_projections", "projection_of_human_factors", paste0(opt$data, ".rds"))
 sce <- readRDS(res_file)
 

@@ -124,10 +124,7 @@ if(opt$data == "human_NAc"){
 
 
 if(opt$data == "rat_case_control_acute" | opt$data == "rat_case_control_repeated"){
-  counts <- counts(sce)
-  metadata <- sce
-  sobj <- CreateSeuratObject(counts = counts, project = "NAc_snRNAseq", min.cells = 1, min.features = 200)
-  sobj@meta.data <- metadata
+  sobj <- sce
   sobj <- NormalizeData(sobj, normalization.method = "LogNormalize", scale.factor = 10000)
 
   # For dimensionality reduction we only want to use genes that map to human orthologs and are found in the spatial data
