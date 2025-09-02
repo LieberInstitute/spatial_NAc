@@ -43,12 +43,25 @@ Throughout the rest of this document, we'll refer to this object by the name `sp
   - `lowres`: shows low resolution images of raw immunofluorescence data before image processing such as spectral unmixing and object segmentation.
 * `Discrete variable to plot`: which discrete variable (typically with the cluster labels) to visualize. We include the clusters:
   - `ManualAnnotation`: your own manual annotation of the spots.
-  - `scran_quick_cluster`: quick clustering results of spots prior to computing sum factors for computing logcounts. See [this](https://github.com/LieberInstitute/spatial_NAc/blob/2a839d5c3254f303f0a961ba9d6930501de36aef/code/05_harmony_BayesSpace/01-build_spe.R#L224-L229) for more details.
+  - `PRECAST_K{3-15}`: PRECAST clustering results corresponding to random start 3. See [this](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/07_spatial_domains/01_precast/01-run_precast.R) for more details
 * `Continuous variable to plot`: which gene or continuous variable (such as the cell count, the ratio of the mitochondrial chromosome expression) to visualize in the gene tabs as well as on the `clusters (interactive)` tab. Details:
-  - `sum_umi`: sum of UMI counts across a spot.
-  - `sum_gene`: number of genes with non-zero counts in a spot.
-  - `expr_chrM`: sum of chrM counts in a spot.
-  - `expr_chrM_ratio`: ratio of `expr_chrM / sum_umi`.
+  - `Quality control metrics`: QC metrics for each spot was computed as detailed [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/05_harmony_BayesSpace/02-compute_QC_metrics.R) and include 
+    - `sum_umi`: sum of UMI counts across a spot.
+    - `sum_gene`: number of genes with non-zero counts in a spot.
+    - `expr_chrM`: sum of chrM counts in a spot.
+    - `expr_chrM_ratio`: ratio of `expr_chrM / sum_umi`.
+    - `Nmask_dark_blue`: Predicted number of nuclei using Vistoseq
+    - `edge_distance`: Euclidean distance from edge using transformed spatial coordinates
+  - `RCTD Cell type deconvolution scores`: 
+    - `Oligo`: RCTD deconvolution weights for Oligodendrocytes
+    - `DRD1_MSN_A`:  RCTD deconvolution weights for DRD1_MSN_A.
+    - `DRD1_MSN_B`:  RCTD deconvolution weights for DRD1_MSN_B.
+    - `DRD1_MSN_C`:  RCTD deconvolution weights for DRD1_MSN_C.
+    - `DRD1_MSN_D`:  RCTD deconvolution weights for DRD1_MSN_D.
+    - `DRD2_MSN_A`:  RCTD deconvolution weights for DRD2_MSN_A.
+    - `DRD2_MSN_B`:  RCTD deconvolution weights for DRD2_MSN_B.
+    - `Inh_{A-F}` : RCTD deconvolution weights for Inhibitory cell types.
+   
 * `Spot transparency level`: the transparency of the spots in the visualizations. It can be useful if the spot colors are blocking the background image.
 * `Spot point size`: the size of the spots in the visualizations.
 * `Minimum count value`: Values from the selected `continuous variable to plot` at or below this threshold will not be displayed.
