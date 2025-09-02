@@ -43,7 +43,8 @@ Throughout the rest of this document, we'll refer to this object by the name `sp
   - `lowres`: shows low resolution images of raw immunofluorescence data before image processing such as spectral unmixing and object segmentation.
 * `Discrete variable to plot`: which discrete variable (typically with the cluster labels) to visualize. We include the clusters:
   - `ManualAnnotation`: your own manual annotation of the spots.
-  - `PRECAST_K{3-15}`: PRECAST clustering results corresponding to random start 3. See [this](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/07_spatial_domains/01_precast/01-run_precast.R) for more details
+  - `PRECAST_K{3-15}`: PRECAST clustering results corresponding to random start 3. See [this](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/07_spatial_domains/01_precast/01-run_precast.R) for more details. 
+  - `Spatial Domains (SpDs)`: 8 transcriptionally distinct SpDs were obtained by merging related PRECAST k = 10 domains. The script to annotate and merge PRECAST clusters can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/07_spatial_domains/01_precast/05-annotate_domains.R)
 * `Continuous variable to plot`: which gene or continuous variable (such as the cell count, the ratio of the mitochondrial chromosome expression) to visualize in the gene tabs as well as on the `clusters (interactive)` tab. Details:
   - `Quality control metrics`: QC metrics for each spot was computed as detailed [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/05_harmony_BayesSpace/02-compute_QC_metrics.R) and include 
     - `sum_umi`: sum of UMI counts across a spot.
@@ -52,15 +53,30 @@ Throughout the rest of this document, we'll refer to this object by the name `sp
     - `expr_chrM_ratio`: ratio of `expr_chrM / sum_umi`.
     - `Nmask_dark_blue`: Predicted number of nuclei using Vistoseq
     - `edge_distance`: Euclidean distance from edge using transformed spatial coordinates
-  - `RCTD Cell type deconvolution scores`: 
-    - `Oligo`: RCTD deconvolution weights for Oligodendrocytes
-    - `DRD1_MSN_A`:  RCTD deconvolution weights for DRD1_MSN_A.
-    - `DRD1_MSN_B`:  RCTD deconvolution weights for DRD1_MSN_B.
-    - `DRD1_MSN_C`:  RCTD deconvolution weights for DRD1_MSN_C.
-    - `DRD1_MSN_D`:  RCTD deconvolution weights for DRD1_MSN_D.
-    - `DRD2_MSN_A`:  RCTD deconvolution weights for DRD2_MSN_A.
-    - `DRD2_MSN_B`:  RCTD deconvolution weights for DRD2_MSN_B.
-    - `Inh_{A-F}` : RCTD deconvolution weights for Inhibitory cell types.
+  - `RCTD Cell type deconvolution scores`: RCTD deconvolution weights were generated using paired snRNA-seq and 10x Visium data to examine the relative proportions of the identified cell types in snRNA-seq across Visium spots. The code used to prepare the inputs, run RCTD, and visualize domain-level differences in cell type proportions can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/08_spot_deconvo/01_RCTD). We report the cell type deconvolution scores corresponding to:
+    - `Oligo`
+    - `DRD1_MSN_A`
+    - `DRD1_MSN_B`
+    - `DRD1_MSN_C`
+    - `DRD1_MSN_D`
+    - `DRD2_MSN_A`
+    - `DRD2_MSN_B`
+    - `Inh_{A-F}` 
+    - `Excitatory`
+    - `Endothelial`
+    - `Microglia`
+    - `Ependymal`
+    - `Astrocyte_A/B`
+  - `MERINGUE consensus patterns`: We include the inferred MERINGUE consensus pattern scores for MCPs 1-4. Details for the inference of MERINGUE factors independently in each sample can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/14_MSN_factorization/01_run_MERINGUE_single_sample.R), and the scripts used in clustering donor-specific MERINGUE patterns to consensus patterns can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/14_MSN_factorization/02_plot_patterns.R)
+  - `Projections of NMF factors inferred in paired snRNA-seq data`: We include projections from 66 unsupervised latent factors, labeled, `human_snRNA_nmf{1-66}`. The scripts used to infer the latent factors can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/01_process_reference) and the scripts used for projection is [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/02_target_projections)
+  - `Projections of NMF factors inferred in rodent snRNA-seq data include volitional morphine and controls`: We include projections from 30 unsupervised latent factors, labeled, `morphine_volitional_nmf{1-30}`. The scripts used to infer the latent factors can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/04_cellType_NMF/01-run_NMF.R) and the scripts used for projection is [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/04_cellType_NMF/02-project_NMF.R)
+  - `Projections of NMF factors inferred in rodent snRNA-seq data include acute morphine and controls`: We include projections from 30 unsupervised latent factors, labeled, `morphine_acute_nmf{1-30}`. The scripts used to infer the latent factors can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/04_cellType_NMF/01-run_NMF.R) and the scripts used for projection is [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/04_cellType_NMF/02-project_NMF.R)
+  - `Projections of NMF factors inferred in rodent snRNA-seq data include acute cocaine and controls`: We include projections from 30 unsupervised latent factors, labeled, `cocaine_acute_nmf{1-30}`. The scripts used to infer the latent factors can be found [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/04_cellType_NMF/01-run_NMF.R) and the scripts used for projection is [here](https://github.com/LieberInstitute/spatial_NAc/blob/main/code/16_transfer_learning/04_cellType_NMF/02-project_NMF.R)
+
+  
+  
+
+
    
 * `Spot transparency level`: the transparency of the spots in the visualizations. It can be useful if the spot colors are blocking the background image.
 * `Spot point size`: the size of the spots in the visualizations.
