@@ -3,6 +3,10 @@ spatialNAc
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+
+<img src="https://github.com/LieberInstitute/spatial_NAc/blob/main/project_overview.png" width="1000px" align="left" />
+
+
 ## Overview
 
 Welcome to the `spatialNAc` project! This project involves paired
