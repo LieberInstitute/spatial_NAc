@@ -72,6 +72,16 @@ software labeled by emojis:
 - iSEE
   - 👀 [snRNA_NAC](https://interactive.libd.org/snRNA_NAC/)
 
+## Data Availability  
+
+### Processed Data  
+
+A public globus endpoint was created and contains objects too large for github. It is available at [https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F](https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F)  
+
+### Raw Data
+
+Sequencing data has been uploaded to GEO with accession numbers [accession number] for spatial data and [accession number] for single nucleus data
+
 ## Contact
 
 We value public questions, as they allow other users to learn from the
