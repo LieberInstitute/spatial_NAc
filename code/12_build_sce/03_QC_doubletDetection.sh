@@ -6,7 +6,6 @@
 #SBATCH --error=logs/03_QC_doubletdetection.log 
 #SBATCH --mem=50G
 #SBATCH --mail-type=END
-#SBATCH --mail-user=Robert.Phillips@libd.org
 
 echo "********* Job Starts *********"
 date

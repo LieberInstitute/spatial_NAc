@@ -1,0 +1,370 @@
+********* Job Starts *********
+Tue Sep  2 04:06:39 PM EDT 2025
+Loading LIBD SLURM module for r_nac/1.0
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+[1]  36601 103785
+class: SingleCellExperiment 
+dim: 36601 103785 
+metadata(1): Samples
+assays(2): counts logcounts
+rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
+  ENSG00000277196
+rowData names(7): source type ... gene_type binomial_deviance
+colnames(103785): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
+  20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
+colData names(41): Sample Barcode ... sizeFactor CellType.Final
+reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
+mainExpName: NULL
+altExpNames(0):
+class: SingleCellExperiment 
+dim: 36601 103339 
+metadata(1): Samples
+assays(2): counts logcounts
+rownames(36601): ENSG00000243485 ENSG00000237613 ... ENSG00000278817
+  ENSG00000277196
+rowData names(7): source type ... gene_type binomial_deviance
+colnames(103339): 1_AAACCCAAGACCAACG-1 1_AAACCCACAGTCAGCC-1 ...
+  20_TTTGTTGCAAGATGTA-1 20_TTTGTTGGTACGAAAT-1
+colData names(41): Sample Barcode ... sizeFactor CellType.Final
+reducedDimNames(4): GLMPCA_approx tSNE HARMONY tSNE_HARMONY
+mainExpName: NULL
+altExpNames(0):
+[1]  36601 103339
+[1] "Table for genes with 0 counts"
+
+FALSE  TRUE 
+34977  1624 
+[1]  34977 103339
+Loading objects:
+  markers_1vALL_df
+Loading objects:
+  markers_pairwise
+          gene_id    logFC log.p.value    log.FDR std.logFC cellType.target
+1 ENSG00000147488 5.583357  -100288.25 -100277.79  7.361952           Oligo
+2 ENSG00000123560 5.430060   -99918.14  -99908.38  7.331206           Oligo
+3 ENSG00000187147 4.976883   -89456.84  -89447.47  6.498370           Oligo
+4 ENSG00000164124 4.296234   -89268.56  -89259.48  6.483991           Oligo
+5 ENSG00000197971 5.003249   -86266.01  -86257.16  6.257424           Oligo
+6 ENSG00000183230 5.219589   -74206.43  -74197.76  5.395578           Oligo
+  rank_marker         anno_logFC gene_name
+1           1  std logFC = 7.362      ST18
+2           2  std logFC = 7.331      PLP1
+3           3  std logFC = 6.498    RNF220
+4           4  std logFC = 6.484   TMEM144
+5           5  std logFC = 6.257       MBP
+6           6  std logFC = 5.396    CTNNA3
+  p.value FDR summary.stats stats.Astrocyte_B.logFC
+1       0   0      5.173309                2.633601
+2       0   0      1.140543                1.140543
+3       0   0      1.747230                1.747230
+4       0   0      1.218208                1.218208
+5       0   0      1.480371                1.480371
+6       0   0      2.613068                1.395679
+  stats.Astrocyte_B.log.p.value stats.Astrocyte_B.log.FDR
+1                     -5679.824                 -5670.747
+2                     -3173.942                 -3166.045
+3                     -3170.551                 -3162.728
+4                     -2986.127                 -2978.498
+5                     -2751.583                 -2744.065
+6                     -3438.578                 -3430.312
+  stats.DRD1_MSN_A.logFC stats.DRD1_MSN_A.log.p.value stats.DRD1_MSN_A.log.FDR
+1               6.405817                    -78001.02                -77991.25
+2               5.617283                   -112793.65               -112783.19
+3               4.474316                    -58902.92                -58894.94
+4               3.587429                    -66808.89                -66800.04
+5               4.024071                    -57969.03                -57961.21
+6               2.600806                    -41320.44                -41313.12
+  stats.DRD1_MSN_B.logFC stats.DRD1_MSN_B.log.p.value stats.DRD1_MSN_B.log.FDR
+1               6.258095                    -58425.79                -58416.02
+2               5.598640                    -91509.47                -91499.01
+3               4.494986                    -43894.26                -43886.28
+4               3.585552                    -50294.62                -50285.95
+5               4.064099                    -43419.41                -43411.52
+6               2.601220                    -29329.33                -29322.05
+  stats.DRD1_MSN_C.logFC stats.DRD1_MSN_C.log.p.value stats.DRD1_MSN_C.log.FDR
+1               6.446965                    -41816.40                -41806.63
+2               5.577518                    -67733.64                -67723.18
+3               4.568161                    -29614.73                -29606.46
+4               3.569384                    -33532.74                -33524.07
+5               4.041811                    -28298.24                -28290.34
+6               2.600332                    -18388.09                -18380.81
+  stats.DRD1_MSN_D.logFC stats.DRD1_MSN_D.log.p.value stats.DRD1_MSN_D.log.FDR
+1               6.267469                    -27224.46                -27214.69
+2               5.597455                    -49510.20                -49499.74
+3               4.495635                    -18890.17                -18882.19
+4               3.594426                    -22497.06                -22488.20
+5               4.062904                    -18622.98                -18615.09
+6               2.601076                    -11607.14                -11599.90
+  stats.DRD2_MSN_A.logFC stats.DRD2_MSN_A.log.p.value stats.DRD2_MSN_A.log.FDR
+1               6.472992                    -78704.31                -78694.54
+2               5.618241                   -112652.54               -112642.08
+3               4.470018                    -58715.37                -58707.40
+4               3.588245                    -66697.78                -66689.11
+5               4.025810                    -57880.03                -57872.21
+6               2.599799                    -41201.25                -41193.92
+  stats.DRD2_MSN_B.logFC stats.DRD2_MSN_B.log.p.value stats.DRD2_MSN_B.log.FDR
+1               6.372591                    -33784.20                -33774.43
+2               5.601943                    -57982.55                -57972.09
+3               4.407993                    -22514.56                -22506.73
+4               3.584350                    -27363.44                -27354.77
+5               4.028101                    -22609.17                -22601.28
+6               2.588383                    -14383.87                -14376.63
+  stats.Endothelial.logFC stats.Endothelial.log.p.value
+1                6.268101                    -20338.800
+2                5.560519                    -38397.999
+3                4.921880                    -16182.626
+4                3.582021                    -16518.187
+5                3.237294                     -9056.733
+6                1.934137                     -4777.778
+  stats.Endothelial.log.FDR stats.Ependymal.logFC stats.Ependymal.log.p.value
+1                -20329.031              5.661262                  -18136.978
+2                -38387.537              4.840521                  -32971.200
+3                -16173.773              4.660480                  -15598.276
+4                -16509.111              3.453624                  -16425.146
+5                 -9049.489              3.292302                   -9923.587
+6                 -4771.633              1.536797                   -3272.938
+  stats.Ependymal.log.FDR stats.Excitatory.logFC stats.Excitatory.log.p.value
+1              -18127.208               5.393068                    -23769.00
+2              -32960.737               5.594471                    -53668.23
+3              -15589.200               4.661110                    -22293.98
+4              -16415.782               3.269211                    -21404.66
+5               -9915.523               4.026187                    -20416.13
+6               -3266.882               2.454582                    -11738.99
+  stats.Excitatory.log.FDR stats.Inh_A.logFC stats.Inh_A.log.p.value
+1                -23759.64          6.528288               -36580.44
+2                -53657.77          5.584579               -59921.64
+3                -22285.13          4.653779               -25787.33
+4                -21396.28          3.431103               -26815.12
+5                -20408.16          4.009557               -23579.93
+6                -11731.82          2.603087               -15321.77
+  stats.Inh_A.log.FDR stats.Inh_B.logFC stats.Inh_B.log.p.value
+1           -36570.67          5.978469               -15536.18
+2           -59911.18          5.585827               -32874.09
+3           -25778.81          4.809265               -12783.71
+4           -26806.27          3.194481               -11094.56
+5           -23571.86          4.102397               -11359.24
+6           -15314.25          2.599505                -6762.62
+  stats.Inh_B.log.FDR stats.Inh_C.logFC stats.Inh_C.log.p.value
+1          -15526.413          6.270177               -28593.76
+2          -32863.625          5.621847               -51813.38
+3          -12774.858          4.622652               -20840.74
+4          -11086.404          3.576507               -23473.82
+5          -11350.970          3.788680               -17449.89
+6           -6755.101          2.615424               -12395.45
+  stats.Inh_C.log.FDR stats.Inh_D.logFC stats.Inh_D.log.p.value
+1           -28583.99          5.173309               -4483.857
+2           -51802.91          4.915635              -11015.212
+3           -20832.22          4.721536               -4612.352
+4           -23464.97          3.387937               -4593.219
+5           -17441.99          4.090699               -4185.504
+6           -12388.08          2.613068               -2461.287
+  stats.Inh_D.log.FDR stats.Inh_E.logFC stats.Inh_E.log.p.value
+1           -4475.340          5.930357              -12731.369
+2          -11004.750          5.599523              -28125.351
+3           -4602.989          4.638549               -9909.025
+4           -4584.143          3.568638              -11195.871
+5           -4177.344          4.093444               -9342.116
+6           -2453.915          2.579316               -5459.988
+  stats.Inh_E.log.FDR stats.Inh_F.logFC stats.Inh_F.log.p.value
+1          -12721.600          5.849033               -24016.47
+2          -28114.889          5.586482               -48725.90
+3           -9900.642          4.726611               -20180.66
+4          -11186.795          3.486525               -21044.98
+5           -9334.138          4.060980               -18285.26
+6           -5452.661          2.560382               -11074.33
+  stats.Inh_F.log.FDR stats.Microglia.logFC stats.Microglia.log.p.value
+1           -24006.70              6.560493                   -55476.68
+2           -48715.44              5.596323                   -83887.34
+3           -20171.81              4.967165                   -44485.24
+4           -21035.90              3.550989                   -44135.16
+5           -18277.10              2.915084                   -23181.79
+6           -11066.96              2.609391                   -25634.56
+  stats.Microglia.log.FDR stats.Oligo.logFC stats.Oligo.log.p.value
+1               -55466.91          6.591109               -80466.16
+2               -83876.87          5.584233              -112428.23
+3               -44476.57          4.864369               -65071.73
+4               -44126.64          3.579926               -66795.30
+5               -23175.17          4.104357               -59489.22
+6               -25627.76          2.612000               -41674.50
+  stats.Oligo.log.FDR stats.OPC.logFC stats.OPC.log.p.value stats.OPC.log.FDR
+1           -80456.39        3.710927             -22773.86         -22765.88
+2          -112417.77        5.451272             -77377.97         -77367.51
+3           -65063.34        4.577348             -36885.48         -36876.63
+4           -66786.79        3.299386             -37009.78         -37000.70
+5           -59481.32        3.021947             -22534.92         -22527.03
+6           -41667.47        1.984266             -14882.66         -14875.96
+          gene_id  gene_name
+1 ENSG00000110436     SLC1A2
+2 ENSG00000234377   OBI1-AS1
+3 ENSG00000236197 AC002429.2
+4 ENSG00000236790  LINC00299
+5 ENSG00000135540      NHSL1
+6 ENSG00000080573     COL5A3
+[1] "Astrocyte_A"
+[1] 629
+[1] "Astrocyte_B"
+[1] 353
+[1] "DRD1_MSN_A"
+[1] 203
+[1] "DRD1_MSN_B"
+[1] 171
+[1] "DRD1_MSN_C"
+[1] 412
+[1] "DRD1_MSN_D"
+[1] 167
+[1] "DRD2_MSN_A"
+[1] 345
+[1] "DRD2_MSN_B"
+[1] 553
+[1] "Endothelial"
+[1] 1135
+[1] "Ependymal"
+[1] 2579
+[1] "Excitatory"
+[1] 664
+[1] "Inh_A"
+[1] 490
+[1] "Inh_B"
+[1] 189
+[1] "Inh_C"
+[1] 264
+[1] "Inh_D"
+[1] 977
+[1] "Inh_E"
+[1] 389
+[1] "Inh_F"
+[1] 49
+[1] "Microglia"
+[1] 1454
+[1] "Oligo"
+[1] 797
+[1] "OPC"
+[1] 484
+          gene_id  gene_name FDR    logFC Testing_Type cellType.target
+1 ENSG00000110436     SLC1A2   0 5.173309     Pairwise     Astrocyte_A
+2 ENSG00000234377   OBI1-AS1   0 1.140543     Pairwise     Astrocyte_A
+3 ENSG00000236197 AC002429.2   0 1.747230     Pairwise     Astrocyte_A
+4 ENSG00000236790  LINC00299   0 1.218208     Pairwise     Astrocyte_A
+5 ENSG00000135540      NHSL1   0 1.480371     Pairwise     Astrocyte_A
+6 ENSG00000080573     COL5A3   0 2.613068     Pairwise     Astrocyte_A
+          gene_id gene_name FDR    logFC Testing_Type cellType.target
+1 ENSG00000147488      ST18   0 7.361952        1vALL           Oligo
+2 ENSG00000123560      PLP1   0 7.331206        1vALL           Oligo
+3 ENSG00000187147    RNF220   0 6.498370        1vALL           Oligo
+4 ENSG00000164124   TMEM144   0 6.483991        1vALL           Oligo
+5 ENSG00000197971       MBP   0 6.257424        1vALL           Oligo
+6 ENSG00000183230    CTNNA3   0 5.395578        1vALL           Oligo
+R version 4.3.2 (2023-10-31)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Rocky Linux 9.4 (Blue Onyx)
+
+Matrix products: default
+BLAS/LAPACK: /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/libopenblasp-r0.3.25.so;  LAPACK version 3.11.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: US/Eastern
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats4    stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] here_1.0.1                  writexl_1.5.4              
+ [3] SingleCellExperiment_1.24.0 SummarizedExperiment_1.32.0
+ [5] Biobase_2.62.0              GenomicRanges_1.54.1       
+ [7] GenomeInfoDb_1.38.1         IRanges_2.36.0             
+ [9] S4Vectors_0.40.2            BiocGenerics_0.48.1        
+[11] MatrixGenerics_1.14.0       matrixStats_1.2.0          
+
+loaded via a namespace (and not attached):
+ [1] SparseArray_1.2.2       zlibbioc_1.48.0         Matrix_1.6-4           
+ [4] lattice_0.22-5          abind_1.4-5             GenomeInfoDbData_1.2.11
+ [7] S4Arrays_1.2.0          XVector_0.42.0          RCurl_1.98-1.13        
+[10] bitops_1.0-7            grid_4.3.2              DelayedArray_0.28.0    
+[13] compiler_4.3.2          rprojroot_2.0.4         tools_4.3.2            
+[16] crayon_1.5.2           
+********* Job Ends *********
+Tue Sep  2 04:08:12 PM EDT 2025

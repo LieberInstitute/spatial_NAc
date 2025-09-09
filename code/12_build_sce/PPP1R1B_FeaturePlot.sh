@@ -3,9 +3,9 @@
 #SBATCH -p shared
 #SBATCH -c 1
 #SBATCH --mem=250GB
-#SBATCH --job-name=01_buildbasicSCE
-#SBATCH --output=logs/01_build_basic_sce.log
-#SBATCH --error=logs/01_build_basic_sce.log
+#SBATCH --job-name=ppp1r1b_featureplot
+#SBATCH --output=logs/ppp1r1b_featureplot.log
+#SBATCH --error=logs/ppp1r1b_featureplot.log
 
 
 echo "********* Job Starts *********"
@@ -13,7 +13,7 @@ date
 
 
 module load r_nac
-Rscript 01_build_basic_sce.R
+Rscript PPP1R1B_FeaturePlot.R
 
 
 echo "********* Job Ends *********"

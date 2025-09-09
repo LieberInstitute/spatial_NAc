@@ -1,0 +1,99 @@
+
+
+
+#cd /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/
+#module load r_nac
+
+library(SingleCellExperiment)
+library(writexl)
+library(here)
+
+
+#############
+#Load sce
+sce <- readRDS(here("processed-data","12_snRNA","sce_CellType_noresiduals.Rds"))
+
+dim(sce)
+#[1]  36601 103785
+
+stopifnot(identical(rownames(colData(sce)),colnames(sce)))
+
+sce
+
+#######
+#Remove the neuronal ambiguous population from further analysis. 
+sce <- sce[,sce$CellType.Final != "Neuron_Ambig"]
+
+sce
+
+
+dim(sce)
+
+
+stopifnot(identical(rownames(colData(sce)),colnames(sce)))
+###############
+#Do any genes have 0 counts for every cell. 
+print("Table for genes with 0 counts")
+table(rowSums(assay(sce, "counts")) == 0)
+
+#Remove the genes with 0 counts
+sce <- sce[!rowSums(assay(sce, "counts")) == 0, ]
+
+dim(sce)
+
+
+
+###Load the 1vALL genes
+load(here("processed-data","markers_1vAll_CellType_Final.rda"),verbose = TRUE)
+
+
+##Load pairwise DEGs
+load(here("processed-data","12_snRNA","markers_pairwise_CellType_Final.rda"),verbose = TRUE)
+
+
+#Sanity checks. 
+stopifnot(all(unique(markers_1vALL_df$cellType.target) %in% unique(sce$CellType.Final)))
+
+
+stopifnot(all(names(markers_pairwise) %in% unique(sce$CellType.Final)))
+
+
+#Check out the structure of the dataframes
+head(markers_1vALL_df)
+
+
+head(markers_pairwise[[1]])
+
+
+#Subset the two dataframe to include gene_id, gene_name, FDR, and log.FC
+markers_1vALL_sub <- markers_1vALL_df[,c("gene_id","gene_name","log.FDR","std.logFC","cellType.target")]
+
+#Subset FDR <=0.05
+log_fdr_threshold <- log(0.05)
+
+markers_1vALL_sub <- subset(markers_1vALL_sub,subset=(log.FDR <= log_fdr_threshold))
+
+#Change structure of the tables
+for(i in names(markers_pairwise)){
+  print(i)
+  #Subset for only relevant columns
+  markers_pairwise[[i]] <- markers_pairwise[[i]][,c("gene_id","gene_name","FDR","summary.stats")]
+  #Add cell type column
+  markers_pairwise[[i]]$cellType.target <- i
+  #subset for FDR <= 0.05 
+  markers_pairwise[[i]] <- subset(markers_pairwise[[i]],subset=(FDR <= 0.05))
+  print(nrow(markers_pairwise[[i]]))
+}
+
+#Collapse the pairwise dataframe
+markers_pairwise_df <- do.call(what = rbind,markers_pairwise)
+
+#Write the supplementary table
+write_xlsx(
+  list(One_versus_all = markers_1vALL_sub, Pairwise = markers_pairwise_df),
+  path = here("processed-data","12_snRNA","Supplementary","stabl_2_snRNA-seq_DEGs.xlsx")
+)
+
+
+sessionInfo()
+
