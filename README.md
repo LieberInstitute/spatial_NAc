@@ -11,7 +11,7 @@ spatialNAc
 
 Welcome to the `spatialNAc` project! This project involves paired
 snRNA-seq and SRT (10x Visium) data as well as several interactive
-websites, all of which you are publicly accessible for you to browse and
+websites, all of which are publicly accessible for you to browse and
 download.
 
 In this project we studied spatially resolved and single nucleus
@@ -36,7 +36,7 @@ Thank you for your interest in our work!
 
 ## Study Design
 
-**Study design to generate paired single nucleus RNA-sequencing
+**Generation of paired single nucleus RNA-sequencing
 (snRNA-seq) and spatially-resolved transcriptomic data across NAc**.
 Tissue blocks containing the NAc were dissected from 10 neurotypical
 adult donors (6 male, 4 female). Paired single-nucleus RNA sequencing
