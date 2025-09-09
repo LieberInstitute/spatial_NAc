@@ -16,19 +16,19 @@ while(<IN>){
 }
 close(IN);
 
-opendir($dh, "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/10x_visium/sLDSC_coefficients/");
+opendir($dh, "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/snRNA_seq/sLDSC_coefficients/");
 @outdirs = grep { !/^\./} readdir($dh);
 closedir $dh;
 
 $count=0;
 
-open(OUT, ">/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/10x_visium/ldsc_results.txt");
+open(OUT, ">/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/snRNA_seq/ldsc_results.txt");
 print OUT "cell\ttrait\tProp._SNPs	Prop._h2	Prop._h2_std_error	Enrichment	Enrichment_std_error	Enrichment_p	Coefficient	Coefficient_std_error	Coefficient_z-score\n";
 foreach $dir (@outdirs){
 	$count++;
 	print "$count\n";
 	$group=$dir;
-	chdir "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/10x_visium/sLDSC_coefficients/${dir}";
+	chdir "/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/snRNA_seq/sLDSC_coefficients/${dir}";
 	foreach $file(<*results>){
 		if(not defined $trait{$file}){
 			print "$file\n";

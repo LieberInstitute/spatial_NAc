@@ -58,9 +58,9 @@ for(d in levels(spe$donor)){
 spot_summary <- data.frame("donor" = donor, "capture_area" = capture_area, "nSpots" = nSpots)
 spe$sample_id_original <- as.factor(spe$sample_id_original)
 
-pdf(file.path(plot_dir, "spots_by_donor_after_filtering.pdf"), useDingbats = FALSE)
+pdf(file.path(plot_dir, "spots_by_donor_after_filtering.pdf"), width = 12, height = 4)
 ggplot(spot_summary, aes(fill=capture_area, y=nSpots, x=donor)) + 
-    geom_bar(position="dodge", stat="identity") + theme_classic() + xlab("Donor") + ylab("Number of spots")
+    geom_bar(position="dodge", stat="identity") + theme_classic() + xlab("Donor") + ylab("Number of spots") + guides(fill=guide_legend(ncol=3))
 dev.off()
 
 ################################################################################

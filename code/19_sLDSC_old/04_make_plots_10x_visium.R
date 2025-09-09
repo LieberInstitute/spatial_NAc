@@ -47,7 +47,7 @@ dat$trait[dat$trait=="mdd2019edinburgh"] <- "Depression"
 dat$p_zcore <- pnorm(abs(dat$Coefficient_z.score),lower.tail=F)*2
 dat$FDR <- p.adjust(dat$p_zcore,method="fdr")
 
-sig.ldsc <- filter(dat, FDR<.1) 
+sig.ldsc <- filter(dat, FDR<.05) 
 sig.ldsc$trait.ordered = factor(sig.ldsc$trait, levels=c("Education Years","Intelligence","Neuroticism",  "Bipolar","Schizophrenia","Depression",
                                                          "Smoking initiation", "Cigarettes per day","Drinks per week","Parkinson Disease", "Height"))
 

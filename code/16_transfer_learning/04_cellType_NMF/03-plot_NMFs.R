@@ -20,7 +20,7 @@ library(getopt)
 library(Seurat)
 
 opt <- list()
-opt$data <- "rat_case_control_cocaine_acute"
+opt$data <- "rat_case_control_morphine_repeated"
 opt$nFactors <- 30
 opt$select_HVGs <- FALSE
 
@@ -203,26 +203,21 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-# Build data frame for all combinations of selected NMFs and spatial domains
-dotplot_df <- expand.grid(
-  nmf = select_nmfs,
-  cluster = levels(spe$PRECAST_clusters)
-)
-
-# Calculate proportion of non-zero values and mean projection for each NMF × cluster
-dotplot_summary <- dotplot_df %>%
-  rowwise() %>%
-  mutate(
-    values = list(spe[[nmf]][spe$PRECAST_clusters == cluster]),
-    nonzero = sum(values[[1]] > 0, na.rm = TRUE),
-    total = length(values[[1]]),
-    proportion = ifelse(total > 0, nonzero / total, NA_real_),
-    mean_value = ifelse(total > 0, mean(values[[1]], na.rm = TRUE), NA_real_)
+cd <- as.data.frame(colData(spe))
+dotplot_summary <- cd %>%
+  select(cluster = PRECAST_clusters, all_of(select_nmfs)) %>%
+  mutate(cluster = as.character(cluster)) %>%
+  pivot_longer(-cluster, names_to = "nmf", values_to = "value") %>%
+  group_by(nmf, cluster) %>%
+  summarise(
+    n          = sum(!is.na(value)),
+    proportion = if_else(n > 0, mean(value > 0, na.rm = TRUE), NA_real_),
+    mean_value = if_else(n > 0, mean(value, na.rm = TRUE), NA_real_),
+    .groups = "drop"
   ) %>%
-  ungroup() %>%
   select(nmf, cluster, proportion, mean_value)
 
-  # Drop NAs
+# Drop NAs
 dotplot_summary <- na.omit(dotplot_summary)
 
 # Make factors ordered for clean plotting
@@ -272,7 +267,7 @@ cor_mat <- compute_visium_gene_correlations(spe, select_nmfs)
 rownames(cor_mat) <- make.unique(rowData(spe)$gene_name)
 
 
-plot_visium_gene_correlation_heatmap <- function(cor_mat, select_nmfs, top_n = 20, output_dir, file_name) {
+plot_visium_gene_correlation_heatmap <- function(cor_mat, select_nmfs, top_n = 20, output_dir, file_name, horiz = FALSE) {
   library(dplyr)
   library(tibble)
   library(ComplexHeatmap)
@@ -291,7 +286,10 @@ plot_visium_gene_correlation_heatmap <- function(cor_mat, select_nmfs, top_n = 2
 
   all_top_genes <- unique(unlist(top_genes_list))
   cor_mat_sub <- cor_mat[all_top_genes, select_nmfs, drop = FALSE]
-  #cor_mat_sub <- t(cor_mat_sub)  # Rows = factors, Columns = genes
+  if(horiz){
+    cor_mat_sub <- t(cor_mat_sub)  # Rows = factors, Columns = genes
+  }
+  
 
   # 2. Build gene-to-factor mapping
   gene_to_factor <- do.call(rbind, lapply(names(top_genes_list), function(fac) {
@@ -310,21 +308,32 @@ plot_visium_gene_correlation_heatmap <- function(cor_mat, select_nmfs, top_n = 2
     column_to_rownames("gene")
 
   # Keep only observed combinations (fix: no unused combinations)
-  observed_levels <- c("nmf12, nmf23", "nmf12, nmf3", "nmf23", "nmf12", "nmf3")
+  observed_levels <- c("nmf15, nmf28", "nmf15", "nmf28")
   gene_factor_labels$Factor <- factor(gene_factor_labels$Factor, levels = observed_levels)
   gene_factor_labels <- gene_factor_labels[!is.na(gene_factor_labels$Factor), , drop = FALSE]
-  cor_mat_sub <- cor_mat_sub[rownames(gene_factor_labels), , drop = FALSE]
+  if(horiz){
+    cor_mat_sub <- cor_mat_sub[ ,rownames(gene_factor_labels), drop = FALSE]
+  }else{
+    cor_mat_sub <- cor_mat_sub[rownames(gene_factor_labels), , drop = FALSE]
+  }
+  
 
   # 4. Define annotation colors
   n_groups <- length(levels(gene_factor_labels$Factor))
   palette_colors <- colorRampPalette(brewer.pal(8, "Set3"))(n_groups)
   factor_colors <- setNames(palette_colors, levels(gene_factor_labels$Factor))
-
-  row_ha <- rowAnnotation(
+  if(horiz){
+    col_ha <- HeatmapAnnotation(Factor = gene_factor_labels$Factor,
+    col = list(Factor = factor_colors),
+    show_annotation_name = TRUE)
+  }else{
+    row_ha <- rowAnnotation(
     Factor = gene_factor_labels$Factor,
     col = list(Factor = factor_colors),
     show_annotation_name = TRUE
-  )
+   )
+  }
+  
 
   # 5. Color mapping for correlation values
   cor_range <- range(cor_mat_sub, na.rm = TRUE)
@@ -332,11 +341,38 @@ plot_visium_gene_correlation_heatmap <- function(cor_mat, select_nmfs, top_n = 2
   cor_colors <- circlize::colorRamp2(breaks, colorRampPalette(c("blue", "white", "red"))(length(breaks)))
 
   # 6. Adjust font size dynamically
-  n_genes <- nrow(cor_mat_sub)
+  if(horiz){
+    n_genes <- ncol(cor_mat_sub)
+  }else{
+    n_genes <- nrow(cor_mat_sub)
+  }
+  
   label_fontsize <- 10
 
   # 7. Draw heatmap
-  ht <- Heatmap(
+  if(horiz){
+    ht <- Heatmap(
+    cor_mat_sub,
+    name = "Correlation",
+    col = cor_colors,
+    top_annotation = col_ha,
+    cluster_rows = TRUE,
+    cluster_columns = FALSE,
+    column_split = gene_factor_labels$Factor,
+    show_column_names = TRUE,
+    column_names_gp = gpar(fontsize = label_fontsize),
+    column_title = "Genes",
+    row_title = "Factors",
+    heatmap_legend_param = list(title = "Correlation")
+    )
+    # 8. Export to PDF
+    pdf(file.path(output_dir, file_name), width = 9, height = 3)
+    draw(ht, heatmap_legend_side = "right", annotation_legend_side = "right",
+        column_title = "Gene Correlation with NMF Projections",
+        column_title_gp = gpar(fontsize = 14, fontface = "bold"))
+    dev.off()
+  }else{
+    ht <- Heatmap(
     cor_mat_sub,
     name = "Correlation",
     col = cor_colors,
@@ -349,14 +385,14 @@ plot_visium_gene_correlation_heatmap <- function(cor_mat, select_nmfs, top_n = 2
     row_title = "Genes",
     column_title = "Factors",
     heatmap_legend_param = list(title = "Correlation")
-  )
-
-  # 8. Export to PDF
-  pdf(file.path(output_dir, file_name), width = 5, height = 7)
-  draw(ht, heatmap_legend_side = "right", annotation_legend_side = "right",
-       column_title = "Gene Correlation with NMF Projections",
-       column_title_gp = gpar(fontsize = 14, fontface = "bold"))
-  dev.off()
+    )
+    # 8. Export to PDF
+    pdf(file.path(output_dir, file_name), width = 5, height = 7)
+    draw(ht, heatmap_legend_side = "right", annotation_legend_side = "right",
+        column_title = "Gene Correlation with NMF Projections",
+        column_title_gp = gpar(fontsize = 14, fontface = "bold"))
+    dev.off()
+  }
 }
 
 plot_visium_gene_correlation_heatmap(
@@ -364,7 +400,8 @@ plot_visium_gene_correlation_heatmap(
   select_nmfs = select_nmfs,
   top_n = 20,
   output_dir = plot_dir,
-  file_name = "visium_gene_projection_heatmap_MSN.pdf"
+  file_name = "visium_gene_projection_heatmap_MSN.pdf", 
+  horiz = TRUE
 )
 
 # Also look at genes by top loadings
@@ -412,7 +449,7 @@ ggplot(top_loadings, aes(x = gene, y = loading, fill = factor)) +
     panel.spacing = unit(1, "lines")
   ) + 
   labs(
-    title = paste("Top", top_n, "Gene Loadings per NMF Factor"),
+    title = "Top 20 Gene Loadings per NMF Factor",
     x = "Gene",
     y = "Loading"
   )

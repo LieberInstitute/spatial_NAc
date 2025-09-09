@@ -61,7 +61,7 @@ sce$age_scaled <- scales::rescale(sce$Age,to=c(0,1))
 rownames(sce) <- rowData(sce)$gene_id
 
 # Rename T-cell to avoid downstream issues
-sce$CellType.Final[sce$CellType.Final == "T-Cell"] <- "T_cell"
+#sce$CellType.Final[sce$CellType.Final == "T-Cell"] <- "T_cell"
 
 ## Run single cell registration to identify markers
 sn_registration <- registration_wrapper(

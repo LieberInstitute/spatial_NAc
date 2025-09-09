@@ -4,8 +4,8 @@ use File::Basename;
 # change path below to your correct path
 $make_annot="/dcs04/lieber/shared/statsgen/LDSC/base/scripts/make_annot.py";
 $referenceDir="/dcs04/lieber/shared/statsgen/LDSC/base/referencefiles/1000G_EUR_Phase3_plink/";
-$inputDir="/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/10x_visium/input_files";
-open(OUT, ">ldsc_anno_jobs_10x_visium.txt");
+$inputDir="/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/19_sLDSC_old/snRNA_seq/input_files";
+open(OUT, ">ldsc_anno_jobs_snRNA_seq.txt");
 foreach $bedfile (<$inputDir/bedfiles/*.bed>){
 	$out = basename($bedfile);
 	$out =~ s/\.bed//;

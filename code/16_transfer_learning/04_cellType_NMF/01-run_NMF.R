@@ -40,7 +40,7 @@ cat("Selected options:\n")
 print(opt)
 
 #opt <- list()
-#opt$data <- "rat_case_control_morphine_repeated"
+#opt$data <- "rat_case_control_morphine_acute"
 #opt$nFactors <- 30
 #opt$select_HVGs <- FALSE
 
@@ -193,7 +193,7 @@ if(opt$data == "rat_case_control_cocaine_acute" | opt$data == "rat_case_control_
     dat <- dat[rowSums(dat) > 0, ]
   }
 
-  nmf_precomputed <- FALSE
+  nmf_precomputed <- TRUE
   if(nmf_precomputed){
     if(opt$select_HVGs){
       nmf_results <- readRDS(file.path(res_dir, paste0("nmf_results_HVGs_", opt$nFactors, "factors.rds")))
@@ -429,7 +429,7 @@ if(opt$data == "rat_case_control_morphine_acute" | opt$data == "rat_case_control
     dat <- sobj[["RNA"]]$data
     dat <- dat[rowSums(dat) > 0, ]
   }
-  nmf_precomputed <- FALSE
+  nmf_precomputed <- TRUE
   if(nmf_precomputed){
     if(opt$select_HVGs){
         nmf_results <- readRDS(file.path(res_dir, paste0("nmf_results_HVGs_", opt$nFactors, "factors.rds")))
@@ -473,7 +473,7 @@ if(opt$data == "rat_case_control_morphine_acute" | opt$data == "rat_case_control
     wilcox_test(Weight ~ treatment, detailed = TRUE) %>%
     mutate(Adj_P = p.adjust(p, method = "BH")) %>%
     add_significance("Adj_P") %>%
-    rename(sig = Adj_P.signif)
+    dplyr::rename(sig = Adj_P.signif)
 
   # Step 4: Compute effect sizes (fast version)
   effect_sizes <- nmf_long %>%
@@ -501,7 +501,7 @@ if(opt$data == "rat_case_control_morphine_acute" | opt$data == "rat_case_control
 
   pdf(file.path(plot_dir, paste0("nmf_VlnPlot_", 
     ifelse(opt$select_HVGs, "HVGs_", ""), 
-    opt$nFactors, "_factors.pdf")), width = 10, height = 5)
+    opt$nFactors, "_factors_1.pdf")), width = 10, height = 5)
   # Loop through all components in desired order
   for (nmf in ordered_components) {
     nmf_data <- plot_data %>% filter(NMF_Component == nmf)

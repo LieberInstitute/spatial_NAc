@@ -99,3 +99,40 @@ ggplot(filtered_df, aes(x = spatial_domain, y = RCTD_weights, fill = spatial_dom
     legend.position = "none"
   )
 dev.off()
+
+inh_cellTypes <- c("Inh_A", "Inh_B", "Inh_C", "Inh_D", "Inh_E", "Inh_F")
+sample_order <- c("Br2743", "Br6432", "Br6423", "Br2720", "Br6471", "Br6522","Br8492", "Br8325", "Br8667", "Br3942")
+spe$precast_clusters <- factor(as.character(spe$precast_clusters), levels = c("D1 islands", "Endothelial/Ependymal", "Excitatory", "Inhibitory", "MSN 1", "MSN 2", "MSN 3", "WM")) 
+safe_colorblind_palette <- c("#E7298A", "#A6761D","#D95F02" , "#E6AB02",  "#66A61E","#1B9E77", "#7570B3","#666666")
+names(safe_colorblind_palette) <- levels(spe$precast_clusters)
+for (cellType in inh_cellTypes) {
+  print(cellType)
+  plot_list <- list()
+  for (donor in sample_order) {
+    spe_sub <- spe[ ,spe$sample_id == donor]
+    spe_sub <- spe_sub[ ,!spe_sub$exclude_overlapping]
+    plot_list[[donor]] <- make_escheR(spe_sub) |> 
+                          add_fill(var = cellType) |> 
+                          add_ground(var = "precast_clusters", stroke = 0.5) +
+                          scale_color_manual(values = safe_colorblind_palette) +
+                          scale_fill_gradient(low = "white", high = "black")
+  }
+  pdf(file.path(plotDir, paste0(cellType, "_spot_plots_escheR.pdf")), width = 12, height = 12)
+  for (p in plot_list) print(p)
+  dev.off()
+}
+
+plot_list <- list()
+donor <- "Br6522"
+for (cellType in inh_cellTypes) {
+    spe_sub <- spe[ ,spe$sample_id == donor]
+    spe_sub <- spe_sub[ ,!spe_sub$exclude_overlapping]
+    plot_list[[cellType]] <- make_escheR(spe_sub) |> 
+                          add_fill(var = cellType) |> 
+                          add_ground(var = "precast_clusters", stroke = 0.5) +
+                          scale_color_manual(values = safe_colorblind_palette) +
+                          scale_fill_gradient(low = "white", high = "black")
+}
+pdf(file.path(plotDir, "Br6522_Inhib_spot_plots_escheR.pdf"), width = 11, height = 11)
+for (p in plot_list) print(p)
+dev.off()

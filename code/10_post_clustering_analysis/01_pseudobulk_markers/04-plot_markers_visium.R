@@ -38,6 +38,18 @@ spe_dir <- here(
 spe <- loadHDF5SummarizedExperiment(spe_dir)
 stopifnot(all(unlist(subregion_genes) %in% rowData(spe)$gene_name))
 
+# Flip some of the samples
+spe_Br2743 <- mirrorObject(spe, sample_id = "Br2743", image_id = "lowres", axis = "v")
+spe_Br8492 <- mirrorObject(spe, sample_id = "Br8492", image_id = "lowres", axis = "v")
+spe_Br8325 <- mirrorObject(spe, sample_id = "Br8325", image_id = "lowres", axis = "v")
+spe_Br3942 <- mirrorObject(spe, sample_id = "Br3942", image_id = "lowres", axis = "v")
+
+spe <- spe[ ,!spe$sample_id %in% c("Br2743", "Br8492", "Br8325", "Br3942")]
+spe <- cbind(spe, spe_Br2743)
+spe <- cbind(spe, spe_Br8492)
+spe <- cbind(spe, spe_Br8325)
+spe <- cbind(spe, spe_Br3942)
+
 # Subset to select samples
 spe <- spe[ ,spe$donor %in% select_samples]
 spe$exclude_overlapping[spe$sample_id_original == "V11D01-384_A1" & spe$overlap_slide == "V11D01-384_D1"] <- FALSE
@@ -65,9 +77,9 @@ for(i in c(1:length(subregion_genes$D1_islands))){
     }
     dir.create(paste0(plotDir, "/D1_islands"))
     pdf(file.path(plotDir, "D1_islands", paste0(subregion_genes$D1_islands[i], ".pdf")), width = 6, height = 6)
-    p_D1islands[["Br6432"]]
-    p_D1islands[["Br6522"]]
-    p_D1islands[["Br3942"]]
+    print(p_D1islands[["Br6432"]])
+    print(p_D1islands[["Br6522"]])
+    print(p_D1islands[["Br3942"]])
     dev.off()
 }
 
@@ -79,9 +91,9 @@ for(i in c(1:length(subregion_genes$core))){
         p_core[[donor]] <- vis_gene(spe, sampleid = donor, geneid = subregion_genes$core[i], is_stitched = TRUE)
     }
     pdf(file.path(plotDir, "core", paste0(subregion_genes$core[i], ".pdf")), width = 6, height = 6)
-    p_core[["Br6432"]]
-    p_core[["Br6522"]]
-    p_core[["Br3942"]]
+    print(p_core[["Br6432"]])
+    print(p_core[["Br6522"]])
+    print(p_core[["Br3942"]])
     dev.off()
 }
 
@@ -93,9 +105,9 @@ for(i in c(1:length(subregion_genes$shell))){
         p_shell[[donor]] <- vis_gene(spe, sampleid = donor, geneid = subregion_genes$shell[i], is_stitched = TRUE)
     }
     pdf(file.path(plotDir, "shell", paste0(subregion_genes$shell[i], ".pdf")), width = 6, height = 6)
-    p_shell[["Br6432"]]
-    p_shell[["Br6522"]]
-    p_shell[["Br3942"]]
+    print(p_shell[["Br6432"]])
+    print(p_shell[["Br6522"]])
+    print(p_shell[["Br3942"]])
     dev.off()
 }
 dir.create(paste0(plotDir, "/white_matter"))
@@ -105,9 +117,9 @@ for(i in c(1:length(subregion_genes$white_matter))){
         p_white_matter[[donor]] <- vis_gene(spe, sampleid = donor, geneid = subregion_genes$white_matter[i], is_stitched = TRUE)
     }
     pdf(file.path(plotDir, "white_matter", paste0(subregion_genes$white_matter[i], ".pdf")), width = 6, height = 6)
-    p_white_matter[["Br6432"]]
-    p_white_matter[["Br6522"]]
-    p_white_matter[["Br3942"]]
+    print(p_white_matter[["Br6432"]])
+    print(p_white_matter[["Br6522"]])
+    print(p_white_matter[["Br3942"]])
     dev.off()
 }
 
@@ -162,7 +174,7 @@ vis_gene(spe, sampleid = "Br6522", geneid = "PDE10A", is_stitched = TRUE) + ggti
 dev.off()
 
 pdf(file.path(plotDir, "CALB1.pdf"), width = 6, height = 6)
-vis_gene(spe, sampleid = "Br6522", geneid = "CALB1", is_stitched = TRUE) + ggtitle("PDE10A") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
+vis_gene(spe, sampleid = "Br6522", geneid = "CALB1", is_stitched = TRUE) + ggtitle("CALB1") + theme(plot.title = element_text(face = "bold.italic"), legend.title = element_text(size = 14))
 dev.off()
 
 

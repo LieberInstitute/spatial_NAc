@@ -561,7 +561,7 @@ for(pat in pattern_cols){
   for(j in unique_samples){
     plot_list[[j]] <- vis_gene(spe_subset, sampleid = j, geneid = pat, is_stitched = TRUE, cont_colors = viridisLite::magma(10, direction = -1)) + ggtitle(pat)
   }
-  pdf(file.path(plotDir, paste0(pat, ".pdf")))
+  pdf(file.path(plotDir, paste0(pat, "_new.pdf")))
   for(j in unique_samples){
    print(plot_list[[j]])
   }
@@ -652,3 +652,7 @@ Heatmap(
   heatmap_legend_param = list(title = "Correlation", at = c(-0.6, 0, 0.7))
 )
 dev.off()
+
+df <- colData(spe)
+df <- df[ ,grep("meringue_cluster", colnames(df))]
+saveRDS(df, file.path(resDir, "meringue_consensus_patterns.rds"))

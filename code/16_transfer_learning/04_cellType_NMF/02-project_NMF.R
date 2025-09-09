@@ -29,7 +29,7 @@ spec <- matrix(c(
 opt <- getopt(spec)
 
 #opt <- list()
-#opt$data <- "rat_case_control_cocaine_acute"
+#opt$data <- "rat_case_control_morphine_acute"
 #opt$nFactors <- 30
 #opt$select_HVGs <- FALSE
 

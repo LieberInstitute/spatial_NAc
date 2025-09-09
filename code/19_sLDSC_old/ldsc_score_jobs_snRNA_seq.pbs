@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH --job-name=ldsc_score_jobs_snRNA_seq.txt
+#SBATCH --output=./ldsc_score_jobs_snRNA_seq.txt_err_out/jobs_%A_%a.out
+#SBATCH --error=./ldsc_score_jobs_snRNA_seq.txt_err_out/jobs_%A_%a.err
+#SBATCH --partition=shared
+#SBATCH --mem-per-cpu=5G --cpus-per-task=1
+#SBATCH --array=1-25%25
+#SBATCH --time=8:0:0
+
+echo "**** Job starts ****"
+date
+module load ldsc/1.0.1
+perl job_batch.pl --jfile ldsc_score_jobs_snRNA_seq.txt --nrun 20 --n $SLURM_ARRAY_TASK_ID
+echo "**** Job ends ****"
+date

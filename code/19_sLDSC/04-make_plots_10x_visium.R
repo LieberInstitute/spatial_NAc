@@ -47,20 +47,20 @@ dat$trait[dat$trait=="mdd2019edinburgh"] <- "Depression"
 dat$p_zcore <- pnorm(abs(dat$Coefficient_z.score),lower.tail=F)*2
 dat$FDR <- p.adjust(dat$p_zcore,method="fdr")
 
-sig.ldsc <- filter(dat, FDR<.05) 
+sig.ldsc <- filter(dat, FDR<.1) 
 
-#sig.ldsc$trait.ordered = factor(sig.ldsc$trait, levels=c("Education Years","Intelligence","Neuroticism",  "Bipolar","Schizophrenia","Depression",
-#                                                         "Smoking initiation","Smoking cessation", "Cigarettes per day","Age of smoking", "Drinks per week","Alzheimer Disease","ADHD","Epilepsy", "Parkinson Disease", "BMI", "Height"))
+sig.ldsc$trait.ordered = factor(sig.ldsc$trait, levels=c("Education Years","Intelligence","Neuroticism",  "Bipolar","Schizophrenia","Depression",
+                                                         "Smoking initiation","Smoking cessation", "Cigarettes per day", "Drinks per week","Alzheimer Disease", "BMI", "Anorexia"))
 
-sig.ldsc$trait.ordered = factor(sig.ldsc$trait, levels = c("Education Years", ""))
+
 palette1= RColorBrewer::brewer.pal(n=7,"RdYlBu")[7:1]
-plotDir <- here("plots", "19_sLDSC_old", "10x_visium")
+plotDir <- here("plots", "19_sLDSC", "10x_visium")
 
 sig.ldsc$cell.ordered = gsub("_", " ", sig.ldsc$cell)
 sig.ldsc$cell.ordered[sig.ldsc$cell.ordered  == "Endothelial Ependymal"] <- "Endothelial/Ependymal"
 sig.ldsc$cell.ordered = factor(sig.ldsc$cell.ordered, levels=c("MSN 1","MSN 2", "MSN 3", "D1 islands","Inhibitory", "Excitatory", "Endothelial/Ependymal", "WM"))
 
-pdf(file.path(plotDir, "significant_traits.pdf"), width = 7, height = 5)
+pdf(file.path(plotDir, "significant_traits_new.pdf"), width = 7, height = 5)
 ggplot(sig.ldsc, aes(x=cell.ordered, y=trait.ordered, size=-log10(FDR), color=Coefficient_z.score))+
   geom_count()+theme_bw()+
   scale_size(range=c(1,4))+

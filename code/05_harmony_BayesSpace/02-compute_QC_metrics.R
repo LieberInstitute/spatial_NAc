@@ -63,8 +63,9 @@ spe$CNmask_dark_blue <- counts$CNmask_dark_blue
 
 df <- colData(spe)
 df <- data.frame(df)
+pdf(width = 5, height = 3, paste0(plot_dir, "/sum_umi_in_out_tissue.pdf"))
 ggplot(df, aes(x = sum_umi, fill = in_tissue)) + geom_density(alpha=0.25) + scale_x_continuous(trans='log10') + theme_classic()
-
+dev.off()
 # Add manual annotations by Svitlana
 manual_anno_path = here('raw-data', 'manual_annotations')
 unique_samples <- unique(spe$sample_id)
@@ -88,6 +89,7 @@ metrics_qc <- function(spe) {
         log2sum = log2(spe$sum_umi),
         log2detected = log2(spe$sum_gene),
         subsets_Mito_percent = spe$expr_chrM_ratio*100,
+        nCells = spe$Nmask_dark_blue,
         sample_id = spe$sample_id_original
     )
 
@@ -145,6 +147,22 @@ metrics_qc <- function(spe) {
 
 spe <- metrics_qc(spe)
 
+# Make plots
+# Flip some of the samples
+spe_Br2743 <- mirrorObject(spe, sample_id = "Br2743", image_id = "lowres", axis = "v")
+spe_Br8492 <- mirrorObject(spe, sample_id = "Br8492", image_id = "lowres", axis = "v")
+spe_Br8325 <- mirrorObject(spe, sample_id = "Br8325", image_id = "lowres", axis = "v")
+spe_Br3942 <- mirrorObject(spe, sample_id = "Br3942", image_id = "lowres", axis = "v")
+
+spe <- spe[ ,!spe$sample_id %in% c("Br2743", "Br8492", "Br8325", "Br3942")]
+spe <- cbind(spe, spe_Br2743)
+spe <- cbind(spe, spe_Br8492)
+spe <- cbind(spe, spe_Br8325)
+spe <- cbind(spe, spe_Br3942)
+
+# Make spot plot of sum UMI
+sample_order <- c("Br2743", "Br6432", "Br6423", "Br2720", "Br6471", "Br6522","Br8492", "Br8325", "Br8667", "Br3942")
+
 # Check which spots are found to be outliers based on SpotSweeper
 spe$array_row <- spe$array_row_original
 spe$array_col <- spe$array_col_original
@@ -169,6 +187,19 @@ spe = saveHDF5SummarizedExperiment(
 message(Sys.time(), " - Saving ordinary filtered spe")
 spe = realize(spe)
 saveRDS(spe, QC_added_ordinary_path)
+
+vis_grid_gene(spe, sample_order = sample_order, geneid = "sum_umi_log2", spatial = TRUE, is_stitched = TRUE, 
+pdf_file = paste0(plot_dir, "/sum_expr_sum_umi_spot_plots.pdf"), assayname = "counts")
+
+vis_grid_gene(spe, sample_order = sample_order, geneid = "sum_gene_log2", spatial = TRUE, is_stitched = TRUE, 
+pdf_file = paste0(plot_dir, "/sum_expr_sum_gene_spot_plots.pdf"), assayname = "counts")
+
+vis_grid_gene(spe, sample_order = sample_order, geneid = "expr_chrM_ratio", spatial = TRUE, is_stitched = TRUE, 
+pdf_file = paste0(plot_dir, "/expr_chrM_ratio_spot_plots.pdf"), assayname = "counts")
+
+vis_grid_gene(spe, sample_order = sample_order, geneid = "Nmask_dark_blue", spatial = TRUE, is_stitched = TRUE, 
+pdf_file = paste0(plot_dir, "/Nmask_dark_blue_spot_plots.pdf"), assayname = "counts")
+
 
 pdf(width = 8, height = 8, paste0(plot_dir, "/sum_umi_spot_plot.pdf"))
 spot_plot(spe, "Br2720", var_name = "sum_umi_log2", is_discrete = FALSE, spatial = TRUE, assayname = "counts")

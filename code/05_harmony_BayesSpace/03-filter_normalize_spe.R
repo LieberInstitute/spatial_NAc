@@ -109,6 +109,16 @@ ggplot(data = as.data.frame(colData(spe)),
   guides(fill=guide_legend(title="Capture Area"))+ theme(legend.position = "none") + coord_flip()
 dev.off()
 
+pdf(width = 4, height = 8, paste0(plot_dir, "/expr_chrM_capture_area.pdf"))
+ggplot(data = as.data.frame(colData(spe)),
+       aes(x = sample_id_original, y = sum_gene, fill = sample_id_original)) + 
+  geom_violin() +
+  xlab("Capture Area") + 
+  ylab("Ratio of chrM expression") + 
+  theme_classic() +
+  guides(fill=guide_legend(title="Capture Area"))+ theme(legend.position = "none") + coord_flip()
+dev.off()
+
 pdf(width = 4, height = 6, paste0(plot_dir, "/nGene_donor.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = donor, y = sum_gene, fill = donor)) + 
@@ -116,6 +126,16 @@ ggplot(data = as.data.frame(colData(spe)),
   xlab("Donor") + 
   ylab("# Detected genes") + 
   theme_classic()  + geom_hline(yintercept = 250, linetype="dashed", color = "red", size=0.6) + 
+  theme(legend.position = "none") + coord_flip()
+dev.off()
+
+pdf(width = 4, height = 6, paste0(plot_dir, "/expr_chrM_donor.pdf"))
+ggplot(data = as.data.frame(colData(spe)),
+       aes(x = donor, y = expr_chrM_ratio, fill = donor)) + 
+  geom_violin() +
+  xlab("Donor") + 
+  ylab("Ratio of chrM expression") + 
+  theme_classic() +
   theme(legend.position = "none") + coord_flip()
 dev.off()
 
@@ -165,6 +185,7 @@ ggplot(data = as.data.frame(colData(spe)),
   theme_classic()  + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
 dev.off()
 
+pdf(width = 6, height = 4, paste0(plot_dir, "/expr_chrM_dist.pdf"))
 ggplot(data = as.data.frame(colData(spe)),
        aes(x = expr_chrM_ratio)) +
   geom_histogram(aes(y = after_stat(density)), 
@@ -179,6 +200,7 @@ ggplot(data = as.data.frame(colData(spe)),
   xlab("Ratio of mitochondrial expression") + 
   ylab("Density") + 
   theme_classic() + theme(plot.margin = margin(2, 2, 2, 2, "cm"))
+dev.off()
 
 p <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=sum_umi)) +
   geom_point(size=0.5) + 
@@ -197,11 +219,18 @@ p3 <- ggplot(as.data.frame(colData(spe)), aes(x=Nmask_dark_blue, y=expr_chrM_rat
   geom_smooth(method = "loess", se=FALSE) + xlab("Nuclei count") + ylab("Ratio of mitochondrial gene expression") +
   theme_bw() 
 
+pdf(width = 6, height = 4, paste0(plot_dir, "/marginal_sum_sumi.pdf"))
 plot_grid(ggMarginal(p, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
-plot_grid(ggMarginal(p2, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
-plot_grid(ggMarginal(p3, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
-
 dev.off()
+
+pdf(width = 6, height = 4, paste0(plot_dir, "/marginal_sum_gene.pdf"))
+plot_grid(ggMarginal(p2, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
+dev.off()
+
+pdf(width = 6, height = 4, paste0(plot_dir, "/marginal_mito_expression.pdf"))
+plot_grid(ggMarginal(p3, type='histogram', margins = 'both'), nrow = 1, ncol = 1)
+dev.off()
+
 
 spe$low_umi <- spe$sum_umi < 250
 spe$low_gene <- spe$sum_gene < 250
@@ -246,6 +275,8 @@ spot_plot(spe, "Br8325", var_name = "low_gene_edge_spot", is_discrete = TRUE, sp
 spot_plot(spe, "Br8492", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8492") + guides(fill = guide_legend(override.aes = list(size = 5)))
 spot_plot(spe, "Br8667", var_name = "low_gene_edge_spot", is_discrete = TRUE, spatial = TRUE) + ggtitle("Br8667") + guides(fill = guide_legend(override.aes = list(size = 5)))
 dev.off()
+
+
 
 # Perform optional additional spot filtering
 spe <- spe[ ,spe$low_gene_edge_spot == "FALSE"]
