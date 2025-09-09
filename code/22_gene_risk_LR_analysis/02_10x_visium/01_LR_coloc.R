@@ -192,7 +192,7 @@ dev.off()
 ###########################################################################
 # 2. Make spot plots
 ###########################################################################
-add_LR_expression_category <- function(spe, ligand, receptor, min_expr = 1, new_colname = NULL) {
+add_LR_expression_category <- function(spe, ligand, receptor, min_expr = 0, new_colname = NULL) {
   expr_mat <- assays(spe)$logcounts
 
   if (is.null(new_colname)) {
@@ -311,7 +311,7 @@ cell_type_colors <-  c(
 )
 # Function to compute and plot co-localization matrix
 # Function to compute and plot co-localization matrix
-plot_LR_colocalization <- function(spe, ligand, receptor, cell_type_colors, min_expr = 1, outdir = plot_dir) {
+plot_LR_colocalization <- function(spe, ligand, receptor, cell_type_colors, min_expr = 0, outdir = plot_dir) {
   # 1. Check genes
   expr_mat <- assays(spe)$logcounts
   if (!ligand %in% rownames(expr_mat) || !receptor %in% rownames(expr_mat)) {
@@ -400,7 +400,66 @@ for (pair in lr_pairs) {
   plot_LR_colocalization(spe, ligand = pair[1], receptor = pair[2], cell_type_colors)
 }
 
-plot_rctd_box_for_lr <- function(
+## Look at cell types found in co-expressed spots
+# RCTD weight columns
+ct_cols <- colnames(colData(spe))[64:83]
+
+# subset to coexpressing spots
+co_idx <- which(spe$LR_NLGN1_NRXN1 == "Coexpressing")
+W_co <- as.matrix(colData(spe)[co_idx, ct_cols, drop = FALSE])
+
+# normalize rows (just in case they don’t sum to 1 yet)
+row_sums <- rowSums(W_co)
+ok <- row_sums > 0
+W_co[ok, ] <- W_co[ok, , drop = FALSE] / row_sums[ok]
+
+# for each spot, pick the top 3 cell types
+top3_list <- apply(W_co, 1, function(w) {
+  ord <- order(w, decreasing = TRUE)[1:3]
+  data.frame(
+    top1 = names(w)[ord[1]],
+    top2 = names(w)[ord[2]],
+    top3 = names(w)[ord[3]],
+    stringsAsFactors = FALSE
+  )
+})
+
+# combine into a single data frame
+top3_df <- do.call(rbind, top3_list)
+rownames(top3_df) <- rownames(W_co) 
+# make sure spot IDs are preserved
+top3_df <- top3_df %>% rownames_to_column("spot_id")
+
+# sort the 3 cell types alphabetically within each spot
+combos <- apply(top3_df[, c("top1", "top2", "top3")], 1, function(x) {
+  paste(sort(x), collapse = "_")
+})
+
+# add back to the data frame
+top3_df$combo <- combos
+# combo_counts was made with table(combos)
+combo_counts <- as.data.frame(table(combos)) %>%
+  arrange(desc(Freq))
+
+# Plot top N combinations
+N <- 10
+p <- combo_counts %>%
+  slice_head(n = N) %>%
+  ggplot(aes(x = reorder(combos, Freq), y = Freq)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = paste0("Top ", N, " unique cell-type triplets in co-expressing spots"),
+    x = "Cell type combination",
+    y = "Number of spots"
+  ) +
+  theme_minimal(base_size = 12)
+
+pdf(file.path(plot_dir, "RCTD_combos_NLGN3_NRXN1.pdf"), width = 5, height = 7)
+print(p)
+dev.off()
+
+plot_rctd_violin_for_lr <- function(
   spe,
   lr_col      = "LR_PENK_OPRM1",
   celltypes   = c("DRD1_MSN_B","DRD1_MSN_D","DRD2_MSN_A"),
@@ -456,11 +515,10 @@ plot_rctd_box_for_lr <- function(
 
   # Plot — horizontal boxplots; shared y, free x per facet
   ggplot(df, aes(x = Category, y = RCTD_weight, fill = CatFill)) +
-    geom_boxplot(
-      color = outline_color, alpha = alpha,
-      notch = notch, varwidth = varwidth, outlier.size = 0.6, width = 0.7
+    geom_violin(
+      color = outline_color, alpha = alpha, width = 0.7, trim = TRUE
     ) +
-    facet_wrap(~ CellType, nrow = 1, scales = "free_x") +
+    facet_wrap(~ CellType, nrow = 2, scales = "free_x") +
     scale_x_discrete(labels = y_labs) +
     scale_fill_manual(values = cat_colors, breaks = cat_labels, na.value = "grey80", name = NULL) +
     labs(x = NULL, y = "RCTD weight (cell-type proportion)") +
@@ -475,12 +533,13 @@ plot_rctd_box_for_lr <- function(
 
 
 
-p <- plot_rctd_box_for_lr(
+p <- plot_rctd_violin_for_lr(
   spe,
-  lr_col = "LR_NLGN1_NRXN1", 
-  celltypes   = c("DRD1_MSN_A", "DRD1_MSN_C", "OPC", "Astrocyte_A", "Excitatory", "DRD1_MSN_B", "Inh_B")
+  lr_col = "LR_NLGN3_NRXN1", 
+  celltypes   = c("OPC", "Astrocyte_A", "Excitatory", "DRD1_MSN_B", "Inh_B", "Inh_D", "Inh_E", "Inh_F")
 )
 
-pdf(file.path(plot_dir, "RCTD_LR_NLGN1_NRXN1.pdf"), width = 12, height = 3)
+pdf(file.path(plot_dir, "RCTD_LR_NLGN3_NRXN1.pdf"), width = 12, height = 8)
 print(p)
 dev.off()
+
