@@ -94,7 +94,9 @@ answers. If you have any questions, please ask them at
 and refrain from emailing us. Thank you again for your interest in our
 work!
 
-## Citing our work
+## Citing our work  
+
+Zenodo Archive for this project - Ravichandran, P., Bach, S. V., Phillips III, R. A., Valentine, M. R., Eagles, N. J., Du, Y., del Rosario, I., et al. (2025). LieberInstitute/spatial_NAc Zenodo Archive. Zenodo. [10.5281/zenodo.17089020](https://doi.org/10.5281/zenodo.17089020)  
 
 ## Internal
 
