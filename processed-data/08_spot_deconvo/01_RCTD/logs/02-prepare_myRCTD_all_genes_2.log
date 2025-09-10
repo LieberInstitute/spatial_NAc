@@ -1,0 +1,199 @@
+**** Job starts ****
+Mon Feb 24 01:33:45 PM EST 2025
+**** JHPCE info ****
+User: pravicha
+Job id: 14161032
+Job name: 02-prepare_myRCTD
+Node name: compute-157
+Loading LIBD SLURM module for r_nac/1.0
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following objects are masked from ‘package:Matrix’:
+
+    expand, unname
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+Loading required package: scuttle
+Loading required package: ggplot2
+Loading required package: DelayedArray
+Loading required package: S4Arrays
+Loading required package: abind
+
+Attaching package: ‘S4Arrays’
+
+The following object is masked from ‘package:abind’:
+
+    abind
+
+The following object is masked from ‘package:base’:
+
+    rowsum
+
+Loading required package: SparseArray
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:base’:
+
+    apply, scale, sweep
+
+Loading required package: rhdf5
+
+Attaching package: ‘HDF5Array’
+
+The following object is masked from ‘package:rhdf5’:
+
+    h5ls
+
+null device 
+          1 
+Begin: process_cell_type_info
+process_cell_type_info: number of cells in reference: 103339
+process_cell_type_info: number of genes in reference: 36485
+
+      Oligo  DRD1_MSN_A   Microglia         OPC  DRD2_MSN_A   Ependymal 
+      17636       22801        4438        3763       22704         957 
+Astrocyte_A  DRD1_MSN_B Endothelial       Inh_A  DRD2_MSN_B Astrocyte_B 
+       8682        6544         879        1988        1841        1250 
+ DRD1_MSN_C  DRD1_MSN_D       Inh_B       Inh_C       Inh_D       Inh_E 
+       2653        1370         698        1456         226         554 
+ Excitatory       Inh_F 
+       1583        1316 
+End: process_cell_type_info
+create.RCTD: getting regression differentially expressed genes: 
+get_de_genes: Oligo found DE genes: 449
+get_de_genes: DRD1_MSN_A found DE genes: 147
+get_de_genes: Microglia found DE genes: 554
+get_de_genes: OPC found DE genes: 252
+get_de_genes: DRD2_MSN_A found DE genes: 159
+get_de_genes: Ependymal found DE genes: 435
+get_de_genes: Astrocyte_A found DE genes: 340
+get_de_genes: DRD1_MSN_B found DE genes: 137
+get_de_genes: Endothelial found DE genes: 421
+get_de_genes: Inh_A found DE genes: 136
+get_de_genes: DRD2_MSN_B found DE genes: 164
+get_de_genes: Astrocyte_B found DE genes: 336
+get_de_genes: DRD1_MSN_C found DE genes: 133
+get_de_genes: DRD1_MSN_D found DE genes: 112
+get_de_genes: Inh_B found DE genes: 132
+get_de_genes: Inh_C found DE genes: 125
+get_de_genes: Inh_D found DE genes: 170
+get_de_genes: Inh_E found DE genes: 132
+get_de_genes: Excitatory found DE genes: 135
+get_de_genes: Inh_F found DE genes: 67
+get_de_genes: total DE genes: 2632
+create.RCTD: getting platform effect normalization differentially expressed genes: 
+get_de_genes: Oligo found DE genes: 730
+get_de_genes: DRD1_MSN_A found DE genes: 376
+get_de_genes: Microglia found DE genes: 1059
+get_de_genes: OPC found DE genes: 472
+get_de_genes: DRD2_MSN_A found DE genes: 382
+get_de_genes: Ependymal found DE genes: 787
+get_de_genes: Astrocyte_A found DE genes: 613
+get_de_genes: DRD1_MSN_B found DE genes: 317
+get_de_genes: Endothelial found DE genes: 810
+get_de_genes: Inh_A found DE genes: 319
+get_de_genes: DRD2_MSN_B found DE genes: 348
+get_de_genes: Astrocyte_B found DE genes: 644
+get_de_genes: DRD1_MSN_C found DE genes: 343
+get_de_genes: DRD1_MSN_D found DE genes: 279
+get_de_genes: Inh_B found DE genes: 323
+get_de_genes: Inh_C found DE genes: 314
+get_de_genes: Inh_D found DE genes: 316
+get_de_genes: Inh_E found DE genes: 292
+get_de_genes: Excitatory found DE genes: 311
+get_de_genes: Inh_F found DE genes: 191
+get_de_genes: total DE genes: 4255
+Warning messages:
+1: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 4.8 GiB
+2: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 6.2 GiB
+3: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 1.2 GiB
+4: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 1.0 GiB
+5: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 6.2 GiB
+6: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 2.4 GiB
+7: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 1.8 GiB
+Warning message:
+In dir.create(here(processed_out, sample_id)) :
+  '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/08_spot_deconvo/01_RCTD/Br2743' already exists
+**** Job ends ****
+Mon Feb 24 01:38:39 PM EST 2025

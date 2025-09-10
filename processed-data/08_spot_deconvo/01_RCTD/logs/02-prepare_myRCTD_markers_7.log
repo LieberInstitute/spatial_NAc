@@ -1,11 +1,10 @@
 **** Job starts ****
-Tue Oct 15 09:37:30 PM EDT 2024
+Mon Feb 24 01:33:18 PM EST 2025
 **** JHPCE info ****
 User: pravicha
-Job id: 10119484
+Job id: 14161022
 Job name: 02-prepare_myRCTD
-Node name: compute-162
-Unloading LIBD SLURM module for r_nac/1.0
+Node name: compute-054
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SummarizedExperiment
 Loading required package: MatrixGenerics
@@ -122,66 +121,64 @@ The following object is masked from ‘package:rhdf5’:
 null device 
           1 
 Begin: process_cell_type_info
-process_cell_type_info: number of cells in reference: 103785
-process_cell_type_info: number of genes in reference: 2800
+process_cell_type_info: number of cells in reference: 103339
+process_cell_type_info: number of genes in reference: 2785
 
-       Oligo   DRD1_MSN_A    Microglia          OPC   DRD2_MSN_A    Ependymal 
-       17636        22801         4438         3763        22704          957 
- Astrocyte_A   DRD1_MSN_B  Endothelial        Inh_A   DRD2_MSN_B  Astrocyte_B 
-        8682         6544          879         1988         1841         1250 
-  DRD1_MSN_C   DRD1_MSN_D Neuron_Ambig        Inh_B        Inh_C        Inh_D 
-        2653         1370          446          698         1456          226 
-       Inh_E   Excitatory        Inh_F 
-         554         1583         1316 
+      Oligo  DRD1_MSN_A   Microglia         OPC  DRD2_MSN_A   Ependymal 
+      17636       22801        4438        3763       22704         957 
+Astrocyte_A  DRD1_MSN_B Endothelial       Inh_A  DRD2_MSN_B Astrocyte_B 
+       8682        6544         879        1988        1841        1250 
+ DRD1_MSN_C  DRD1_MSN_D       Inh_B       Inh_C       Inh_D       Inh_E 
+       2653        1370         698        1456         226         554 
+ Excitatory       Inh_F 
+       1583        1316 
 End: process_cell_type_info
 create.RCTD: getting regression differentially expressed genes: 
-get_de_genes: Oligo found DE genes: 320
-get_de_genes: DRD1_MSN_A found DE genes: 139
-get_de_genes: Microglia found DE genes: 296
-get_de_genes: OPC found DE genes: 247
-get_de_genes: DRD2_MSN_A found DE genes: 153
-get_de_genes: Ependymal found DE genes: 397
-get_de_genes: Astrocyte_A found DE genes: 303
+get_de_genes: Oligo found DE genes: 315
+get_de_genes: DRD1_MSN_A found DE genes: 144
+get_de_genes: Microglia found DE genes: 298
+get_de_genes: OPC found DE genes: 241
+get_de_genes: DRD2_MSN_A found DE genes: 157
+get_de_genes: Ependymal found DE genes: 394
+get_de_genes: Astrocyte_A found DE genes: 298
 get_de_genes: DRD1_MSN_B found DE genes: 134
-get_de_genes: Endothelial found DE genes: 240
-get_de_genes: Inh_A found DE genes: 137
-get_de_genes: DRD2_MSN_B found DE genes: 163
-get_de_genes: Astrocyte_B found DE genes: 288
-get_de_genes: DRD1_MSN_C found DE genes: 129
-get_de_genes: DRD1_MSN_D found DE genes: 110
-get_de_genes: Neuron_Ambig found DE genes: 84
-get_de_genes: Inh_B found DE genes: 122
-get_de_genes: Inh_C found DE genes: 113
-get_de_genes: Inh_D found DE genes: 173
-get_de_genes: Inh_E found DE genes: 122
-get_de_genes: Excitatory found DE genes: 130
-get_de_genes: Inh_F found DE genes: 62
-get_de_genes: total DE genes: 1994
+get_de_genes: Endothelial found DE genes: 241
+get_de_genes: Inh_A found DE genes: 135
+get_de_genes: DRD2_MSN_B found DE genes: 161
+get_de_genes: Astrocyte_B found DE genes: 281
+get_de_genes: DRD1_MSN_C found DE genes: 132
+get_de_genes: DRD1_MSN_D found DE genes: 111
+get_de_genes: Inh_B found DE genes: 120
+get_de_genes: Inh_C found DE genes: 114
+get_de_genes: Inh_D found DE genes: 170
+get_de_genes: Inh_E found DE genes: 124
+get_de_genes: Excitatory found DE genes: 132
+get_de_genes: Inh_F found DE genes: 63
+get_de_genes: total DE genes: 1983
 create.RCTD: getting platform effect normalization differentially expressed genes: 
-get_de_genes: Oligo found DE genes: 376
-get_de_genes: DRD1_MSN_A found DE genes: 346
-get_de_genes: Microglia found DE genes: 383
-get_de_genes: OPC found DE genes: 367
-get_de_genes: DRD2_MSN_A found DE genes: 357
-get_de_genes: Ependymal found DE genes: 568
-get_de_genes: Astrocyte_A found DE genes: 424
+get_de_genes: Oligo found DE genes: 373
+get_de_genes: DRD1_MSN_A found DE genes: 342
+get_de_genes: Microglia found DE genes: 384
+get_de_genes: OPC found DE genes: 354
+get_de_genes: DRD2_MSN_A found DE genes: 352
+get_de_genes: Ependymal found DE genes: 562
+get_de_genes: Astrocyte_A found DE genes: 412
 get_de_genes: DRD1_MSN_B found DE genes: 294
-get_de_genes: Endothelial found DE genes: 344
-get_de_genes: Inh_A found DE genes: 263
-get_de_genes: DRD2_MSN_B found DE genes: 335
-get_de_genes: Astrocyte_B found DE genes: 428
-get_de_genes: DRD1_MSN_C found DE genes: 289
-get_de_genes: DRD1_MSN_D found DE genes: 229
-get_de_genes: Neuron_Ambig found DE genes: 175
+get_de_genes: Endothelial found DE genes: 342
+get_de_genes: Inh_A found DE genes: 262
+get_de_genes: DRD2_MSN_B found DE genes: 331
+get_de_genes: Astrocyte_B found DE genes: 421
+get_de_genes: DRD1_MSN_C found DE genes: 288
+get_de_genes: DRD1_MSN_D found DE genes: 238
 get_de_genes: Inh_B found DE genes: 242
-get_de_genes: Inh_C found DE genes: 227
-get_de_genes: Inh_D found DE genes: 289
-get_de_genes: Inh_E found DE genes: 233
+get_de_genes: Inh_C found DE genes: 222
+get_de_genes: Inh_D found DE genes: 288
+get_de_genes: Inh_E found DE genes: 231
 get_de_genes: Excitatory found DE genes: 263
-get_de_genes: Inh_F found DE genes: 169
-get_de_genes: total DE genes: 2446
+get_de_genes: Inh_F found DE genes: 162
+get_de_genes: total DE genes: 2434
 Warning message:
 In dir.create(here(processed_out, sample_id)) :
-  '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/20_RCTD/Br6522' already exists
+  '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/processed-data/08_spot_deconvo/01_RCTD/Br6522' already exists
 **** Job ends ****
-Tue Oct 15 09:39:03 PM EDT 2024
+Mon Feb 24 01:37:51 PM EST 2025
