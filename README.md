@@ -82,6 +82,10 @@ There is a Zenodo archive for this repository available at [10.5281/zenodo.17089
 
 A public globus endpoint was created and contains objects too large for github. It is available at [https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F](https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F)  
 
+### Raw Data
+
+Sequencing data has been uploaded to GEO with accession numbers [GSE307586](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE307586) for spatial data and [GSE307587](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE307587) for single nucleus data
+
 ## Contact
 
 We value public questions, as they allow other users to learn from the
