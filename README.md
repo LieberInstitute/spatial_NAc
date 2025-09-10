@@ -84,7 +84,7 @@ A public globus endpoint was created and contains objects too large for github. 
 
 ### Raw Data
 
-Sequencing data has been uploaded to GEO with accession numbers [accession number] for spatial data and [accession number] for single nucleus data
+Sequencing data has been uploaded to GEO with accession numbers [GSE307586](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE307586) for spatial data and [GSE307587](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE307587) for single nucleus data
 
 ## Contact
 
