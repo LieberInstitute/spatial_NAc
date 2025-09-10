@@ -88,7 +88,7 @@ guides(fill=guide_legend(title="Spatial Domain")) + theme_pubr()
 dev.off()
 
 select_cell_types <- c("DRD1 MSN A", "DRD1 MSN B", "DRD1 MSN C", "DRD1 MSN D", "DRD2 MSN A", 
-"DRD2 MSN B", "Oligo")
+"DRD2 MSN B", "Oligo", "Astrocyte A")
 pdf(file.path(plotDir, "RCTD_weights_boxplot_marker_genes_select_cell_types.pdf"), width = 5, height = 7)
 ggplot(plot_df[plot_df$cell_type %in% select_cell_types, ], aes(x = cell_type, y = RCTD_weights, fill = spatial_domain)) + geom_boxplot(outlier.shape = NA) +
 coord_flip() + xlab("") +  ylab("RCTD weights") + scale_fill_manual(values = c("#66A61E","#1B9E77", "#7570B3")) +

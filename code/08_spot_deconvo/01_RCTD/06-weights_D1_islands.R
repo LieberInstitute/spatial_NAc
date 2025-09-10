@@ -76,7 +76,7 @@ mean_by_group <- plot_df %>%
   group_by(cell_type) %>%
   summarize(mean_value = mean(RCTD_weights))
 
-select_cell_types <- mean_by_group$cell_type[mean_by_group$mean_value > 0.05]
+select_cell_types <- mean_by_group$cell_type[mean_by_group$mean_value > 0.06]
 
 plotDir <- here("plots", "08_spot_deconvo", "01_RCTD")
 pdf(file.path(plotDir, "RCTD_weights_boxplot_D1_islands.pdf"), width = 4, height = 4)
