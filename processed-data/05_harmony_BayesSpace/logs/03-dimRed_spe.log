@@ -1,10 +1,11 @@
 **** Job starts ****
-Sun Jul 28 02:45:57 PM EDT 2024
+Sat Jul 27 09:09:08 PM EDT 2024
 **** JHPCE info ****
 User: pravicha
-Job id: 8794281
-Job name: 07-run_nnSVG
-Node name: compute-124
+Job id: 8790302
+Job name: dimRed_spe
+Node name: compute-144
+Using 4 cores
 Unloading LIBD SLURM module for r_nac/1.0
 Loading LIBD SLURM module for r_nac/1.0
 Loading required package: SpatialExperiment
@@ -109,9 +110,7 @@ here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
 ✖ dplyr::slice()        masks IRanges::slice()
 ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 Loading required package: rafalib
-Warning: future: Ignoring invalid number of processes specified in command-line option: -p TRUE
-Warning message:
-In parseCmdArgs() : NAs introduced by coercion
+Loading required package: scuttle
 Loading required package: DelayedArray
 Loading required package: Matrix
 
@@ -158,21 +157,90 @@ The following object is masked from ‘package:rhdf5’:
 
     h5ls
 
-Loading required package: scuttle
-2024-07-28 14:46:17.339215 | Loading SpatialExperiment
-2024-07-28 14:46:27.065519 | Subsetting to this sample and bringing into memory
-Will use PRECAST k=2 clusters as a covariate to nnSVG.
-2024-07-28 14:46:45.879376 | Dropping 0 spots, which did not have a PRECAST cluster defined.
-2024-07-28 14:46:45.989531 | Filtering genes and spots
-Gene filtering: removing mitochondrial genes
-removed 0 mitochondrial genes
-Gene filtering: retaining genes with at least 3 counts in at least 0.5% (n = 82) of spatial locations
-removed 17132 out of 22375 genes due to low expression
-Dimensions of spe after filtering:
-[1]  5243 16311
-2024-07-28 14:46:58.20862 | Re-computing logcounts
-2024-07-28 14:47:01.300416 | Running nnSVG
-2024-07-28 21:09:57.567188 | Exporting results
+Registered S3 method overwritten by 'ggside':
+  method from   
+  +.gg   ggplot2
+Loading required package: limma
+
+Attaching package: ‘limma’
+
+The following object is masked from ‘package:scater’:
+
+    plotMDS
+
+The following object is masked from ‘package:BiocGenerics’:
+
+    plotMA
+
+
+Attaching package: ‘edgeR’
+
+The following object is masked from ‘package:SingleCellExperiment’:
+
+    cpm
+
+
+Attaching package: ‘cowplot’
+
+The following object is masked from ‘package:lubridate’:
+
+    stamp
+
+null device 
+          1 
+2024-07-27 21:09:36.79827 - Running modelGeneVar()
+  Br2720      Br2743      Br3942      Br6423      Br6432      Br6471     
+x numeric,101 numeric,101 numeric,101 numeric,101 numeric,101 numeric,101
+y numeric,101 numeric,101 numeric,101 numeric,101 numeric,101 numeric,101
+  Br6522      Br8325      Br8492      Br8667     
+x numeric,101 numeric,101 numeric,101 numeric,101
+y numeric,101 numeric,101 numeric,101 numeric,101
+null device 
+          1 
+2024-07-27 21:27:09.899888 - Running getTopHVGs()
+[1] "Num HVGs at FDR = 0.05: 10324"
+[1] "Num HVGs at FDR = 0.01: 9638"
+2024-07-27 21:27:10.090289 - Running runPCA()
+[1] "2024-07-27 21:27:10 EDT"
+[1] "2024-07-27 22:32:58 EDT"
+null device 
+          1 
+null device 
+          1 
+null device 
+          1 
+null device 
+          1 
+null device 
+          1 
+null device 
+          1 
+null device 
+          1 
+2024-07-27 22:33:44.905713 - Running devianceFeatureSelection()
+null device 
+          1 
+Br2720 
+Br2743 
+Br3942 
+Br6423 
+Br6432 
+Br6471 
+Br6522 
+Br8325 
+Br8492 
+Br8667 
+2024-07-27 23:24:51.998502 - Running GLM-PCA
+There were 50 or more warnings (use warnings() to see the first 50)
+2024-07-28 04:59:18.588243 - Running GLM-PCA
+There were 50 or more warnings (use warnings() to see the first 50)
+2024-07-28 09:51:15.016982 - Running GLM-PCA
+There were 50 or more warnings (use warnings() to see the first 50)
+2024-07-28 14:10:03.142857 - Saving HDF5-backed filtered spe
+There were 50 or more warnings (use warnings() to see the first 50)
+2024-07-28 16:03:14.049852 - Saving ordinary filtered spe
+null device 
+          1 
 ─ Session info ───────────────────────────────────────────────────────────────
  setting  value
  version  R version 4.3.2 (2023-10-31)
@@ -202,16 +270,15 @@ Dimensions of spe after filtering:
  BiocIO                   1.12.0    2023-10-24 [1] Bioconductor
  BiocManager              1.30.22   2023-08-08 [1] CRAN (R 4.3.2)
  BiocNeighbors            1.20.2    2024-01-07 [1] Bioconductor 3.18 (R 4.3.2)
- BiocParallel             1.36.0    2023-10-24 [1] Bioconductor
- BiocSingular             1.18.0    2023-10-24 [1] Bioconductor
+ BiocParallel           * 1.36.0    2023-10-24 [1] Bioconductor
+ BiocSingular           * 1.18.0    2023-10-24 [1] Bioconductor
  BiocVersion              3.18.1    2023-11-15 [1] Bioconductor
  Biostrings               2.70.1    2023-10-25 [1] Bioconductor
  bit                      4.0.5     2022-11-15 [1] CRAN (R 4.3.0)
  bit64                    4.0.5     2020-08-30 [1] CRAN (R 4.3.0)
  bitops                   1.0-7     2021-04-24 [1] CRAN (R 4.3.2)
  blob                     1.2.4     2023-03-17 [1] CRAN (R 4.3.0)
- bluster                  1.11.4    2024-02-02 [1] Github (LTLA/bluster@17dd9c8)
- BRISC                    1.0.5     2022-04-29 [1] CRAN (R 4.3.2)
+ bluster                * 1.11.4    2024-02-02 [1] Github (LTLA/bluster@17dd9c8)
  bslib                    0.6.1     2023-11-28 [1] CRAN (R 4.3.2)
  cachem                   1.0.8     2023-05-01 [1] CRAN (R 4.3.0)
  cli                      3.6.2     2023-12-11 [1] CRAN (R 4.3.2)
@@ -219,25 +286,28 @@ Dimensions of spe after filtering:
  codetools                0.2-19    2023-02-01 [1] CRAN (R 4.3.0)
  colorspace               2.1-0     2023-01-23 [1] CRAN (R 4.3.0)
  config                   0.3.2     2023-08-30 [1] CRAN (R 4.3.2)
- cowplot                  1.1.1     2020-12-30 [1] CRAN (R 4.3.2)
+ cowplot                * 1.1.1     2020-12-30 [1] CRAN (R 4.3.2)
  crayon                   1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
  curl                     5.2.0     2023-12-08 [1] CRAN (R 4.3.2)
  data.table               1.14.10   2023-12-08 [1] CRAN (R 4.3.2)
  DBI                      1.1.3     2022-06-18 [1] CRAN (R 4.3.0)
  dbplyr                   2.4.0     2023-10-26 [1] CRAN (R 4.3.1)
+ dbscan                   1.1-12    2023-11-28 [1] CRAN (R 4.3.2)
  DelayedArray           * 0.28.0    2023-10-24 [1] Bioconductor
  DelayedMatrixStats       1.24.0    2023-10-24 [1] Bioconductor
  deldir                   2.0-2     2023-11-23 [1] CRAN (R 4.3.2)
  digest                   0.6.33    2023-07-07 [1] CRAN (R 4.3.0)
+ dittoSeq               * 1.14.3    2024-03-20 [1] Bioconductor 3.18 (R 4.3.2)
  doParallel               1.0.17    2022-02-07 [1] CRAN (R 4.3.2)
  dotCall64                1.1-1     2023-11-28 [1] CRAN (R 4.3.2)
  dplyr                  * 1.1.4     2023-11-17 [1] CRAN (R 4.3.2)
  dqrng                    0.3.2     2023-11-29 [1] CRAN (R 4.3.2)
  DT                       0.31      2023-12-09 [1] CRAN (R 4.3.2)
- edgeR                    4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
+ edgeR                  * 4.0.3     2023-12-10 [1] Bioconductor 3.18 (R 4.3.2)
  ellipsis                 0.3.2     2021-04-29 [1] CRAN (R 4.3.0)
  ExperimentHub            2.10.0    2023-10-24 [1] Bioconductor
  fansi                    1.0.6     2023-12-08 [1] CRAN (R 4.3.2)
+ farver                   2.1.1     2022-07-06 [1] CRAN (R 4.3.0)
  fastDummies              1.7.3     2023-07-06 [1] CRAN (R 4.3.2)
  fastmap                  1.1.1     2023-02-24 [1] CRAN (R 4.3.0)
  fields                   15.2      2023-08-17 [1] CRAN (R 4.3.2)
@@ -254,11 +324,14 @@ Dimensions of spe after filtering:
  GenomeInfoDbData         1.2.11    2023-12-12 [1] Bioconductor
  GenomicAlignments        1.38.0    2023-10-24 [1] Bioconductor
  GenomicRanges          * 1.54.1    2023-10-29 [1] Bioconductor
- getopt                 * 1.20.4    2023-10-01 [1] CRAN (R 4.3.2)
  ggbeeswarm               0.7.2     2023-04-29 [1] CRAN (R 4.3.2)
+ ggExtra                * 0.10.1    2023-08-21 [1] CRAN (R 4.3.2)
  ggplot2                * 3.4.4     2023-10-12 [1] CRAN (R 4.3.2)
  ggrepel                  0.9.4     2023-10-13 [1] CRAN (R 4.3.2)
  ggridges                 0.5.4     2022-09-26 [1] CRAN (R 4.3.2)
+ ggsci                  * 3.0.1     2024-03-02 [1] CRAN (R 4.3.2)
+ ggside                   0.3.0     2024-02-26 [1] CRAN (R 4.3.2)
+ ggspavis               * 1.8.0     2023-10-24 [1] Bioconductor
  globals                  0.16.2    2022-11-21 [1] CRAN (R 4.3.0)
  glue                     1.7.0     2024-01-09 [1] CRAN (R 4.3.2)
  goftest                  1.2-3     2021-10-07 [1] CRAN (R 4.3.2)
@@ -284,12 +357,13 @@ Dimensions of spe after filtering:
  jsonlite                 1.8.8     2023-12-04 [1] CRAN (R 4.3.2)
  KEGGREST                 1.42.0    2023-10-24 [1] Bioconductor
  KernSmooth               2.23-22   2023-07-10 [1] CRAN (R 4.3.0)
+ labeling                 0.4.3     2023-08-29 [1] CRAN (R 4.3.1)
  later                    1.3.2     2023-12-06 [1] CRAN (R 4.3.2)
  lattice                  0.22-5    2023-10-24 [1] CRAN (R 4.3.1)
  lazyeval                 0.2.2     2019-03-15 [1] CRAN (R 4.3.0)
  leiden                   0.4.3.1   2023-11-17 [1] CRAN (R 4.3.2)
  lifecycle                1.0.4     2023-11-07 [1] CRAN (R 4.3.2)
- limma                    3.58.1    2023-10-31 [1] Bioconductor
+ limma                  * 3.58.1    2023-10-31 [1] Bioconductor
  listenv                  0.9.0     2022-12-16 [1] CRAN (R 4.3.0)
  lmtest                   0.9-40    2022-03-21 [1] CRAN (R 4.3.2)
  locfit                   1.5-9.8   2023-06-11 [1] CRAN (R 4.3.2)
@@ -307,11 +381,11 @@ Dimensions of spe after filtering:
  miniUI                   0.1.1.1   2018-05-18 [1] CRAN (R 4.3.2)
  munsell                  0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
  nlme                     3.1-164   2023-11-27 [1] CRAN (R 4.3.2)
- nnSVG                  * 1.6.0     2023-10-24 [1] Bioconductor
  paletteer                1.6.0     2024-01-21 [1] CRAN (R 4.3.2)
  parallelly               1.36.0    2023-05-26 [1] CRAN (R 4.3.0)
  patchwork                1.1.3     2023-08-14 [1] CRAN (R 4.3.2)
  pbapply                  1.7-2     2023-06-27 [1] CRAN (R 4.3.2)
+ pheatmap               * 1.0.12    2019-01-04 [1] CRAN (R 4.3.2)
  pillar                   1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
  pkgconfig                2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
  plotly                   4.10.3    2023-10-21 [1] CRAN (R 4.3.2)
@@ -330,7 +404,6 @@ Dimensions of spe after filtering:
  RcppAnnoy                0.0.21    2023-07-02 [1] CRAN (R 4.3.2)
  RcppHNSW                 0.5.0     2023-09-19 [1] CRAN (R 4.3.2)
  RCurl                    1.98-1.13 2023-11-02 [1] CRAN (R 4.3.2)
- rdist                    0.0.5     2020-05-04 [1] CRAN (R 4.3.2)
  readr                  * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
  rematch2                 2.1.2     2020-05-01 [1] CRAN (R 4.3.0)
  reshape2                 1.4.4     2020-04-09 [1] CRAN (R 4.3.0)
@@ -354,9 +427,10 @@ Dimensions of spe after filtering:
  sass                     0.4.8     2023-12-06 [1] CRAN (R 4.3.2)
  ScaledMatrix             1.10.0    2023-10-24 [1] Bioconductor
  scales                   1.3.0     2023-11-28 [1] CRAN (R 4.3.2)
- scater                   1.30.1    2023-11-16 [1] Bioconductor
+ scater                 * 1.30.1    2023-11-16 [1] Bioconductor
  scattermore              1.2       2023-06-12 [1] CRAN (R 4.3.2)
  scran                  * 1.30.0    2023-10-24 [1] Bioconductor
+ scry                   * 1.14.0    2023-10-24 [1] Bioconductor
  sctransform              0.4.1     2023-10-19 [1] CRAN (R 4.3.2)
  scuttle                * 1.12.0    2023-10-24 [1] Bioconductor
  segmented                2.0-0     2023-11-27 [1] CRAN (R 4.3.2)
@@ -379,6 +453,7 @@ Dimensions of spe after filtering:
  spatstat.random          3.2-2     2023-11-29 [1] CRAN (R 4.3.2)
  spatstat.sparse          3.0-3     2023-10-24 [1] CRAN (R 4.3.2)
  spatstat.utils           3.0-4     2023-10-24 [1] CRAN (R 4.3.2)
+ SpotSweeper            * 0.99.1    2024-02-16 [1] Github (MicTott/SpotSweeper@70b5880)
  statmod                  1.5.0     2023-01-06 [1] CRAN (R 4.3.2)
  stringi                  1.8.3     2023-12-11 [1] CRAN (R 4.3.2)
  stringr                * 1.5.1     2023-11-14 [1] CRAN (R 4.3.2)
@@ -409,4 +484,4 @@ Dimensions of spe after filtering:
 
 ──────────────────────────────────────────────────────────────────────────────
 **** Job ends ****
-Sun Jul 28 09:09:58 PM EDT 2024
+Sun Jul 28 04:38:59 PM EDT 2024
