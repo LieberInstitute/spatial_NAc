@@ -80,7 +80,7 @@ There is a Zenodo archive for this repository available at [10.5281/zenodo.17089
 
 ### Processed Data  
 
-A public globus endpoint was created and contains objects too large for github. It is available at [https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F](https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F)  
+A public globus endpoint was created and contains objects too large for github. It can be found on [https://research.libd.org/globus/](https://research.libd.org/globus/) under jhpce#spatial_NAc. A direct link to the public globus endpoint is available at [jhpce#spatial_NAc](https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F).  
 
 ### Raw Data
 
