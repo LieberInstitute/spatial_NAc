@@ -42,6 +42,45 @@ nmf_factors <- c("nmf3", "nmf4", "nmf7", "nmf10", "nmf39")
 cor_mat <- compute_visium_gene_correlations(spe, nmf_factors)
 rownames(cor_mat) <- make.unique(rowData(spe)$gene_name)
 
+pdf(file.path(plot_dir, "nmf_MSN_corr_dist.pdf"), width = 6, height = 4)
+# Set up plotting area: one plot per page
+par(mfrow = c(1, 1))
+# Loop through each column and plot histogram/density
+for (colname in colnames(cor_mat)) {
+  hist(cor_mat[, colname],
+       main = paste("Distribution of", colname),
+       xlab = colname,
+       col = "skyblue",
+       border = "white",
+       breaks = 50,
+       probability = TRUE)
+  
+  # Add density curve
+  lines(density(cor_mat[, colname], na.rm = TRUE), col = "red", lwd = 2)
+}
+# Close PDF device
+dev.off()
+
+top_n <- 200
+
+res_list <- lapply(colnames(cor_mat), function(p) {
+  v <- cor_mat[, p]
+  v <- v[!is.na(v)]
+  ord <- order(v, decreasing = TRUE)
+  keep <- head(ord, min(top_n, length(ord)))
+  data.frame(
+    gene = names(v)[keep],
+    meringue_pattern = p,
+    correlation = as.numeric(v[keep]),
+    rank = seq_along(keep),   # add rank
+    row.names = NULL
+  )
+})
+top_table <- do.call(rbind, res_list)
+
+out_file <- file.path(res_dir, "top200_per_MSN_pattern.csv")
+write.csv(top_table, out_file, row.names = FALSE)
+
 plot_visium_gene_correlation_heatmap <- function(cor_mat, nmf_factors, top_n = 20, output_dir, file_name) {
   library(dplyr)
   library(tibble)

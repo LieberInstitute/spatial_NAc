@@ -592,6 +592,25 @@ compute_cor_matrix <- function(expr, patterns) {
 
 cor_mat <- compute_cor_matrix(expr_mat, pattern_cols)
 
+pdf(file.path(plotDir, "meringue_corr_dist.pdf"), width = 6, height = 4)
+# Set up plotting area: one plot per page
+par(mfrow = c(1, 1))
+# Loop through each column and plot histogram/density
+for (colname in colnames(cor_mat)) {
+  hist(cor_mat[, colname],
+       main = paste("Distribution of", colname),
+       xlab = colname,
+       col = "skyblue",
+       border = "white",
+       breaks = 50,
+       probability = TRUE)
+  
+  # Add density curve
+  lines(density(cor_mat[, colname], na.rm = TRUE), col = "red", lwd = 2)
+}
+# Close PDF device
+dev.off()
+
 ranked_genes <- list()
 for(pat in pattern_cols){
   cors <- cor_mat[ ,pat]
@@ -656,3 +675,23 @@ dev.off()
 df <- colData(spe)
 df <- df[ ,grep("meringue_cluster", colnames(df))]
 saveRDS(df, file.path(resDir, "meringue_consensus_patterns.rds"))
+
+top_n <- 100
+
+res_list <- lapply(colnames(cor_mat), function(p) {
+  v <- cor_mat[, p]
+  v <- v[!is.na(v)]
+  ord <- order(v, decreasing = TRUE)
+  keep <- head(ord, min(top_n, length(ord)))
+  data.frame(
+    gene = names(v)[keep],
+    meringue_pattern = p,
+    correlation = as.numeric(v[keep]),
+    rank = seq_along(keep),   # add rank
+    row.names = NULL
+  )
+})
+top_table <- do.call(rbind, res_list)
+
+out_file <- file.path(resDir, "top100_per_pattern.csv")
+write.csv(top_table, out_file, row.names = FALSE)
