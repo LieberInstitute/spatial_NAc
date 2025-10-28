@@ -80,7 +80,11 @@ There is a Zenodo archive for this repository available at [10.5281/zenodo.17089
 
 ### Processed Data  
 
-A public globus endpoint was created and contains objects too large for github. It is available at [https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F](https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F)  
+A public globus endpoint was created and contains objects too large for github. It is available at [https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F](https://app.globus.org/file-manager?origin_id=1d521cdd-4319-4719-acae-69d9d1ddc843&origin_path=%2F). 
+
+- A processed SpatialExperiment object with the SRT data which includes the spatial domain annotations, RCTD deconvolution weights, and NMF factor projections is located in the spe_shiny directory. 
+
+- A processed SingleCellExperiment object containing cell type labels is located in the sce_shiny directory. 
 
 ### Raw Data
 
