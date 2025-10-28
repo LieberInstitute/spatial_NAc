@@ -84,7 +84,7 @@ A public globus endpoint was created and contains objects too large for github. 
 
 - A processed SpatialExperiment object with the SRT data which includes the spatial domain annotations, RCTD deconvolution weights, and NMF factor projections is located in the spe_shiny directory. 
 
-- A processed SingleCellExperiment object containing cell type labels is located in the sce_shiny directory. 
+- A processed SingleCellExperiment object containing cell type labels is located in the sce_isee directory. 
 
 ### Raw Data
 
