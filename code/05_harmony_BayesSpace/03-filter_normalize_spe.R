@@ -307,7 +307,7 @@ nSpots_by_donor <- lapply(levels(spe$sample_id), function(iSample){
 nSpots_by_donor <- do.call(cbind, nSpots_by_donor)
 colnames(nSpots_by_donor) <- levels(spe$sample_id)
 select.genes <-  rownames(nSpots_by_donor)[rowSums(nSpots_by_donor == 0) == 0]
-# Only select those genes which have non-zero expression in atleast 1 spot in each slide
+# Only select those genes which have non-zero expression in atleast 1 spot in each donor
 spe <- spe[rownames(spe) %in% select.genes, ]
 
 # Compute the relative expression of each gene per cell
