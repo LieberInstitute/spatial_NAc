@@ -1,0 +1,665 @@
+********* Job Starts *********
+Fri Feb 27 11:42:08 AM EST 2026
+Loading LIBD SLURM module for r_nac/1.0
+Loading required package: SingleCellExperiment
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+Loading required package: ggplot2
+Loading required package: SeuratObject
+Loading required package: sp
+
+Attaching package: ‘sp’
+
+The following object is masked from ‘package:IRanges’:
+
+    %over%
+
+
+Attaching package: ‘SeuratObject’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    Assays
+
+The following object is masked from ‘package:GenomicRanges’:
+
+    intersect
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following object is masked from ‘package:IRanges’:
+
+    intersect
+
+The following object is masked from ‘package:S4Vectors’:
+
+    intersect
+
+The following object is masked from ‘package:BiocGenerics’:
+
+    intersect
+
+The following object is masked from ‘package:base’:
+
+    intersect
+
+
+Attaching package: ‘Seurat’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    Assays
+
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+[1]    541 773426
+class: SpatialExperiment 
+dim: 541 773426 
+metadata(4): Samples Samples Samples Samples
+assays(2): counts nucleus_normcounts
+rownames(541): ABCC9 ADAMTS12 ... DeprecatedCodeword_0381
+  DeprecatedCodeword_0393
+rowData names(3): ID Symbol Type
+colnames(773426): Br6522_1 Br6522_2 ... Br6471_188502 Br6471_188503
+colData names(59): Sample Barcode ... PROK2 GABRQ
+reducedDimNames(0):
+mainExpName: NULL
+altExpNames(0):
+spatialCoords names(2) : x_final y_final
+imgData names(1): sample_id
+[1] 773426     22
+
+Astrocyte_A Astrocyte_B  DRD1_MSN_A  DRD1_MSN_B  DRD1_MSN_C  DRD1_MSN_D 
+      83887       26862      236985       18769        8294        6375 
+ DRD2_MSN_A  DRD2_MSN_B Endothelial   Ependymal  Excitatory       Inh_A 
+      45696        3170       60247        8892       19667        4666 
+      Inh_B       Inh_C       Inh_D       Inh_E       Inh_F   Microglia 
+       4323        4453        3015        3313       19722       66730 
+      Oligo         OPC 
+     111206       37154 
+Loading objects:
+  cluster_cols
+      Oligo  DRD1_MSN_A  DRD2_MSN_A         OPC   Microglia   Ependymal 
+  "#4F4753"   "#ECA31C"   "#58B6ED"   "#0D9F72"   "#F2E642"   "#0077B9" 
+Astrocyte_A  DRD1_MSN_B Endothelial       Inh_A  DRD2_MSN_B Astrocyte_B 
+  "#D95F00"   "#D079AA"   "#D00DFF"   "#35FB00"   "#F80091"   "#FF0016" 
+ DRD1_MSN_C  DRD1_MSN_D       Inh_B       Inh_C       Inh_D       Inh_E 
+  "#2A4BF9"   "#FB3DD9"   "#7A0096"   "#854222"   "#A7F281"   "#0DFBFA" 
+ Excitatory       Inh_F 
+  "#5C6300"     "black" 
+Saving 7 x 7 in image
+[1] "Br6522"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br2720"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br6432"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br6471"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br6522"
+[1] "Microglia"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Excitatory"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Endothelial"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_E"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Oligo"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_F"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPC"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Ependymal"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br2720"
+[1] "Microglia"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Excitatory"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Endothelial"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_E"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Oligo"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_F"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPC"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Ependymal"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br6432"
+[1] "Microglia"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Excitatory"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Endothelial"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_E"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Oligo"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_F"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPC"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Ependymal"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br6471"
+[1] "Microglia"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Excitatory"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Endothelial"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_E"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Oligo"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_F"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Astrocyte_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPC"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Inh_D"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Ependymal"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1_MSN_C"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2_MSN_B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+Warning messages:
+1: In dir.create(path = here("plots", "xenium", "Label_Transfer", "Cluster_Specific",  :
+  '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/plots/xenium/Label_Transfer/Cluster_Specific/Br6522' already exists
+2: In dir.create(path = here("plots", "xenium", "Label_Transfer", "Cluster_Specific",  :
+  '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/plots/xenium/Label_Transfer/Cluster_Specific/Br2720' already exists
+3: In dir.create(path = here("plots", "xenium", "Label_Transfer", "Cluster_Specific",  :
+  '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/plots/xenium/Label_Transfer/Cluster_Specific/Br6432' already exists
+4: In dir.create(path = here("plots", "xenium", "Label_Transfer", "Cluster_Specific",  :
+  '/dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc/plots/xenium/Label_Transfer/Cluster_Specific/Br6471' already exists
+[1] "Br6522"
+[1] "ADORA2A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CALB1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PPP1R1B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CARTPT"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "ARHGAP36"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PDYN"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PENK"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPRK1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "FOXJ1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "GABRQ"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "RXFP1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br2720"
+[1] "ADORA2A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CALB1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PPP1R1B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CARTPT"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "ARHGAP36"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PDYN"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PENK"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPRK1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "FOXJ1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "GABRQ"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "RXFP1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br6432"
+[1] "ADORA2A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CALB1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PPP1R1B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CARTPT"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "ARHGAP36"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PDYN"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PENK"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPRK1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "FOXJ1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "GABRQ"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "RXFP1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "Br6471"
+[1] "ADORA2A"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CALB1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PPP1R1B"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "CARTPT"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "ARHGAP36"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PDYN"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "PENK"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "OPRK1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "DRD2"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "FOXJ1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "GABRQ"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+[1] "RXFP1"
+Scale for fill is already present.
+Adding another scale for fill, which will replace the existing scale.
+R version 4.3.2 (2023-10-31)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Rocky Linux 9.4 (Blue Onyx)
+
+Matrix products: default
+BLAS/LAPACK: /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/libopenblasp-r0.3.25.so;  LAPACK version 3.11.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: US/Eastern
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats4    stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] here_1.0.1                  Seurat_5.0.1               
+ [3] SeuratObject_5.0.1          sp_2.1-2                   
+ [5] escheR_1.3.2                ggplot2_3.5.1              
+ [7] SpatialExperiment_1.12.0    SingleCellExperiment_1.24.0
+ [9] SummarizedExperiment_1.32.0 Biobase_2.62.0             
+[11] GenomicRanges_1.54.1        GenomeInfoDb_1.38.1        
+[13] IRanges_2.36.0              S4Vectors_0.40.2           
+[15] BiocGenerics_0.48.1         MatrixGenerics_1.14.0      
+[17] matrixStats_1.2.0          
+
+loaded via a namespace (and not attached):
+  [1] RColorBrewer_1.1-3      jsonlite_1.8.8          magrittr_2.0.3         
+  [4] spatstat.utils_3.1-0    magick_2.8.1            farver_2.1.1           
+  [7] ragg_1.2.7              zlibbioc_1.48.0         vctrs_0.6.5            
+ [10] ROCR_1.0-11             spatstat.explore_3.2-5  RCurl_1.98-1.13        
+ [13] htmltools_0.5.7         S4Arrays_1.2.0          SparseArray_1.2.2      
+ [16] sctransform_0.4.1       parallelly_1.36.0       KernSmooth_2.23-22     
+ [19] htmlwidgets_1.6.4       ica_1.0-3               plyr_1.8.9             
+ [22] plotly_4.10.3           zoo_1.8-12              igraph_2.0.3           
+ [25] mime_0.12               lifecycle_1.0.4         pkgconfig_2.0.3        
+ [28] Matrix_1.6-4            R6_2.5.1                fastmap_1.1.1          
+ [31] GenomeInfoDbData_1.2.11 fitdistrplus_1.1-11     future_1.33.0          
+ [34] shiny_1.8.0             digest_0.6.33           colorspace_2.1-0       
+ [37] patchwork_1.3.0.9000    rprojroot_2.0.4         tensor_1.5             
+ [40] RSpectra_0.16-1         irlba_2.3.5.1           textshaping_0.3.7      
+ [43] labeling_0.4.3          progressr_0.14.0        fansi_1.0.6            
+ [46] spatstat.sparse_3.0-3   httr_1.4.7              polyclip_1.10-6        
+ [49] abind_1.4-5             compiler_4.3.2          withr_2.5.2            
+ [52] fastDummies_1.7.3       MASS_7.3-60             DelayedArray_0.28.0    
+ [55] rjson_0.2.21            tools_4.3.2             lmtest_0.9-40          
+ [58] httpuv_1.6.13           future.apply_1.11.0     goftest_1.2-3          
+ [61] glue_1.7.0              nlme_3.1-164            promises_1.2.1         
+ [64] grid_4.3.2              Rtsne_0.17              cluster_2.1.6          
+ [67] reshape2_1.4.4          generics_0.1.3          gtable_0.3.4           
+ [70] spatstat.data_3.0-3     tidyr_1.3.0             data.table_1.14.10     
+ [73] utf8_1.2.4              XVector_0.42.0          spatstat.geom_3.2-7    
+ [76] RcppAnnoy_0.0.21        ggrepel_0.9.4           RANN_2.6.1             
+ [79] pillar_1.9.0            stringr_1.5.1           spam_2.10-0            
+ [82] RcppHNSW_0.5.0          later_1.3.2             splines_4.3.2          
+ [85] dplyr_1.1.4             lattice_0.22-5          deldir_2.0-2           
+ [88] survival_3.5-7          tidyselect_1.2.0        miniUI_0.1.1.1         
+ [91] pbapply_1.7-2           gridExtra_2.3           scattermore_1.2        
+ [94] stringi_1.8.3           lazyeval_0.2.2          codetools_0.2-19       
+ [97] tibble_3.2.1            cli_3.6.2               uwot_0.1.16            
+[100] systemfonts_1.2.1       xtable_1.8-4            reticulate_1.34.0      
+[103] munsell_0.5.0           Rcpp_1.0.12             spatstat.random_3.2-2  
+[106] globals_0.16.2          png_0.1-8               parallel_4.3.2         
+[109] ellipsis_0.3.2          dotCall64_1.1-1         bitops_1.0-7           
+[112] listenv_0.9.0           viridisLite_0.4.2       scales_1.3.0           
+[115] ggridges_0.5.4          leiden_0.4.3.1          purrr_1.0.2            
+[118] crayon_1.5.2            rlang_1.1.3             cowplot_1.1.1          
+********* Job Ends *********
+Fri Feb 27 11:53:36 AM EST 2026

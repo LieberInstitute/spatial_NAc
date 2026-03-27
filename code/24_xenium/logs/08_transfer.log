@@ -1,0 +1,168 @@
+********* Job Starts *********
+Fri Feb 13 02:11:58 PM EST 2026
+Loading LIBD SLURM module for r_nac/1.0
+Loading required package: SeuratObject
+Loading required package: sp
+
+Attaching package: ‘SeuratObject’
+
+The following object is masked from ‘package:base’:
+
+    intersect
+
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+An object of class Seurat 
+34977 features across 103339 samples within 1 assay 
+Active assay: originalexp (34977 features, 2000 variable features)
+ 3 layers present: counts, data, scale.data
+ 5 dimensional reductions calculated: GLMPCA_approx, tSNE, HARMONY, tSNE_HARMONY, seurat_pca
+Finding transfer anchors - 2026-02-13 14:14:01.789231
+Performing PCA on the provided query using 209 features as input.
+Centering and scaling data matrix
+  |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
+Projecting new data onto SVD
+Projecting new data onto SVD
+Projecting cell embeddings
+Finding neighborhoods
+Finding anchors
+	Found 4587 anchors
+Transferring Data - 2026-02-13 14:33:17.892658
+Finding integration vectors
+Finding integration vector weights
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Predicting cell labels
+Adding metadata - 2026-02-13 14:37:22.930387
+Saving objects - 2026-02-13 14:37:23.448209
+[1] "Reproducibility information:"
+[1] "2026-02-13 14:39:22 EST"
+    user   system  elapsed 
+1543.324   59.461 1642.938 
+─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.2 (2023-10-31)
+ os       Rocky Linux 9.4 (Blue Onyx)
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       US/Eastern
+ date     2026-02-13
+ pandoc   3.1.3 @ /jhpce/shared/libd/core/r_nac/1.0/nac_env/bin/pandoc
+
+─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+ package          * version    date (UTC) lib source
+ abind              1.4-5      2016-07-21 [1] CRAN (R 4.3.2)
+ cli                3.6.2      2023-12-11 [1] CRAN (R 4.3.2)
+ cluster            2.1.6      2023-12-01 [1] CRAN (R 4.3.2)
+ codetools          0.2-19     2023-02-01 [1] CRAN (R 4.3.0)
+ colorspace         2.1-0      2023-01-23 [1] CRAN (R 4.3.0)
+ cowplot            1.1.1      2020-12-30 [1] CRAN (R 4.3.2)
+ data.table         1.14.10    2023-12-08 [1] CRAN (R 4.3.2)
+ deldir             2.0-2      2023-11-23 [1] CRAN (R 4.3.2)
+ digest             0.6.33     2023-07-07 [1] CRAN (R 4.3.0)
+ dotCall64          1.1-1      2023-11-28 [1] CRAN (R 4.3.2)
+ dplyr              1.1.4      2023-11-17 [1] CRAN (R 4.3.2)
+ ellipsis           0.3.2      2021-04-29 [1] CRAN (R 4.3.0)
+ fansi              1.0.6      2023-12-08 [1] CRAN (R 4.3.2)
+ farver             2.1.1      2022-07-06 [1] CRAN (R 4.3.0)
+ fastDummies        1.7.3      2023-07-06 [1] CRAN (R 4.3.2)
+ fastmap            1.1.1      2023-02-24 [1] CRAN (R 4.3.0)
+ fitdistrplus       1.1-11     2023-04-25 [1] CRAN (R 4.3.2)
+ future             1.33.0     2023-07-01 [1] CRAN (R 4.3.0)
+ future.apply       1.11.0     2023-05-21 [1] CRAN (R 4.3.0)
+ generics           0.1.3      2022-07-05 [1] CRAN (R 4.3.0)
+ ggplot2            3.5.1      2024-04-23 [1] CRAN (R 4.3.2)
+ ggrepel            0.9.4      2023-10-13 [1] CRAN (R 4.3.2)
+ ggridges           0.5.4      2022-09-26 [1] CRAN (R 4.3.2)
+ globals            0.16.2     2022-11-21 [1] CRAN (R 4.3.0)
+ glue               1.7.0      2024-01-09 [1] CRAN (R 4.3.2)
+ goftest            1.2-3      2021-10-07 [1] CRAN (R 4.3.2)
+ gridExtra          2.3        2017-09-09 [1] CRAN (R 4.3.2)
+ gtable             0.3.4      2023-08-21 [1] CRAN (R 4.3.1)
+ here             * 1.0.1      2020-12-13 [1] CRAN (R 4.3.2)
+ htmltools          0.5.7      2023-11-03 [1] CRAN (R 4.3.2)
+ htmlwidgets        1.6.4      2023-12-06 [1] CRAN (R 4.3.2)
+ httpuv             1.6.13     2023-12-06 [1] CRAN (R 4.3.2)
+ httr               1.4.7      2023-08-15 [1] CRAN (R 4.3.1)
+ ica                1.0-3      2022-07-08 [1] CRAN (R 4.3.2)
+ igraph             2.0.3      2024-03-13 [1] CRAN (R 4.3.2)
+ irlba              2.3.5.1    2022-10-03 [1] CRAN (R 4.3.2)
+ jsonlite           1.8.8      2023-12-04 [1] CRAN (R 4.3.2)
+ KernSmooth         2.23-22    2023-07-10 [1] CRAN (R 4.3.0)
+ later              1.3.2      2023-12-06 [1] CRAN (R 4.3.2)
+ lattice            0.22-5     2023-10-24 [1] CRAN (R 4.3.1)
+ lazyeval           0.2.2      2019-03-15 [1] CRAN (R 4.3.0)
+ leiden             0.4.3.1    2023-11-17 [1] CRAN (R 4.3.2)
+ lifecycle          1.0.4      2023-11-07 [1] CRAN (R 4.3.2)
+ listenv            0.9.0      2022-12-16 [1] CRAN (R 4.3.0)
+ lmtest             0.9-40     2022-03-21 [1] CRAN (R 4.3.2)
+ magrittr           2.0.3      2022-03-30 [1] CRAN (R 4.3.0)
+ MASS               7.3-60     2023-05-04 [1] CRAN (R 4.3.0)
+ Matrix             1.6-4      2023-11-30 [1] CRAN (R 4.3.2)
+ matrixStats        1.2.0      2023-12-11 [1] CRAN (R 4.3.2)
+ mime               0.12       2021-09-28 [1] CRAN (R 4.3.0)
+ miniUI             0.1.1.1    2018-05-18 [1] CRAN (R 4.3.2)
+ munsell            0.5.0      2018-06-12 [1] CRAN (R 4.3.0)
+ nlme               3.1-164    2023-11-27 [1] CRAN (R 4.3.2)
+ parallelly         1.36.0     2023-05-26 [1] CRAN (R 4.3.0)
+ patchwork          1.3.0.9000 2024-11-06 [1] Github (thomasp85/patchwork@2695a9f)
+ pbapply            1.7-2      2023-06-27 [1] CRAN (R 4.3.2)
+ pillar             1.9.0      2023-03-22 [1] CRAN (R 4.3.0)
+ pkgconfig          2.0.3      2019-09-22 [1] CRAN (R 4.3.0)
+ plotly             4.10.3     2023-10-21 [1] CRAN (R 4.3.2)
+ plyr               1.8.9      2023-10-02 [1] CRAN (R 4.3.1)
+ png                0.1-8      2022-11-29 [1] CRAN (R 4.3.2)
+ polyclip           1.10-6     2023-09-27 [1] CRAN (R 4.3.2)
+ progressr          0.14.0     2023-08-10 [1] CRAN (R 4.3.1)
+ promises           1.2.1      2023-08-10 [1] CRAN (R 4.3.1)
+ purrr              1.0.2      2023-08-10 [1] CRAN (R 4.3.1)
+ R6                 2.5.1      2021-08-19 [1] CRAN (R 4.3.0)
+ RANN               2.6.1      2019-01-08 [1] CRAN (R 4.3.2)
+ RColorBrewer       1.1-3      2022-04-03 [1] CRAN (R 4.3.0)
+ Rcpp               1.0.12     2024-01-09 [1] CRAN (R 4.3.2)
+ RcppAnnoy          0.0.21     2023-07-02 [1] CRAN (R 4.3.2)
+ RcppHNSW           0.5.0      2023-09-19 [1] CRAN (R 4.3.2)
+ reshape2           1.4.4      2020-04-09 [1] CRAN (R 4.3.0)
+ reticulate         1.34.0     2023-10-12 [1] CRAN (R 4.3.2)
+ rlang              1.1.3      2024-01-10 [1] CRAN (R 4.3.2)
+ ROCR               1.0-11     2020-05-02 [1] CRAN (R 4.3.2)
+ rprojroot          2.0.4      2023-11-05 [1] CRAN (R 4.3.2)
+ RSpectra           0.16-1     2022-04-24 [1] CRAN (R 4.3.2)
+ Rtsne              0.17       2023-12-07 [1] CRAN (R 4.3.2)
+ scales             1.3.0      2023-11-28 [1] CRAN (R 4.3.2)
+ scattermore        1.2        2023-06-12 [1] CRAN (R 4.3.2)
+ sctransform        0.4.1      2023-10-19 [1] CRAN (R 4.3.2)
+ sessioninfo        1.2.2      2021-12-06 [1] CRAN (R 4.3.2)
+ Seurat           * 5.0.1      2023-11-17 [1] CRAN (R 4.3.2)
+ SeuratObject     * 5.0.1      2023-11-17 [1] CRAN (R 4.3.2)
+ shiny              1.8.0      2023-11-17 [1] CRAN (R 4.3.2)
+ sp               * 2.1-2      2023-11-26 [1] CRAN (R 4.3.2)
+ spam               2.10-0     2023-10-23 [1] CRAN (R 4.3.2)
+ spatstat.data      3.0-3      2023-10-24 [1] CRAN (R 4.3.2)
+ spatstat.explore   3.2-5      2023-10-22 [1] CRAN (R 4.3.2)
+ spatstat.geom      3.2-7      2023-10-20 [1] CRAN (R 4.3.2)
+ spatstat.random    3.2-2      2023-11-29 [1] CRAN (R 4.3.2)
+ spatstat.sparse    3.0-3      2023-10-24 [1] CRAN (R 4.3.2)
+ spatstat.utils     3.1-0      2024-08-17 [1] CRAN (R 4.3.2)
+ stringi            1.8.3      2023-12-11 [1] CRAN (R 4.3.2)
+ stringr            1.5.1      2023-11-14 [1] CRAN (R 4.3.2)
+ survival           3.5-7      2023-08-14 [1] CRAN (R 4.3.1)
+ tensor             1.5        2012-05-05 [1] CRAN (R 4.3.2)
+ tibble             3.2.1      2023-03-20 [1] CRAN (R 4.3.0)
+ tidyr              1.3.0      2023-01-24 [1] CRAN (R 4.3.0)
+ tidyselect         1.2.0      2022-10-10 [1] CRAN (R 4.3.0)
+ utf8               1.2.4      2023-10-22 [1] CRAN (R 4.3.1)
+ uwot               0.1.16     2023-06-29 [1] CRAN (R 4.3.2)
+ vctrs              0.6.5      2023-12-01 [1] CRAN (R 4.3.2)
+ viridisLite        0.4.2      2023-05-02 [1] CRAN (R 4.3.0)
+ xtable             1.8-4      2019-04-21 [1] CRAN (R 4.3.0)
+ zoo                1.8-12     2023-04-13 [1] CRAN (R 4.3.0)
+
+ [1] /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/R/library
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+********* Job Ends *********
+Fri Feb 13 02:39:24 PM EST 2026

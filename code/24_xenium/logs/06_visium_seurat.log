@@ -1,0 +1,484 @@
+********* Job Starts *********
+Fri Feb 13 01:46:47 PM EST 2026
+Loading LIBD SLURM module for r_nac/1.0
+Loading required package: SingleCellExperiment
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+Loading required package: DelayedArray
+Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:S4Vectors’:
+
+    expand
+
+Loading required package: S4Arrays
+Loading required package: abind
+
+Attaching package: ‘S4Arrays’
+
+The following object is masked from ‘package:abind’:
+
+    abind
+
+The following object is masked from ‘package:base’:
+
+    rowsum
+
+Loading required package: SparseArray
+
+Attaching package: ‘DelayedArray’
+
+The following objects are masked from ‘package:base’:
+
+    apply, scale, sweep
+
+Loading required package: rhdf5
+
+Attaching package: ‘HDF5Array’
+
+The following object is masked from ‘package:rhdf5’:
+
+    h5ls
+
+Loading required package: SeuratObject
+Loading required package: sp
+
+Attaching package: ‘sp’
+
+The following object is masked from ‘package:IRanges’:
+
+    %over%
+
+
+Attaching package: ‘SeuratObject’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    Assays
+
+The following object is masked from ‘package:GenomicRanges’:
+
+    intersect
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following object is masked from ‘package:IRanges’:
+
+    intersect
+
+The following object is masked from ‘package:S4Vectors’:
+
+    intersect
+
+The following object is masked from ‘package:BiocGenerics’:
+
+    intersect
+
+The following object is masked from ‘package:base’:
+
+    intersect
+
+
+Attaching package: ‘Seurat’
+
+The following object is masked from ‘package:SummarizedExperiment’:
+
+    Assays
+
+
+Attaching package: ‘dplyr’
+
+The following object is masked from ‘package:Biobase’:
+
+    combine
+
+The following objects are masked from ‘package:GenomicRanges’:
+
+    intersect, setdiff, union
+
+The following object is masked from ‘package:GenomeInfoDb’:
+
+    intersect
+
+The following objects are masked from ‘package:IRanges’:
+
+    collapse, desc, intersect, setdiff, slice, union
+
+The following objects are masked from ‘package:S4Vectors’:
+
+    first, intersect, rename, setdiff, setequal, union
+
+The following objects are masked from ‘package:BiocGenerics’:
+
+    combine, intersect, setdiff, union
+
+The following object is masked from ‘package:matrixStats’:
+
+    count
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+here() starts at /dcs04/lieber/marmaypag/spatialNac_LIBD4125/spatial_NAc
+
+FALSE  TRUE 
+22014   361 
+  [1] "CHAT"                    "HLA-DMB"                
+  [3] "HLA-DQA1"                "POSTN"                  
+  [5] "ROS1"                    "NegControlProbe_00042"  
+  [7] "NegControlProbe_00041"   "NegControlProbe_00039"  
+  [9] "NegControlProbe_00035"   "NegControlProbe_00034"  
+ [11] "NegControlProbe_00033"   "NegControlProbe_00031"  
+ [13] "NegControlProbe_00025"   "NegControlProbe_00024"  
+ [15] "NegControlProbe_00022"   "NegControlProbe_00019"  
+ [17] "NegControlProbe_00017"   "NegControlProbe_00016"  
+ [19] "NegControlProbe_00014"   "NegControlProbe_00013"  
+ [21] "NegControlProbe_00012"   "NegControlProbe_00009"  
+ [23] "NegControlProbe_00004"   "NegControlProbe_00003"  
+ [25] "NegControlProbe_00002"   "NegControlCodeword_0500"
+ [27] "NegControlCodeword_0501" "NegControlCodeword_0502"
+ [29] "NegControlCodeword_0503" "NegControlCodeword_0504"
+ [31] "NegControlCodeword_0505" "NegControlCodeword_0506"
+ [33] "NegControlCodeword_0507" "NegControlCodeword_0508"
+ [35] "NegControlCodeword_0509" "NegControlCodeword_0510"
+ [37] "NegControlCodeword_0511" "NegControlCodeword_0512"
+ [39] "NegControlCodeword_0513" "NegControlCodeword_0514"
+ [41] "NegControlCodeword_0515" "NegControlCodeword_0516"
+ [43] "NegControlCodeword_0517" "NegControlCodeword_0518"
+ [45] "NegControlCodeword_0519" "NegControlCodeword_0520"
+ [47] "NegControlCodeword_0521" "NegControlCodeword_0522"
+ [49] "NegControlCodeword_0523" "NegControlCodeword_0524"
+ [51] "NegControlCodeword_0525" "NegControlCodeword_0526"
+ [53] "NegControlCodeword_0527" "NegControlCodeword_0528"
+ [55] "NegControlCodeword_0529" "NegControlCodeword_0530"
+ [57] "NegControlCodeword_0531" "NegControlCodeword_0532"
+ [59] "NegControlCodeword_0533" "NegControlCodeword_0534"
+ [61] "NegControlCodeword_0535" "NegControlCodeword_0536"
+ [63] "NegControlCodeword_0537" "NegControlCodeword_0538"
+ [65] "NegControlCodeword_0539" "NegControlCodeword_0540"
+ [67] "UnassignedCodeword_0001" "UnassignedCodeword_0005"
+ [69] "UnassignedCodeword_0007" "UnassignedCodeword_0013"
+ [71] "UnassignedCodeword_0015" "UnassignedCodeword_0020"
+ [73] "UnassignedCodeword_0023" "UnassignedCodeword_0036"
+ [75] "UnassignedCodeword_0041" "UnassignedCodeword_0043"
+ [77] "UnassignedCodeword_0044" "UnassignedCodeword_0055"
+ [79] "UnassignedCodeword_0056" "UnassignedCodeword_0059"
+ [81] "UnassignedCodeword_0062" "UnassignedCodeword_0063"
+ [83] "UnassignedCodeword_0066" "UnassignedCodeword_0071"
+ [85] "UnassignedCodeword_0078" "UnassignedCodeword_0079"
+ [87] "UnassignedCodeword_0080" "UnassignedCodeword_0086"
+ [89] "UnassignedCodeword_0093" "UnassignedCodeword_0095"
+ [91] "UnassignedCodeword_0098" "UnassignedCodeword_0100"
+ [93] "UnassignedCodeword_0103" "UnassignedCodeword_0116"
+ [95] "UnassignedCodeword_0118" "UnassignedCodeword_0124"
+ [97] "UnassignedCodeword_0127" "UnassignedCodeword_0128"
+ [99] "UnassignedCodeword_0129" "UnassignedCodeword_0139"
+[101] "UnassignedCodeword_0146" "UnassignedCodeword_0150"
+[103] "UnassignedCodeword_0153" "UnassignedCodeword_0156"
+[105] "UnassignedCodeword_0161" "UnassignedCodeword_0164"
+[107] "UnassignedCodeword_0172" "UnassignedCodeword_0173"
+[109] "UnassignedCodeword_0179" "UnassignedCodeword_0185"
+[111] "UnassignedCodeword_0190" "UnassignedCodeword_0194"
+[113] "UnassignedCodeword_0195" "UnassignedCodeword_0205"
+[115] "UnassignedCodeword_0208" "UnassignedCodeword_0209"
+[117] "UnassignedCodeword_0217" "UnassignedCodeword_0224"
+[119] "UnassignedCodeword_0225" "UnassignedCodeword_0233"
+[121] "UnassignedCodeword_0235" "UnassignedCodeword_0236"
+[123] "UnassignedCodeword_0238" "UnassignedCodeword_0245"
+[125] "UnassignedCodeword_0247" "UnassignedCodeword_0254"
+[127] "UnassignedCodeword_0260" "DeprecatedCodeword_0009"
+[129] "DeprecatedCodeword_0012" "DeprecatedCodeword_021" 
+[131] "DeprecatedCodeword_0024" "DeprecatedCodeword_0027"
+[133] "DeprecatedCodeword_0028" "DeprecatedCodeword_0031"
+[135] "DeprecatedCodeword_0039" "DeprecatedCodeword_0045"
+[137] "DeprecatedCodeword_0054" "DeprecatedCodeword_0058"
+[139] "DeprecatedCodeword_0067" "DeprecatedCodeword_068" 
+[141] "DeprecatedCodeword_0075" "DeprecatedCodeword_0097"
+[143] "DeprecatedCodeword_0109" "DeprecatedCodeword_0117"
+[145] "DeprecatedCodeword_0136" "DeprecatedCodeword_0140"
+[147] "DeprecatedCodeword_0143" "DeprecatedCodeword_0160"
+[149] "DeprecatedCodeword_0167" "DeprecatedCodeword_0169"
+[151] "DeprecatedCodeword_0171" "DeprecatedCodeword_0192"
+[153] "DeprecatedCodeword_0196" "DeprecatedCodeword_0213"
+[155] "DeprecatedCodeword_0231" "DeprecatedCodeword_0251"
+[157] "DeprecatedCodeword_0252" "DeprecatedCodeword_0272"
+[159] "DeprecatedCodeword_0274" "DeprecatedCodeword_0277"
+[161] "DeprecatedCodeword_0281" "DeprecatedCodeword_0290"
+[163] "DeprecatedCodeword_0291" "DeprecatedCodeword_0293"
+[165] "DeprecatedCodeword_0295" "DeprecatedCodeword_0304"
+[167] "DeprecatedCodeword_0314" "DeprecatedCodeword_0317"
+[169] "DeprecatedCodeword_0318" "DeprecatedCodeword_0321"
+[171] "DeprecatedCodeword_0344" "DeprecatedCodeword_0345"
+[173] "DeprecatedCodeword_0346" "DeprecatedCodeword_0366"
+[175] "DeprecatedCodeword_0368" "DeprecatedCodeword_0370"
+[177] "DeprecatedCodeword_0373" "DeprecatedCodeword_0376"
+[179] "DeprecatedCodeword_0381" "DeprecatedCodeword_0393"
+class: SpatialExperiment 
+dim: 361 176013 
+metadata(0):
+assays(2): counts logcounts
+rownames(361): CORT CASZ1 ... GABRQ PCDH11Y
+rowData names(7): source type ... gene_type gene_search
+colnames(176013): AAACAACGAATAGTTC-1_V11D01-384_A1
+  AAACAAGTATCTCCCA-1_V11D01-384_A1 ... TTGTTTGTATTACACG-1_V13M13-362_C1
+  TTGTTTGTGTAAATTC-1_V13M13-362_C1
+colData names(63): sample_id in_tissue ... low_gene_edge_spot
+  sizeFactor
+reducedDimNames(3): 10x_pca 10x_tsne 10x_umap
+mainExpName: NULL
+altExpNames(0):
+spatialCoords names(2) : pxl_col_in_fullres pxl_row_in_fullres
+imgData names(4): sample_id image_id data scaleFactor
+Converting the counts matrix -2026-02-13 13:47:19.333822
+Converting the logcounts matrix -2026-02-13 13:48:09.22861
+class: SpatialExperiment 
+dim: 361 175945 
+metadata(0):
+assays(2): counts logcounts
+rownames(361): CORT CASZ1 ... GABRQ PCDH11Y
+rowData names(7): source type ... gene_type gene_search
+colnames(175945): AAACAACGAATAGTTC-1_V11D01-384_A1
+  AAACAAGTATCTCCCA-1_V11D01-384_A1 ... TTGTTTGTATTACACG-1_V13M13-362_C1
+  TTGTTTGTGTAAATTC-1_V13M13-362_C1
+colData names(64): sample_id in_tissue ... sizeFactor spatial_domains
+reducedDimNames(3): 10x_pca 10x_tsne 10x_umap
+mainExpName: NULL
+altExpNames(0):
+spatialCoords names(2) : pxl_col_in_fullres pxl_row_in_fullres
+imgData names(4): sample_id image_id data scaleFactor
+Warning: Keys should be one or more alphanumeric characters followed by an underscore, setting key from pc. to pc_
+Warning: Keys should be one or more alphanumeric characters followed by an underscore, setting key from tsne. to tsne_
+Warning: Keys should be one or more alphanumeric characters followed by an underscore, setting key from umap. to umap_
+[1] "originalexp"
+Calculating gene variances
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Calculating feature variances of standardized and clipped values
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Centering and scaling data matrix
+  |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
+PC_ 1 
+Positive:  PENK, SYNPR, NNAT, LAMP5, PPP1R1B, CRYM, ANO3, SLC1A2, SNAP25, COCH 
+	   CALB1, GAD2, TAC1, PDYN, HTR2C, SLC32A1, ADORA2A, MEIS2, GPR6, DIRAS3 
+	   BCL11B, APP, RASD2, GAD1, DRD1, PDE10A, APOE, SIX3, SCN4B, RASGRP1 
+Negative:  GFAP, MOBP, CLDN11, ERMN, MAG, CNTN2, OPALIN, MYRF, CNDP1, MAL 
+	   CAPN3, EFHD1, UGT8, MOG, KLK6, OLIG1, ERBB3, SLC17A7, FGFR2, SOX10 
+	   ST18, PCSK6, OLIG2, CTNNA3, CD44, HHATL, UNC5B, PSEN1, CTSH, NGFR 
+PC_ 2 
+Positive:  SEZ6L, GNG2, CXCL14, SNCG, NELL1, GABRQ, RPRM, CALB2, SST, PYDC1 
+	   APOE, NPY, CCK, TAC3, CARTPT, GJA1, CPLX2, IGFBP4, SLC17A7, CLSTN2 
+	   ARHGAP36, GABBR2, AQP4, DIRAS3, RXFP1, DNER, CRLF1, PDE1A, SEMA5B, SPHKAP 
+Negative:  ANO3, COCH, SCN4B, RASD2, ADORA2A, PENK, PDE10A, TPBG, PPP1R1B, CALB1 
+	   OPALIN, MAG, CLDN11, CNDP1, MYRF, ERMN, CNTN2, ONECUT2, GPR6, HTR2C 
+	   CAPN3, TAC1, MOBP, SMOC2, UTRN, UGT8, MAL, TRAC, ERBB3, DRD2 
+PC_ 3 
+Positive:  AQP4, GJA1, APOE, SLC1A2, FGFR3, MGST1, TTYH1, SOX9, PTPRZ1, SOX2 
+	   ANXA1, CRLF1, FOXJ1, WIF1, TRIL, FBLN1, CFAP157, BCAN, SPON1, IFITM3 
+	   CD44, HES1, EGFR, NOTCH1, CLDN5, SERPINA3, ZBBX, CTSH, EFHD1, TNC 
+Negative:  SNAP25, SEZ6L, SLC17A7, CALB2, GNG2, CCK, GABRQ, RPRM, RXFP1, CLSTN2 
+	   SPHKAP, SNCG, CPLX2, SLC5A7, OPCML, GAD1, GABBR2, SLC18A3, CPNE4, NELL1 
+	   DIRAS3, LHX8, NTRK1, TACR1, NEUROD2, PDE1A, TBR1, NGFR, TRHDE, SLC32A1 
+PC_ 4 
+Positive:  CORT, NPY, SST, NOS1, MAG, PNOC, APP, DNER, CLDN11, CNDP1 
+	   OPALIN, CNTN2, CHODL, MAL, CRH, MYRF, CAPN3, LHX6, UGT8, MOG 
+	   ERMN, TACR1, KLK6, NELL1, OLIG1, SNAP25, SOX10, EFHD1, GAD1, ERBB3 
+Negative:  ANXA1, FOXJ1, CFAP157, CRLF1, ZBBX, HES1, CD36, GFAP, ARHGAP36, NR4A2 
+	   LOX, SERPINA3, KLF4, PYDC1, CD44, TNC, ANGPT1, AQP4, CCL4, GJA1 
+	   FILIP1, MGST1, EBF1, TRPC6, CARTPT, DIRAS3, MT1H, SOX9, NNAT, CAPG 
+PC_ 5 
+Positive:  CALB2, SLC5A7, SLC18A3, ANXA1, GNRH1, SCN4B, SPHKAP, SNCG, NTRK1, LHX8 
+	   TACR1, FOXJ1, RASD2, CFAP157, TPBG, CLSTN2, NGFR, CORT, LHX6, DCN 
+	   CD36, NOS1, CLDN5, ADORA2A, IGFBP5, SLC17A8, ZBBX, SNAP25, COCH, FBLN1 
+Negative:  PDYN, DIRAS3, RPRM, PYDC1, CARTPT, ARHGAP36, CXCL14, GABRQ, MAL, LAMP5 
+	   MAG, OLIG1, TSHZ1, RXFP1, SYNPR, FOXP2, CLDN11, SEZ6L, CNTN2, SEMA5B 
+	   MYRF, ERMN, APP, NPNT, MOG, UGT8, OPALIN, NNAT, KLK6, CAPN3 
+Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric
+To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'
+This message will be shown once per session
+13:51:20 UMAP embedding parameters a = 0.9922 b = 1.112
+Found more than one class "dist" in cache; using the first, from namespace 'BiocGenerics'
+Also defined by ‘spam’
+13:51:20 Read 175945 rows and found 50 numeric columns
+13:51:20 Using Annoy for neighbor search, n_neighbors = 30
+Found more than one class "dist" in cache; using the first, from namespace 'BiocGenerics'
+Also defined by ‘spam’
+13:51:20 Building Annoy index with metric = cosine, n_trees = 50
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+13:51:32 Writing NN index file to temp file /tmp/Rtmp9kNsVx/file33702158b5077a
+13:51:33 Searching Annoy index using 1 thread, search_k = 3000
+13:52:40 Annoy recall = 99.96%
+13:52:41 Commencing smooth kNN distance calibration using 1 thread with target n_neighbors = 30
+13:52:42 107 smooth knn distance failures
+13:52:45 Initializing from normalized Laplacian + noise (using RSpectra)
+13:52:49 Commencing optimization for 200 epochs, with 8273696 positive edges
+Using method 'umap'
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+13:53:59 Optimization finished
+Warning message:
+Key ‘umap_’ taken, using ‘asyhw_’ instead 
+R version 4.3.2 (2023-10-31)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Rocky Linux 9.4 (Blue Onyx)
+
+Matrix products: default
+BLAS/LAPACK: /jhpce/shared/libd/core/r_nac/1.0/nac_env/lib/libopenblasp-r0.3.25.so;  LAPACK version 3.11.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: US/Eastern
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats4    stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] here_1.0.1                  dplyr_1.1.4                
+ [3] Seurat_5.0.1                SeuratObject_5.0.1         
+ [5] sp_2.1-2                    HDF5Array_1.30.0           
+ [7] rhdf5_2.46.1                DelayedArray_0.28.0        
+ [9] SparseArray_1.2.2           S4Arrays_1.2.0             
+[11] abind_1.4-5                 Matrix_1.6-4               
+[13] SpatialExperiment_1.12.0    SingleCellExperiment_1.24.0
+[15] SummarizedExperiment_1.32.0 Biobase_2.62.0             
+[17] GenomicRanges_1.54.1        GenomeInfoDb_1.38.1        
+[19] IRanges_2.36.0              S4Vectors_0.40.2           
+[21] BiocGenerics_0.48.1         MatrixGenerics_1.14.0      
+[23] matrixStats_1.2.0          
+
+loaded via a namespace (and not attached):
+  [1] RColorBrewer_1.1-3      jsonlite_1.8.8          magrittr_2.0.3         
+  [4] spatstat.utils_3.1-0    magick_2.8.1            farver_2.1.1           
+  [7] zlibbioc_1.48.0         vctrs_0.6.5             ROCR_1.0-11            
+ [10] spatstat.explore_3.2-5  RCurl_1.98-1.13         htmltools_0.5.7        
+ [13] Rhdf5lib_1.24.1         sctransform_0.4.1       parallelly_1.36.0      
+ [16] KernSmooth_2.23-22      htmlwidgets_1.6.4       ica_1.0-3              
+ [19] plyr_1.8.9              plotly_4.10.3           zoo_1.8-12             
+ [22] igraph_2.0.3            mime_0.12               lifecycle_1.0.4        
+ [25] pkgconfig_2.0.3         R6_2.5.1                fastmap_1.1.1          
+ [28] GenomeInfoDbData_1.2.11 fitdistrplus_1.1-11     future_1.33.0          
+ [31] shiny_1.8.0             digest_0.6.33           colorspace_2.1-0       
+ [34] patchwork_1.3.0.9000    rprojroot_2.0.4         tensor_1.5             
+ [37] RSpectra_0.16-1         irlba_2.3.5.1           progressr_0.14.0       
+ [40] fansi_1.0.6             spatstat.sparse_3.0-3   polyclip_1.10-6        
+ [43] httr_1.4.7              compiler_4.3.2          withr_2.5.2            
+ [46] fastDummies_1.7.3       MASS_7.3-60             rjson_0.2.21           
+ [49] tools_4.3.2             lmtest_0.9-40           httpuv_1.6.13          
+ [52] future.apply_1.11.0     goftest_1.2-3           glue_1.7.0             
+ [55] nlme_3.1-164            rhdf5filters_1.14.1     promises_1.2.1         
+ [58] grid_4.3.2              Rtsne_0.17              cluster_2.1.6          
+ [61] reshape2_1.4.4          generics_0.1.3          gtable_0.3.4           
+ [64] spatstat.data_3.0-3     tidyr_1.3.0             data.table_1.14.10     
+ [67] utf8_1.2.4              XVector_0.42.0          spatstat.geom_3.2-7    
+ [70] RcppAnnoy_0.0.21        ggrepel_0.9.4           RANN_2.6.1             
+ [73] pillar_1.9.0            stringr_1.5.1           spam_2.10-0            
+ [76] RcppHNSW_0.5.0          later_1.3.2             splines_4.3.2          
+ [79] lattice_0.22-5          deldir_2.0-2            survival_3.5-7         
+ [82] tidyselect_1.2.0        miniUI_0.1.1.1          pbapply_1.7-2          
+ [85] gridExtra_2.3           scattermore_1.2         stringi_1.8.3          
+ [88] lazyeval_0.2.2          codetools_0.2-19        tibble_3.2.1           
+ [91] cli_3.6.2               uwot_0.1.16             xtable_1.8-4           
+ [94] reticulate_1.34.0       munsell_0.5.0           Rcpp_1.0.12            
+ [97] spatstat.random_3.2-2   globals_0.16.2          png_0.1-8              
+[100] parallel_4.3.2          ellipsis_0.3.2          ggplot2_3.5.1          
+[103] dotCall64_1.1-1         bitops_1.0-7            listenv_0.9.0          
+[106] viridisLite_0.4.2       scales_1.3.0            ggridges_0.5.4         
+[109] leiden_0.4.3.1          purrr_1.0.2             crayon_1.5.2           
+[112] rlang_1.1.3             cowplot_1.1.1          
+********* Job Ends *********
+Fri Feb 13 01:54:22 PM EST 2026
