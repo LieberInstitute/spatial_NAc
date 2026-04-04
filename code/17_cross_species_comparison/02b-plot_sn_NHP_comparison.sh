@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH -p shared
 #SBATCH -c 4
-#SBATCH --time=48:0:0
+#SBATCH --time=2:0:0
 #SBATCH --mem=60G
-#SBATCH --job-name=01_sn_rat_comparison
-#SBATCH -o ../../processed-data/17_cross_species_comparison/logs/01-sn_rat_comparison.log
-#SBATCH -e ../../processed-data/17_cross_species_comparison/logs/01-sn_rat_comparison.log
+#SBATCH --job-name=02b-plot_sn_NHP
+#SBATCH -o ../../processed-data/17_cross_species_comparison/logs/02b-plot_sn_NHP_comparison.log
+#SBATCH -e ../../processed-data/17_cross_species_comparison/logs/02b-plot_sn_NHP_comparison.log
 
 #   'TRUE' or 'FALSE': if TRUE, only use marker genes for the known cell types
 subset_neurons=FALSE
@@ -21,8 +21,7 @@ echo "Node name: ${SLURMD_NODENAME}"
 echo "Task id: ${SLURM_ARRAY_TASK_ID}"
 
 module load r_nac
-Rscript 01-sn_rat_comparison.R -n $subset_neurons
+Rscript 02b-plot_sn_NHP_comparison.R -n $subset_neurons
 
 echo "**** Job ends ****"
 date
-

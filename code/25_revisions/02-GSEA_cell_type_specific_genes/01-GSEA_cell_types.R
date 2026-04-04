@@ -1,198 +1,129 @@
-#### code for obtaining gene set enrichment for MCP factors
+#### Reactome pathway enrichment for upregulated cell type DEGs using gprofiler2
+#### Save minimal output table
 
 library(dplyr)
-library(ggplot2)
-library(fgsea)
-library(reactome.db)
-library(org.Hs.eg.db)
+library(gprofiler2)
 library(here)
-library(SpatialExperiment)
-library(SingleCellExperiment)
-library(HDF5Array)
-library(Seurat)
-library(RColorBrewer)
-library(spatialLIBD)
-library(jaffelab)
-library(sessioninfo)
-library(ggplot2)
-library(cowplot)
-library(tidyverse)
-library(fastTopics)
-library(getopt)
-library(edgeR)
-library(scran)
-library(scuttle)
 
 set.seed(123)
 
-# Read in the data
-dat_dir <- here("code", "06_deploy_app", "spe_shiny")
-spe <- loadHDF5SummarizedExperiment(dat_dir)
+# ------------------------------------------------------------------
+# Load data
+# ------------------------------------------------------------------
+dat_dir <- here("processed-data", "10_post_clustering_analysis", "02_spatial_registration_sn")
+sn_registration <- readRDS(file.path(dat_dir, "sn_cellType_registration.rds"))
+enrichment <- sn_registration$enrichment
 
-plot_dir <- here::here("plots", "25_revisions","01_MCP_GSEA")
-save_dir <- here::here("processed-data", "25_revisions", "01_MCP_GSEA")
+# ------------------------------------------------------------------
+# Define cell types from enrichment table
+# ------------------------------------------------------------------
+tstat_cols <- grep("^t_stat_", colnames(enrichment), value = TRUE)
+cell_types <- sub("^t_stat_", "", tstat_cols)
 
-dir.create(plot_dir, recursive = TRUE)
-dir.create(save_dir, recursive = TRUE)
+# ------------------------------------------------------------------
+# Define background = all detected genes in the study
+# ------------------------------------------------------------------
+background_genes <- enrichment$gene
+background_genes <- background_genes[!is.na(background_genes) & background_genes != ""]
+background_genes <- unique(background_genes)
 
-# Prepare expression data
-expr_mat <- logcounts(spe)
-geneData <- rowData(spe)
-
-rownames(expr_mat) <- geneData$gene_id
-
-# Only retain unique, protein coding autosomal genes
-geneData <- geneData[!duplicated(geneData$gene_name), ]
-geneData <- geneData[geneData$gene_type == "protein_coding", ]
-geneData <- geneData[!grepl("^MT-", geneData$gene_name), ]
-geneData <- geneData[!grepl("^RP[SL]", geneData$gene_name), ]
-
-# Subset the expression matrix
-expr_mat <- expr_mat[rownames(expr_mat) %in% geneData$gene_id, ]
-
-# Now compute the correlations
-pattern_cols <- grep("^meringue_cluster_", colnames(colData(spe)), value = TRUE)
-
-compute_cor_matrix <- function(expr, patterns) {
-  cor_mat <- matrix(NA, nrow = nrow(expr), ncol = length(patterns))
-  rownames(cor_mat) <- rownames(expr)
-  colnames(cor_mat) <- patterns
+# ------------------------------------------------------------------
+# Function to run Reactome enrichment for one cell type
+# Query genes: FDR < 0.05 and logFC > 0.5
+# Multiple testing correction: BH/FDR via g:Profiler
+# ------------------------------------------------------------------
+run_gprofiler_reactome <- function(enrichment_df,
+                                   cell_type,
+                                   fdr_cutoff = 0.05,
+                                   logfc_cutoff = 0.5) {
   
-  for (pat in patterns) {
-    print(pat)
-    
-    pat_values <- colData(spe)[[pat]]
-    non_na_idx <- which(!is.na(pat_values))
-    
-    expr_sub <- expr[, non_na_idx, drop = FALSE]
-    pat_sub <- pat_values[non_na_idx]
-    
-    expr_sub <- as.matrix(expr_sub)
-    
-    cors <- apply(expr_sub, 1, function(x) cor(x, pat_sub, method = "pearson"))
-    
-    cor_mat[, pat] <- cors
+  fdr_col <- paste0("fdr_", cell_type)
+  logfc_col <- paste0("logFC_", cell_type)
+  
+  query_df <- enrichment_df %>%
+    dplyr::select(gene, !!fdr_col, !!logfc_col) %>%
+    dplyr::rename(
+      fdr = !!fdr_col,
+      logFC = !!logfc_col
+    ) %>%
+    dplyr::filter(!is.na(gene), gene != "") %>%
+    dplyr::filter(!is.na(fdr), !is.na(logFC)) %>%
+    dplyr::filter(fdr < fdr_cutoff, logFC > logfc_cutoff)
+  
+  query_genes <- unique(query_df$gene)
+  
+  if (length(query_genes) < 2) {
+    message("Skipping ", cell_type, ": fewer than 2 genes pass thresholds")
+    return(NULL)
   }
   
-  cor_mat
+  gp_res <- gost(
+    query = query_genes,
+    organism = "hsapiens",
+    ordered_query = FALSE,
+    multi_query = FALSE,
+    significant = FALSE,
+    exclude_iea = FALSE,
+    measure_underrepresentation = FALSE,
+    evcodes = FALSE,
+    user_threshold = 0.05,
+    correction_method = "fdr",
+    custom_bg = background_genes,
+    sources = c("REAC")
+  )
+  
+  if (is.null(gp_res) || is.null(gp_res$result) || nrow(gp_res$result) == 0) {
+    message("No Reactome enrichment for ", cell_type)
+    return(NULL)
+  }
+  
+  out <- gp_res$result %>%
+    dplyr::transmute(
+      cell_type = cell_type,
+      pathway = term_name,
+      p_adj_BH = p_value,
+      intersection_size = intersection_size,
+      term_size = term_size
+    ) %>%
+    dplyr::filter(p_adj_BH < 0.05) %>%
+    dplyr::arrange(p_adj_BH)
+  
+  return(out)
 }
 
-cor_mat <- compute_cor_matrix(expr_mat, pattern_cols)
-cor_mat <- cor_mat[rowSums(is.na(cor_mat)) == 0, ]
+# ------------------------------------------------------------------
+# Run across all cell types
+# ------------------------------------------------------------------
+reactome_list <- lapply(cell_types, function(ct) {
+  message("Running Reactome enrichment for ", ct)
+  run_gprofiler_reactome(enrichment, ct)
+})
 
-# Prep reactome
-xx <- as.list(reactomePATHID2NAME)
-reactome.h <- xx[grep("^Homo", xx)]
+# Remove NULL results
+reactome_list <- reactome_list[!vapply(reactome_list, is.null, logical(1))]
 
-x <- as.list(reactomePATHID2EXTID)
-reactome.h <- reactome.h[intersect(names(reactome.h), names(x))]
+# Bind results
+if (length(reactome_list) > 0) {
+  reactome_df <- bind_rows(reactome_list) %>%
+    dplyr::arrange(cell_type, p_adj_BH)
+} else {
+  reactome_df <- data.frame(
+    cell_type = character(),
+    pathway = character(),
+    p_adj_BH = numeric(),
+    intersection_size = integer(),
+    term_size = integer()
+  )
+}
 
-x.h <- x[names(reactome.h)]
-identical(names(x.h), names(reactome.h))
+# ------------------------------------------------------------------
+# Save results
+# ------------------------------------------------------------------
+out_file <- file.path(dat_dir, "gprofiler_REACTOME_celltypes_BH_minimal.csv")
+write.csv(reactome_df, out_file, row.names = FALSE)
 
-reactome.h <- gsub("Homo sapiens: ", "", reactome.h)
-names(x.h) <- reactome.h
-
-#################
-# GSEA MCP1
-
-non0.mcp1 <- rownames(cor_mat)[cor_mat[, "meringue_cluster_1"] > 0]
-
-non0.1.id <- mapIds(
-  org.Hs.eg.db,
-  keys = non0.mcp1,
-  keytype = "ENSEMBL",
-  column = "ENTREZID",
-  multiVals = "first"
-)
-
-names(non0.1.id) <- non0.mcp1
-non0.1.id <- non0.1.id[!is.na(non0.1.id)]
-
-pathways.1 <- reactomePathways(non0.1.id)
-pathways.1 <- x.h[names(pathways.1)]
-
-mcp1.stats <- cor_mat[names(non0.1.id), "meringue_cluster_1"]
-names(mcp1.stats) <- non0.1.id
-
-set.seed(123)
-mcp1.results <- fgseaMultilevel(
-  pathways.1,
-  stats = mcp1.stats,
-  scoreType = "pos",
-  minSize = 15,
-  maxSize = 500
-)
-
-mcp1.results$leadingEdge2 <- sapply(mcp1.results$leadingEdge, paste, collapse = "/")
-
-write.csv(
-  mcp1.results[, c(1:7, 9)],
-  file.path(save_dir, "mcp1_reactome_results.csv")
-)
-
-#################
-# MCP2
-
-non0.mcp2 <- rownames(cor_mat)[cor_mat[, "meringue_cluster_2"] > 0]
-
-non0.2.id <- mapIds(org.Hs.eg.db, keys = non0.mcp2, keytype = "ENSEMBL", column = "ENTREZID", multiVals = "first")
-names(non0.2.id) <- non0.mcp2
-non0.2.id <- non0.2.id[!is.na(non0.2.id)]
-
-pathways.2 <- reactomePathways(non0.2.id)
-pathways.2 <- x.h[names(pathways.2)]
-
-mcp2.stats <- cor_mat[names(non0.2.id), "meringue_cluster_2"]
-names(mcp2.stats) <- non0.2.id
-
-set.seed(123)
-mcp2.results <- fgseaMultilevel(pathways.2, stats = mcp2.stats, scoreType = "pos", minSize = 15, maxSize = 500)
-
-mcp2.results$leadingEdge2 <- sapply(mcp2.results$leadingEdge, paste, collapse = "/")
-
-write.csv(mcp2.results[, c(1:7, 9)], file.path(save_dir, "mcp2_reactome_results.csv"))
-
-#################
-# MCP3
-
-non0.mcp3 <- rownames(cor_mat)[cor_mat[, "meringue_cluster_3"] > 0]
-
-non0.3.id <- mapIds(org.Hs.eg.db, keys = non0.mcp3, keytype = "ENSEMBL", column = "ENTREZID", multiVals = "first")
-names(non0.3.id) <- non0.mcp3
-non0.3.id <- non0.3.id[!is.na(non0.3.id)]
-
-pathways.3 <- reactomePathways(non0.3.id)
-pathways.3 <- x.h[names(pathways.3)]
-
-mcp3.stats <- cor_mat[names(non0.3.id), "meringue_cluster_3"]
-names(mcp3.stats) <- non0.3.id
-
-set.seed(123)
-mcp3.results <- fgseaMultilevel(pathways.3, stats = mcp3.stats, scoreType = "pos", minSize = 15, maxSize = 500)
-
-mcp3.results$leadingEdge2 <- sapply(mcp3.results$leadingEdge, paste, collapse = "/")
-
-write.csv(mcp3.results[, c(1:7, 9)], file.path(save_dir, "mcp3_reactome_results.csv"))
-
-#################
-# MCP4
-
-non0.mcp4 <- rownames(cor_mat)[cor_mat[, "meringue_cluster_4"] > 0]
-
-non0.4.id <- mapIds(org.Hs.eg.db, keys = non0.mcp4, keytype = "ENSEMBL", column = "ENTREZID", multiVals = "first")
-names(non0.4.id) <- non0.mcp4
-non0.4.id <- non0.4.id[!is.na(non0.4.id)]
-
-pathways.4 <- reactomePathways(non0.4.id)
-pathways.4 <- x.h[names(pathways.4)]
-
-mcp4.stats <- cor_mat[names(non0.4.id), "meringue_cluster_4"]
-names(mcp4.stats) <- non0.4.id
-
-set.seed(123)
-mcp4.results <- fgseaMultilevel(pathways.4, stats = mcp4.stats, scoreType = "pos", minSize = 15, maxSize = 500)
-
-mcp4.results$leadingEdge2 <- sapply(mcp4.results$leadingEdge, paste, collapse = "/")
-
-write.csv(mcp4.results[, c(1:7, 9)], file.path(save_dir, "mcp4_reactome_results.csv"))
+# ------------------------------------------------------------------
+# Optional preview
+# ------------------------------------------------------------------
+print(head(reactome_df))
+cat("Saved results to:", out_file, "\n")

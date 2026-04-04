@@ -4,8 +4,8 @@
 #SBATCH --time=48:0:0
 #SBATCH --mem=60G
 #SBATCH --job-name=04_spatial_NHP_comparison
-#SBATCH -o ../../processed-data/17_cross_species_comparison/logs/04-spatial_NHP_comparison_neurons.log
-#SBATCH -e ../../processed-data/17_cross_species_comparison/logs/04-spatial_NHP_comparison_neurons.log
+#SBATCH -o ../../processed-data/17_cross_species_comparison/logs/04-spatial_NHP_comparison.log
+#SBATCH -e ../../processed-data/17_cross_species_comparison/logs/04-spatial_NHP_comparison.log
 
 set -e
 echo "**** Job starts ****"

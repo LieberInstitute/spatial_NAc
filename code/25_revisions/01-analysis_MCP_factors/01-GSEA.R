@@ -148,3 +148,114 @@ mcp4.results = fgseaMultilevel(pathways.4, stats=mcp4.stats, scoreType="pos", mi
 mcp4.results$leadingEdge2 = sapply(mcp4.results$leadingEdge, paste, collapse="/")
 write.csv(mcp4.results[,c(1:7,9)], file.path(save_dir ,"mcp4_reactome_results.csv"))
 
+# =========================================================
+# GSEA tables
+# =========================================================
+
+plot_gsea_terms <- function(terms, pathway_list, stats, fgsea_res, outfile,
+                            width = 8, height = 4) {
+  keep_terms <- intersect(terms, names(pathway_list))
+
+  if (length(keep_terms) == 0) {
+    warning(sprintf("No selected pathways found for %s", outfile))
+    return(invisible(NULL))
+  }
+
+  pdf(outfile, width = width, height = height)
+  p <- plotGseaTable(
+    pathway_list[keep_terms],
+    stats,
+    fgsea_res,
+    gseaParam = 0.5
+  )
+  print(p)
+  dev.off()
+}
+
+mcp1.terms <- c(
+  "Transmission across Chemical Synapses",
+  "Signaling by GPCR",
+  "DARPP-32 events",
+  "Opioid Signalling",
+  "GABA synthesis, release, reuptake and degradation",
+  "Post NMDA receptor activation events",
+  "EPH-Ephrin signaling"
+)
+
+mcp3.terms <- c(
+  "Transmission across Chemical Synapses",
+  "Signaling by GPCR",
+  "Post NMDA receptor activation events",
+  "Glutamate binding, activation of AMPA receptors and synaptic plasticity",
+  "Opioid Signalling",
+  "L1CAM interactions",
+  "Neurotransmitter release cycle"
+)
+
+mcp4.terms <- c(
+  "Signaling by GPCR",
+  "G alpha (i) signalling events",
+  "PLC beta mediated events",
+  "DAG and IP3 signaling",
+  "Ca-dependent events",
+  "Transmission across Chemical Synapses",
+  "Opioid Signalling"
+)
+
+plot_gsea_terms(
+  terms = mcp1.terms,
+  pathway_list = x.h,
+  stats = mcp1.stats,
+  fgsea_res = mcp1.results,
+  outfile = file.path(plot_dir, "GSEA_table_mcp1.pdf"),
+  width = 8,
+  height = 4
+)
+
+plot_gsea_terms(
+  terms = mcp3.terms,
+  pathway_list = x.h,
+  stats = mcp3.stats,
+  fgsea_res = mcp3.results,
+  outfile = file.path(plot_dir, "GSEA_table_mcp3.pdf"),
+  width = 8,
+  height = 4
+)
+
+plot_gsea_terms(
+  terms = mcp4.terms,
+  pathway_list = x.h,
+  stats = mcp4.stats,
+  fgsea_res = mcp4.results,
+  outfile = file.path(plot_dir, "GSEA_table_mcp4.pdf"),
+  width = 8,
+  height = 4
+)
+
+save_dir <- here::here("processed-data", "25_revisions", "01_MCP_GSEA")
+out_file <- file.path(save_dir, "Supplementary_Table_11_MCP_GSEA.csv")
+
+read_mcp_gsea <- function(file, mcp_name) {
+  read_csv(file, show_col_types = FALSE) %>%
+    dplyr::mutate(MCP = mcp_name) %>%
+    dplyr::select(
+      MCP,
+      pathway,
+      pval,
+      padj,
+      log2err,
+      ES,
+      NES,
+      size
+    )
+}
+
+supp_table_11 <- bind_rows(
+  read_mcp_gsea(file.path(save_dir, "mcp1_reactome_results.csv"), "MCP 1"),
+  read_mcp_gsea(file.path(save_dir, "mcp2_reactome_results.csv"), "MCP 2"),
+  read_mcp_gsea(file.path(save_dir, "mcp3_reactome_results.csv"), "MCP 3"),
+  read_mcp_gsea(file.path(save_dir, "mcp4_reactome_results.csv"), "MCP 4")
+) %>%
+  arrange(MCP, padj, pathway)
+
+write_csv(supp_table_11, out_file)
