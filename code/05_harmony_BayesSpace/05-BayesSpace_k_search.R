@@ -36,6 +36,12 @@ metadata(spe)$BayesSpace.data <- list(platform = "Visium", is.enhanced = FALSE)
 colData(spe)$row <- spe$array_row
 colData(spe)$col <- spe$array_col
 
+## Note that the spatial coordinates were previously offset
+## at https://github.com/LieberInstitute/spatial_NAc/blob/145f74fb821473fb36d6845c5f6331ea0024f089/code/05_harmony_BayesSpace/04-preprocess_and_harmony.R#L246-L249
+## Otherwise the results from spatialCluster() would be incorrect.
+## See http://edward130603.github.io/BayesSpace/articles/joint_clustering.html#clustering-1
+## for more details.
+
 message("Running spatialCluster()")
 Sys.time()
 spe <- spatialCluster(spe, use.dimred = "HARMONY", q = k, nrep = 10000)
